@@ -1,0 +1,1 @@
+export { DebateEditor } from './DebateEditor';

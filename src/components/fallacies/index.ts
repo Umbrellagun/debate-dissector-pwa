@@ -1,0 +1,1 @@
+export { FallacyPanel } from './FallacyPanel';
