@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Fallacy, FallacyCategory, FALLACY_CATEGORY_NAMES } from '../../models';
+import { FallacyDetailView } from './FallacyDetailView';
 
 interface FallacyPanelProps {
   fallacies: Fallacy[];
   onFallacySelect?: (fallacy: Fallacy) => void;
+  onFallacyApply?: (fallacy: Fallacy) => void;
   selectedFallacyId?: string;
 }
 
 export const FallacyPanel: React.FC<FallacyPanelProps> = ({
   fallacies,
   onFallacySelect,
+  onFallacyApply,
   selectedFallacyId,
 }) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<FallacyCategory>>(
@@ -28,6 +31,8 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
       return next;
     });
   };
+
+  const selectedFallacy = fallacies.find((f) => f.id === selectedFallacyId) || null;
 
   const filteredFallacies = fallacies.filter(
     (f) =>
@@ -113,6 +118,13 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
           );
         })}
       </div>
+
+      {/* Detail View */}
+      <FallacyDetailView
+        fallacy={selectedFallacy}
+        onClose={() => onFallacySelect?.(null as unknown as Fallacy)}
+        onApply={onFallacyApply}
+      />
     </div>
   );
 };

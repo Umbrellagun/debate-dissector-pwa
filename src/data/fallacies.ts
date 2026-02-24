@@ -8,6 +8,9 @@ export const FALLACIES: Fallacy[] = [
     description: 'Misrepresenting someone\'s argument to make it easier to attack.',
     category: 'informal',
     color: '#FF6B6B',
+    examples: [
+      'Person A: We should have stricter environmental regulations. Person B: Person A wants to destroy all businesses and jobs.',
+    ],
   },
   {
     id: 'ad-hominem',
@@ -15,6 +18,9 @@ export const FALLACIES: Fallacy[] = [
     description: 'Attacking the person making the argument rather than the argument itself.',
     category: 'informal',
     color: '#FF8E72',
+    examples: [
+      'You can\'t trust John\'s opinion on climate change - he\'s not even a scientist.',
+    ],
   },
   {
     id: 'false-dilemma',
@@ -22,6 +28,10 @@ export const FALLACIES: Fallacy[] = [
     description: 'Presenting only two options when more exist.',
     category: 'informal',
     color: '#FFA94D',
+    examples: [
+      'You\'re either with us or against us.',
+      'Either we ban all cars or the planet will be destroyed.',
+    ],
   },
   {
     id: 'slippery-slope',
