@@ -1,0 +1,133 @@
+import React from 'react';
+import { useSlate } from 'slate-react';
+import { CustomEditor, MarkType, BlockType } from './types';
+import { isMarkActive, toggleMark, isBlockActive, toggleBlock } from './utils';
+
+interface ToolbarButtonProps {
+  active: boolean;
+  onMouseDown: (e: React.MouseEvent) => void;
+  children: React.ReactNode;
+  title: string;
+}
+
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({
+  active,
+  onMouseDown,
+  children,
+  title,
+}) => (
+  <button
+    type="button"
+    onMouseDown={onMouseDown}
+    title={title}
+    className={`p-2 rounded hover:bg-gray-200 transition-colors ${
+      active ? 'bg-gray-200 text-blue-600' : 'text-gray-600'
+    }`}
+  >
+    {children}
+  </button>
+);
+
+interface MarkButtonProps {
+  mark: MarkType;
+  icon: React.ReactNode;
+  title: string;
+}
+
+const MarkButton: React.FC<MarkButtonProps> = ({ mark, icon, title }) => {
+  const editor = useSlate() as CustomEditor;
+  return (
+    <ToolbarButton
+      active={isMarkActive(editor, mark)}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        toggleMark(editor, mark);
+      }}
+      title={title}
+    >
+      {icon}
+    </ToolbarButton>
+  );
+};
+
+interface BlockButtonProps {
+  block: BlockType;
+  icon: React.ReactNode;
+  title: string;
+}
+
+const BlockButton: React.FC<BlockButtonProps> = ({ block, icon, title }) => {
+  const editor = useSlate() as CustomEditor;
+  return (
+    <ToolbarButton
+      active={isBlockActive(editor, block)}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        toggleBlock(editor, block);
+      }}
+      title={title}
+    >
+      {icon}
+    </ToolbarButton>
+  );
+};
+
+const BoldIcon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
+  </svg>
+);
+
+const ItalicIcon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z" />
+  </svg>
+);
+
+const UnderlineIcon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z" />
+  </svg>
+);
+
+const StrikeIcon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M10 19h4v-3h-4v3zM5 4v3h5v3h4V7h5V4H5zM3 14h18v-2H3v2z" />
+  </svg>
+);
+
+const H1Icon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <text x="2" y="17" fontSize="14" fontWeight="bold">H1</text>
+  </svg>
+);
+
+const H2Icon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <text x="2" y="17" fontSize="14" fontWeight="bold">H2</text>
+  </svg>
+);
+
+const QuoteIcon = () => (
+  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
+  </svg>
+);
+
+export const EditorToolbar: React.FC = () => {
+  return (
+    <div className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center gap-0.5 border-r border-gray-300 pr-2 mr-1">
+        <MarkButton mark="bold" icon={<BoldIcon />} title="Bold (Ctrl+B)" />
+        <MarkButton mark="italic" icon={<ItalicIcon />} title="Italic (Ctrl+I)" />
+        <MarkButton mark="underline" icon={<UnderlineIcon />} title="Underline (Ctrl+U)" />
+        <MarkButton mark="strikethrough" icon={<StrikeIcon />} title="Strikethrough" />
+      </div>
+      <div className="flex items-center gap-0.5">
+        <BlockButton block="heading-one" icon={<H1Icon />} title="Heading 1" />
+        <BlockButton block="heading-two" icon={<H2Icon />} title="Heading 2" />
+        <BlockButton block="block-quote" icon={<QuoteIcon />} title="Block Quote" />
+      </div>
+    </div>
+  );
+};

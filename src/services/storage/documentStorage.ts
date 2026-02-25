@@ -149,6 +149,31 @@ function extractPreview(content: Descendant[], maxLength: number = 100): string 
 }
 
 /**
+ * Save a document (create or update)
+ */
+export async function saveDocument(doc: DebateDocument): Promise<DebateDocument> {
+  const db = await getDB();
+  const existing = await db.get('documents', doc.id);
+  
+  const document: DebateDocument = {
+    ...doc,
+    updatedAt: Date.now(),
+  };
+  
+  await db.put('documents', document);
+  
+  await db.put('syncQueue', {
+    id: `sync_${Date.now()}`,
+    documentId: doc.id,
+    action: existing ? 'update' : 'create',
+    timestamp: Date.now(),
+    synced: false,
+  });
+  
+  return document;
+}
+
+/**
  * Search documents by title or content
  */
 export async function searchDocuments(query: string): Promise<DocumentListItem[]> {

@@ -7,6 +7,7 @@ export {
   listDocuments,
   searchDocuments,
   generateDocumentId,
+  saveDocument,
 } from './documentStorage';
 export {
   getPreferences,

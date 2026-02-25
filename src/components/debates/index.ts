@@ -1,0 +1,1 @@
+export { DebateList } from './DebateList';

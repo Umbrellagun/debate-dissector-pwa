@@ -22,14 +22,18 @@ export interface DocumentListItem {
 
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
+  fontSize: 'small' | 'medium' | 'large';
   autoSave: boolean;
   autoSaveInterval: number;
   showFallacyPanel: boolean;
+  lastEditedDocumentId?: string;
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   theme: 'system',
+  fontSize: 'medium',
   autoSave: true,
   autoSaveInterval: 30000,
   showFallacyPanel: true,
+  lastEditedDocumentId: undefined,
 };
