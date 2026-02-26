@@ -450,7 +450,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
           <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
             {!readOnly && <EditorToolbar />}
             <Editable
-              className="flex-1 p-4 focus:outline-none overflow-y-auto"
+              className="flex-1 p-3 sm:p-4 md:p-6 focus:outline-none overflow-y-auto text-base leading-relaxed"
               renderLeaf={renderLeaf}
               renderElement={renderElement}
               placeholder={placeholder}

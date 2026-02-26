@@ -81,6 +81,7 @@ export const EditorPage: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [annotationTab, setAnnotationTab] = useState<AnnotationTabType>('fallacies');
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [hasTextSelection, setHasTextSelection] = useState(false);
   
   // Sync sidebar states from preferences once loaded
   useEffect(() => {
@@ -206,7 +207,14 @@ export const EditorPage: React.FC = () => {
 
   const handleSelectionChange = useCallback(() => {
     const editor = editorRef.current?.getEditor();
-    if (!editor || !editor.selection) return;
+    if (!editor || !editor.selection) {
+      setHasTextSelection(false);
+      return;
+    }
+    
+    // Check if there's actual text selected (not just a cursor position)
+    const isTextSelected = !Range.isCollapsed(editor.selection);
+    setHasTextSelection(isTextSelected);
     
     // Get the leaf node at the current selection point
     const [start] = Range.edges(editor.selection);
@@ -364,6 +372,7 @@ export const EditorPage: React.FC = () => {
   return (
     <MainLayout
       showLeftSidebar={showLeftSidebar}
+      onLeftSidebarClose={() => setShowLeftSidebar(false)}
       leftSidebar={
         <EditorLeftSidebar
           onNewDocument={handleNewDocument}
@@ -403,60 +412,76 @@ export const EditorPage: React.FC = () => {
           />
         }
         actions={
-          <div className="flex items-center gap-4 flex-wrap">
-            {usedFallacies.length > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-red-600 font-medium mr-1">Fallacies:</span>
-                {usedFallacies.map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => {
-                      setAnnotationTab('fallacies');
-                      setSelectedFallacy(f);
-                    }}
-                    className="px-2 py-1 text-xs font-medium rounded cursor-pointer hover:opacity-80 transition-opacity"
-                    style={{
-                      backgroundColor: f.color,
-                      color: '#fff',
-                    }}
-                  >
-                    {f.name}
-                  </button>
-                ))}
-              </div>
-            )}
-            {usedRhetoric.length > 0 && (
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-blue-600 font-medium mr-1">Rhetoric:</span>
-                {usedRhetoric.map(r => (
-                  <button
-                    key={r.id}
-                    onClick={() => {
-                      setAnnotationTab('rhetoric');
-                      setSelectedRhetoric(r);
-                    }}
-                    className="px-2 py-1 text-xs font-medium rounded cursor-pointer hover:opacity-80 transition-opacity"
-                    style={{
-                      backgroundColor: r.color,
-                      color: '#fff',
-                    }}
-                  >
-                    {r.name}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Annotation tags - hidden on small screens */}
+            <div className="hidden md:flex items-center gap-4 flex-wrap">
+              {usedFallacies.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-red-600 font-medium mr-1">Fallacies:</span>
+                  {usedFallacies.map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => {
+                        setAnnotationTab('fallacies');
+                        setSelectedFallacy(f);
+                        if (!rightSidebarExpanded) setRightSidebarExpanded(true);
+                      }}
+                      className="px-2 py-1 text-xs font-medium rounded cursor-pointer hover:opacity-80 transition-opacity"
+                      style={{
+                        backgroundColor: f.color,
+                        color: '#fff',
+                      }}
+                    >
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {usedRhetoric.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-blue-600 font-medium mr-1">Rhetoric:</span>
+                  {usedRhetoric.map(r => (
+                    <button
+                      key={r.id}
+                      onClick={() => {
+                        setAnnotationTab('rhetoric');
+                        setSelectedRhetoric(r);
+                        if (!rightSidebarExpanded) setRightSidebarExpanded(true);
+                      }}
+                      className="px-2 py-1 text-xs font-medium rounded cursor-pointer hover:opacity-80 transition-opacity"
+                      style={{
+                        backgroundColor: r.color,
+                        color: '#fff',
+                      }}
+                    >
+                      {r.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Version history - shown first on mobile for better UX */}
             <button
               onClick={() => setShowVersionHistory(true)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
               title="Version History"
             >
               <HistoryIcon className="w-5 h-5" />
             </button>
+            {/* Annotation panel toggle - visible on mobile */}
+            <button
+              onClick={handleRightSidebarToggle}
+              className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
+              title="Annotations"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </button>
           </div>
         }
       />
-      <div className="flex-1 overflow-hidden bg-white flex flex-col">
+      <div className="flex-1 overflow-hidden bg-white flex flex-col relative">
         <div className="flex-1 overflow-hidden">
           <DebateEditor
             key={currentDoc.id}
@@ -481,6 +506,30 @@ export const EditorPage: React.FC = () => {
             placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
           />
         </div>
+        
+        {/* Floating Apply/Remove Button - visible on mobile when text is selected and annotation is chosen */}
+        {hasTextSelection && (selectedFallacy || selectedRhetoric) && (
+          <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+            <button
+              onClick={() => {
+                if (selectedFallacy) {
+                  handleFallacyApply(selectedFallacy);
+                } else if (selectedRhetoric) {
+                  handleRhetoricApply(selectedRhetoric);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-3 rounded-full shadow-lg touch-manipulation font-medium text-white"
+              style={{
+                backgroundColor: selectedFallacy?.color || selectedRhetoric?.color || '#3b82f6',
+              }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              <span>Apply {selectedFallacy?.name || selectedRhetoric?.name}</span>
+            </button>
+          </div>
+        )}
       </div>
       
       {showVersionHistory && (

@@ -54,21 +54,21 @@ export const FALLACIES: Fallacy[] = [
     name: 'Red Herring',
     description: 'Introducing an irrelevant topic to divert attention from the original issue.',
     category: 'red-herring',
-    color: '#69DB7C',
+    color: '#C92A2A',
   },
   {
     id: 'tu-quoque',
     name: 'Tu Quoque',
     description: 'Deflecting criticism by pointing out the critic\'s similar behavior.',
     category: 'red-herring',
-    color: '#38D9A9',
+    color: '#D9480F',
   },
   {
     id: 'appeal-to-emotion',
     name: 'Appeal to Emotion',
     description: 'Using emotions rather than logic to persuade.',
     category: 'red-herring',
-    color: '#3BC9DB',
+    color: '#A61E4D',
   },
 
   // Formal Fallacies
@@ -134,7 +134,7 @@ export const FALLACIES: Fallacy[] = [
     name: 'Undistributed Middle',
     description: 'The middle term in a syllogism is not distributed in at least one premise.',
     category: 'syllogistic',
-    color: '#D9480F',
+    color: '#69DB7C',
   },
 
   // Conditional Fallacies
@@ -143,13 +143,13 @@ export const FALLACIES: Fallacy[] = [
     name: 'Begging the Question',
     description: 'The conclusion is assumed in one of the premises.',
     category: 'conditional',
-    color: '#C92A2A',
+    color: '#38D9A9',
   },
   {
     id: 'circular-reasoning',
     name: 'Circular Reasoning',
     description: 'The argument\'s conclusion is used as one of its premises.',
     category: 'conditional',
-    color: '#A61E4D',
+    color: '#3BC9DB',
   },
 ];
