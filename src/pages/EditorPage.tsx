@@ -8,6 +8,7 @@ import { VersionHistoryPanel } from '../components/version';
 import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem, DocumentVersion } from '../models';
 import { FALLACIES } from '../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../data/rhetoric';
+import { EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT } from '../data/exampleDocument';
 import { useApp } from '../context';
 import { saveDocument as saveDoc, createVersion } from '../services/storage';
 
@@ -67,7 +68,7 @@ const normalizeEditorContent = (content: Descendant[] | undefined | null): Desce
 export const EditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state, loadDocument, loadDocuments, createDocument, saveDocument, updatePreferences } = useApp();
+  const { state, loadDocument, loadDocuments, createDocument, saveDocument, deleteDocument, updatePreferences } = useApp();
   const { documents, preferences, isLoading } = state;
 
   const editorRef = useRef<DebateEditorHandle>(null);
@@ -121,7 +122,14 @@ export const EditorPage: React.FC = () => {
       }
 
       if (!doc) {
-        doc = await createDocument('Untitled Debate');
+        // Check if this is a first-time user (no documents exist)
+        const isFirstTime = documents.length === 0;
+        if (isFirstTime) {
+          // Create example document with pre-marked fallacies
+          doc = await createDocument(EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT);
+        } else {
+          doc = await createDocument('Untitled Debate');
+        }
       }
 
       setCurrentDoc(doc);
@@ -130,7 +138,7 @@ export const EditorPage: React.FC = () => {
     };
 
     initDocument();
-  }, [id, isLoading, isInitialized, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences]);
+  }, [id, isLoading, isInitialized, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences, documents.length]);
 
   const handleFallacySelect = useCallback((fallacy: Fallacy | null) => {
     setSelectedFallacy(fallacy);
@@ -290,6 +298,29 @@ export const EditorPage: React.FC = () => {
     }
   }, [currentDoc?.id, loadDocument, updatePreferences, navigate]);
 
+  const handleDocumentDelete = useCallback(async (docId: string) => {
+    await deleteDocument(docId);
+    
+    // If we deleted the current document, switch to another one
+    if (docId === currentDoc?.id) {
+      const remainingDocs = documents.filter(d => d.id !== docId);
+      if (remainingDocs.length > 0) {
+        const nextDoc = await loadDocument(remainingDocs[0].id);
+        if (nextDoc) {
+          setCurrentDoc(nextDoc);
+          await updatePreferences({ lastEditedDocumentId: nextDoc.id });
+          navigate(`/editor/${nextDoc.id}`);
+        }
+      } else {
+        // No documents left, create a new one
+        const newDoc = await createDocument('Untitled Debate');
+        setCurrentDoc(newDoc);
+        await updatePreferences({ lastEditedDocumentId: newDoc.id });
+        navigate(`/editor/${newDoc.id}`);
+      }
+    }
+  }, [currentDoc?.id, documents, deleteDocument, loadDocument, createDocument, updatePreferences, navigate]);
+
   const handleVersionRestore = useCallback(async (version: DocumentVersion) => {
     if (!currentDoc) return;
     
@@ -339,6 +370,7 @@ export const EditorPage: React.FC = () => {
           documents={documents}
           currentDocumentId={currentDoc.id}
           onDocumentSelect={handleDocumentSelect}
+          onDocumentDelete={handleDocumentDelete}
         />
       }
       showRightSidebar={true}

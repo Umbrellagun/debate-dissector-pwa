@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Fallacy } from '../../models';
-import { Rhetoric } from '../../models';
+import { Fallacy, FALLACY_CATEGORY_NAMES } from '../../models';
+import { Rhetoric, RHETORIC_CATEGORY_NAMES } from '../../models';
 import { FallacyPanel } from './FallacyPanel';
 import { RhetoricPanel } from './RhetoricPanel';
 import { useApp } from '../../context';
@@ -84,7 +84,7 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
   return (
     <div className="h-full flex flex-col">
       {/* Unified Search Bar */}
-      <div className="p-3 border-b border-gray-200">
+      <div className="h-14 px-4 border-b border-gray-200 flex items-center shrink-0">
         <input
           type="text"
           placeholder="Search fallacies & rhetoric..."
@@ -156,6 +156,103 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* Detail View - Fixed at bottom, outside scrollable area */}
+      {selectedFallacyId && (() => {
+        const selectedFallacy = fallacies.find(f => f.id === selectedFallacyId);
+        if (!selectedFallacy) return null;
+        return (
+          <div className="border-t border-gray-200 bg-gray-50 p-4 flex-shrink-0">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-4 h-4 rounded-full shrink-0"
+                  style={{ backgroundColor: selectedFallacy.color }}
+                />
+                <h3 className="font-semibold text-gray-900">{selectedFallacy.name}</h3>
+              </div>
+              <button
+                onClick={() => onFallacySelect?.(null as unknown as Fallacy)}
+                className="p-1 hover:bg-gray-200 rounded transition-colors"
+                aria-label="Close details"
+              >
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <span className="inline-block px-2 py-0.5 text-xs font-medium text-gray-600 bg-gray-200 rounded mb-3">
+              {FALLACY_CATEGORY_NAMES[selectedFallacy.category]}
+            </span>
+            <p className="text-sm text-gray-700 mb-4">{selectedFallacy.description}</p>
+            {selectedFallacy.examples && selectedFallacy.examples.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Examples</h4>
+                <ul className="space-y-2">
+                  {selectedFallacy.examples.map((example, index) => (
+                    <li key={index} className="text-sm text-gray-600 italic bg-white p-2 rounded border border-gray-200">
+                      "{example}"
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <button
+              onClick={() => onFallacyApply?.(selectedFallacy)}
+              className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
+              style={{ backgroundColor: selectedFallacy.color }}
+            >
+              Apply/Remove from Selected Text
+            </button>
+          </div>
+        );
+      })()}
+
+      {selectedRhetoricId && !selectedFallacyId && (() => {
+        const selectedRhetoric = rhetoric.find(r => r.id === selectedRhetoricId);
+        if (!selectedRhetoric) return null;
+        return (
+          <div className="border-t border-gray-200 bg-blue-50 p-4 flex-shrink-0">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-4 h-4 rounded-full shrink-0"
+                  style={{ backgroundColor: selectedRhetoric.color }}
+                />
+                <h3 className="font-semibold text-gray-900">{selectedRhetoric.name}</h3>
+              </div>
+              <button
+                onClick={() => onRhetoricSelect?.(null as unknown as Rhetoric)}
+                className="p-1 hover:bg-gray-200 rounded transition-colors"
+                aria-label="Close details"
+              >
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <span className="inline-block px-2 py-0.5 text-xs font-medium text-gray-600 bg-gray-200 rounded mb-3">
+              {RHETORIC_CATEGORY_NAMES[selectedRhetoric.category]}
+            </span>
+            <p className="text-sm text-gray-700 mb-4">{selectedRhetoric.description}</p>
+            {selectedRhetoric.examples && selectedRhetoric.examples.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Example</h4>
+                <p className="text-sm text-gray-600 italic bg-white p-2 rounded border border-gray-200">
+                  "{selectedRhetoric.examples[0]}"
+                </p>
+              </div>
+            )}
+            <button
+              onClick={() => onRhetoricApply?.(selectedRhetoric)}
+              className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
+              style={{ backgroundColor: selectedRhetoric.color }}
+            >
+              Apply/Remove from Selected Text
+            </button>
+          </div>
+        );
+      })()}
     </div>
   );
 };

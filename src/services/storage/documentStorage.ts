@@ -4,6 +4,33 @@ import { Descendant } from 'slate';
 import { createVersion } from './versionStorage';
 
 /**
+ * Count total annotations (fallacy + rhetoric marks) in content
+ */
+function countAnnotationsInContent(content: Descendant[]): number {
+  let count = 0;
+  
+  const traverse = (nodes: Descendant[]) => {
+    for (const node of nodes) {
+      if ('text' in node) {
+        const textNode = node as { fallacyMarks?: unknown[]; rhetoricMarks?: unknown[] };
+        if (textNode.fallacyMarks) {
+          count += textNode.fallacyMarks.length;
+        }
+        if (textNode.rhetoricMarks) {
+          count += textNode.rhetoricMarks.length;
+        }
+      }
+      if ('children' in node && Array.isArray((node as { children: Descendant[] }).children)) {
+        traverse((node as { children: Descendant[] }).children);
+      }
+    }
+  };
+  
+  traverse(content);
+  return count;
+}
+
+/**
  * Generate a unique ID for documents
  */
 export function generateDocumentId(): string {
@@ -123,7 +150,7 @@ export async function listDocuments(): Promise<DocumentListItem[]> {
     preview: extractPreview(doc.content),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
-    annotationCount: Object.keys(doc.annotations).length,
+    annotationCount: countAnnotationsInContent(doc.content),
   }));
 }
 

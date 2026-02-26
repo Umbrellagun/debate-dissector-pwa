@@ -33,17 +33,45 @@ registerRoute(
   createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html')
 );
 
-// Cache images with a Cache-First strategy
+// Cache images with a Stale-While-Revalidate strategy
 registerRoute(
-  // Check if the request is for an image
   ({ request }) => request.destination === 'image',
   new StaleWhileRevalidate({
     cacheName: 'images',
     plugins: [
-      // Ensure we don't keep too many images in the cache
       new ExpirationPlugin({ 
         maxEntries: 50,
         maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+      }),
+    ],
+  })
+);
+
+// Cache CSS and JavaScript files
+registerRoute(
+  ({ request }) => 
+    request.destination === 'style' || 
+    request.destination === 'script',
+  new StaleWhileRevalidate({
+    cacheName: 'static-resources',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 60,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+      }),
+    ],
+  })
+);
+
+// Cache fonts
+registerRoute(
+  ({ request }) => request.destination === 'font',
+  new StaleWhileRevalidate({
+    cacheName: 'fonts',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 30,
+        maxAgeSeconds: 365 * 24 * 60 * 60, // 1 Year
       }),
     ],
   })

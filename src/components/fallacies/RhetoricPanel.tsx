@@ -44,8 +44,6 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
     });
   }, [updatePreferences]);
 
-  const selectedRhetoric = rhetoric.find((r) => r.id === selectedRhetoricId) || null;
-
   const filteredRhetoric = rhetoric.filter(
     (r) =>
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -132,37 +130,6 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
           );
         })}
       </div>
-
-      {/* Detail View */}
-      {selectedRhetoric && (
-        <div className="border-t border-gray-200 p-3 bg-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-medium text-gray-900">{selectedRhetoric.name}</h3>
-            <button
-              onClick={() => onRhetoricSelect?.(null as unknown as Rhetoric)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <p className="text-sm text-gray-600 mb-3">{selectedRhetoric.description}</p>
-          {selectedRhetoric.examples && selectedRhetoric.examples.length > 0 && (
-            <div className="mb-3">
-              <h4 className="text-xs font-medium text-gray-500 mb-1">Example:</h4>
-              <p className="text-xs text-gray-600 italic">"{selectedRhetoric.examples[0]}"</p>
-            </div>
-          )}
-          <button
-            onClick={() => onRhetoricApply?.(selectedRhetoric)}
-            className="w-full py-2 px-3 text-sm font-medium text-white rounded-lg"
-            style={{ backgroundColor: selectedRhetoric.color }}
-          >
-            Apply/Remove from Selected Text
-          </button>
-        </div>
-      )}
     </div>
   );
 };

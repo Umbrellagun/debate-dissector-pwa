@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { Fallacy, FallacyCategory, FALLACY_CATEGORY_NAMES } from '../../models';
-import { FallacyDetailView } from './FallacyDetailView';
 import { useApp } from '../../context';
 
 interface FallacyPanelProps {
@@ -44,8 +43,6 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
       return next;
     });
   }, [updatePreferences]);
-
-  const selectedFallacy = fallacies.find((f) => f.id === selectedFallacyId) || null;
 
   const filteredFallacies = fallacies.filter(
     (f) =>
@@ -133,13 +130,6 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
           );
         })}
       </div>
-
-      {/* Detail View */}
-      <FallacyDetailView
-        fallacy={selectedFallacy}
-        onClose={() => onFallacySelect?.(null as unknown as Fallacy)}
-        onApply={onFallacyApply}
-      />
     </div>
   );
 };

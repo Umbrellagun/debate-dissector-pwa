@@ -7,6 +7,7 @@ interface EditorLeftSidebarProps {
   documents: DocumentListItem[];
   currentDocumentId?: string;
   onDocumentSelect: (id: string) => void;
+  onDocumentDelete?: (id: string) => void;
 }
 
 export const EditorLeftSidebar: React.FC<EditorLeftSidebarProps> = ({
@@ -14,9 +15,23 @@ export const EditorLeftSidebar: React.FC<EditorLeftSidebarProps> = ({
   documents,
   currentDocumentId,
   onDocumentSelect,
+  onDocumentDelete,
 }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, doc: DocumentListItem) => {
+    e.stopPropagation();
+    setDeleteConfirm({ id: doc.id, title: doc.title });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirm && onDocumentDelete) {
+      onDocumentDelete(deleteConfirm.id);
+    }
+    setDeleteConfirm(null);
+  };
 
   const filteredDocuments = useMemo(() => {
     if (!searchQuery.trim()) return documents;
@@ -33,8 +48,8 @@ export const EditorLeftSidebar: React.FC<EditorLeftSidebarProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      <div className="p-4 border-b border-gray-200">
-        <div className="relative">
+      <div className="h-14 px-4 border-b border-gray-200 flex items-center shrink-0">
+        <div className="relative flex-1">
           <svg className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -72,25 +87,40 @@ export const EditorLeftSidebar: React.FC<EditorLeftSidebarProps> = ({
           ) : (
             <div className="space-y-1 mt-1">
               {filteredDocuments.map((doc) => (
-                <button
+                <div
                   key={doc.id}
-                  onClick={() => onDocumentSelect(doc.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                  className={`group relative flex items-center rounded-lg transition-colors ${
                     doc.id === currentDocumentId
                       ? 'bg-blue-100 text-blue-900'
                       : 'hover:bg-gray-100 text-gray-700'
                   }`}
                 >
-                  <div className="text-sm font-medium truncate">{doc.title || 'Untitled'}</div>
-                  <div className="text-xs text-gray-500 flex items-center gap-2">
-                    <span>{formatDate(doc.updatedAt)}</span>
-                    {doc.annotationCount > 0 && (
-                      <span className="bg-gray-200 px-1.5 py-0.5 rounded">
-                        {doc.annotationCount} annotation{doc.annotationCount !== 1 ? 's' : ''}
-                      </span>
-                    )}
-                  </div>
-                </button>
+                  <button
+                    onClick={() => onDocumentSelect(doc.id)}
+                    className="flex-1 text-left px-3 py-2"
+                  >
+                    <div className="text-sm font-medium truncate pr-6">{doc.title || 'Untitled'}</div>
+                    <div className="text-xs text-gray-500 flex items-center gap-2">
+                      <span>{formatDate(doc.updatedAt)}</span>
+                      {doc.annotationCount > 0 && (
+                        <span className="bg-gray-200 px-1.5 py-0.5 rounded">
+                          {doc.annotationCount} annotation{doc.annotationCount !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                  {onDocumentDelete && (
+                    <button
+                      onClick={(e) => handleDeleteClick(e, doc)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 text-gray-400 hover:text-red-600 transition-all"
+                      title="Delete debate"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -109,6 +139,32 @@ export const EditorLeftSidebar: React.FC<EditorLeftSidebarProps> = ({
           App Settings
         </button>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Debate?</h3>
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to delete "<span className="font-medium">{deleteConfirm.title || 'Untitled'}</span>"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 text-sm bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

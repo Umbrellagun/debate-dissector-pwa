@@ -105,9 +105,9 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 #### 5.1 Offline Capabilities
 - [x] Configure service workers (basic Workbox setup)
-- [ ] Implement asset caching strategy
-- [ ] Ensure offline access to saved debates
-- [ ] Add offline indication and synchronization status
+- [x] Implement asset caching strategy
+- [x] Ensure offline access to saved debates
+- [x] Add offline indication and synchronization status
 
 #### 5.2 Installation Experience
 - [ ] Create app manifest
