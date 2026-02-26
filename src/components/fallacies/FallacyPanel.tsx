@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Fallacy, FallacyCategory, FALLACY_CATEGORY_NAMES } from '../../models';
 import { FallacyDetailView } from './FallacyDetailView';
+import { useApp } from '../../context';
 
 interface FallacyPanelProps {
   fallacies: Fallacy[];
   onFallacySelect?: (fallacy: Fallacy) => void;
   onFallacyApply?: (fallacy: Fallacy) => void;
   selectedFallacyId?: string;
+  searchQuery?: string;
 }
 
 export const FallacyPanel: React.FC<FallacyPanelProps> = ({
@@ -14,13 +16,22 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
   onFallacySelect,
   onFallacyApply,
   selectedFallacyId,
+  searchQuery: externalSearchQuery,
 }) => {
+  const { state: { preferences }, updatePreferences } = useApp();
+  
+  // Initialize from preferences
+  const initialCategories = preferences.expandedFallacyCategories ?? ['informal', 'red-herring'];
   const [expandedCategories, setExpandedCategories] = useState<Set<FallacyCategory>>(
-    new Set<FallacyCategory>(['informal', 'red-herring'])
+    new Set<FallacyCategory>(initialCategories as FallacyCategory[])
   );
-  const [searchQuery, setSearchQuery] = useState('');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  
+  // Use external search query if provided, otherwise use internal
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const showInternalSearch = externalSearchQuery === undefined;
 
-  const toggleCategory = (category: FallacyCategory) => {
+  const toggleCategory = useCallback((category: FallacyCategory) => {
     setExpandedCategories((prev) => {
       const next = new Set(prev);
       if (next.has(category)) {
@@ -28,9 +39,11 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
       } else {
         next.add(category);
       }
+      // Persist to preferences
+      updatePreferences({ expandedFallacyCategories: Array.from(next) });
       return next;
     });
-  };
+  }, [updatePreferences]);
 
   const selectedFallacy = fallacies.find((f) => f.id === selectedFallacyId) || null;
 
@@ -52,19 +65,21 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
   );
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-3 border-b border-gray-200">
-        <h2 className="text-sm font-semibold text-gray-900 mb-2">Fallacy Reference</h2>
-        <input
-          type="text"
-          placeholder="Search fallacies..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
+    <div className="flex flex-col">
+      {showInternalSearch && (
+        <div className="p-3 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900 mb-2">Fallacy Reference</h2>
+          <input
+            type="text"
+            placeholder="Search fallacies..."
+            value={internalSearchQuery}
+            onChange={(e) => setInternalSearchQuery(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      )}
 
-      <div className="flex-1 overflow-y-auto">
+      <div>
         {(Object.keys(FALLACY_CATEGORY_NAMES) as FallacyCategory[]).map((category) => {
           const categoryFallacies = groupedFallacies[category] || [];
           if (categoryFallacies.length === 0 && searchQuery) return null;

@@ -13,11 +13,7 @@ export const FallacyDetailView: React.FC<FallacyDetailViewProps> = ({
   onApply,
 }) => {
   if (!fallacy) {
-    return (
-      <div className="p-4 text-center text-gray-500">
-        <p className="text-sm">Select a fallacy to see its details</p>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -84,7 +80,7 @@ export const FallacyDetailView: React.FC<FallacyDetailViewProps> = ({
             className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
             style={{ backgroundColor: fallacy.color }}
           >
-            Apply to Selected Text
+            Apply/Remove from Selected Text
           </button>
         )}
       </div>

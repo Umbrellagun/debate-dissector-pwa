@@ -27,6 +27,15 @@ export interface UserPreferences {
   autoSaveInterval: number;
   showFallacyPanel: boolean;
   lastEditedDocumentId?: string;
+  // UI state persistence
+  fallaciesExpanded: boolean;
+  rhetoricExpanded: boolean;
+  annotationHintDismissed: boolean;
+  leftSidebarOpen: boolean;
+  rightSidebarOpen: boolean;
+  // Individual category dropdowns (stored as arrays of expanded category IDs)
+  expandedFallacyCategories: string[];
+  expandedRhetoricCategories: string[];
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -36,4 +45,22 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   autoSaveInterval: 30000,
   showFallacyPanel: true,
   lastEditedDocumentId: undefined,
+  // UI state defaults
+  fallaciesExpanded: true,
+  rhetoricExpanded: true,
+  annotationHintDismissed: false,
+  leftSidebarOpen: true,
+  rightSidebarOpen: true,
+  expandedFallacyCategories: ['informal', 'red-herring'],
+  expandedRhetoricCategories: ['ethos', 'pathos'],
 };
+
+export interface DocumentVersion {
+  id: string;
+  documentId: string;
+  title: string;
+  content: Descendant[];
+  annotations: Record<string, Annotation>;
+  timestamp: number;
+  label?: string;
+}

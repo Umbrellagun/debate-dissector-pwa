@@ -75,7 +75,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Create color-coding system for different fallacy types
 - [x] Implement overlapping annotations handling
 - [x] Add annotation filtering and navigation
-- [ ] Add ability to clear/remove formatting and annotations from text
+- [x] Add ability to clear/remove formatting and annotations from text
 - [x] Implement rhetoric argument labeling (in addition to fallacies)
 - [ ] Document version history - allow reverting to previous versions
 

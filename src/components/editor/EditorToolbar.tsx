@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSlate } from 'slate-react';
 import { CustomEditor, MarkType, BlockType } from './types';
-import { isMarkActive, toggleMark, isBlockActive, toggleBlock } from './utils';
+import { isMarkActive, toggleMark, isBlockActive, toggleBlock, clearAllAnnotations, clearAllFormatting } from './utils';
 
 interface ToolbarButtonProps {
   active: boolean;
@@ -114,6 +114,47 @@ const QuoteIcon = () => (
   </svg>
 );
 
+const ClearFormattingIcon = () => (
+  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+    <text x="2" y="16" fontSize="14" fontWeight="bold">T</text>
+    <text x="12" y="18" fontSize="10" fontWeight="bold">x</text>
+  </svg>
+);
+
+const ClearFormattingButton: React.FC = () => {
+  const editor = useSlate() as CustomEditor;
+  return (
+    <button
+      type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        clearAllFormatting(editor);
+      }}
+      title="Clear Formatting"
+      className="p-2 rounded hover:bg-orange-100 transition-colors text-gray-600 hover:text-orange-600"
+    >
+      <ClearFormattingIcon />
+    </button>
+  );
+};
+
+const ClearAnnotationsButton: React.FC = () => {
+  const editor = useSlate() as CustomEditor;
+  return (
+    <button
+      type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        clearAllAnnotations(editor);
+      }}
+      title="Remove ALL highlights from Selected Text"
+      className="px-2 py-1.5 rounded text-xs font-medium bg-gray-100 hover:bg-red-100 transition-colors text-gray-600 hover:text-red-600"
+    >
+      Remove ALL Highlights
+    </button>
+  );
+};
+
 export const EditorToolbar: React.FC = () => {
   return (
     <div className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 bg-gray-50">
@@ -123,10 +164,14 @@ export const EditorToolbar: React.FC = () => {
         <MarkButton mark="underline" icon={<UnderlineIcon />} title="Underline (Ctrl+U)" />
         <MarkButton mark="strikethrough" icon={<StrikeIcon />} title="Strikethrough" />
       </div>
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 border-r border-gray-300 pr-2 mr-1">
         <BlockButton block="heading-one" icon={<H1Icon />} title="Heading 1" />
         <BlockButton block="heading-two" icon={<H2Icon />} title="Heading 2" />
         <BlockButton block="block-quote" icon={<QuoteIcon />} title="Block Quote" />
+      </div>
+      <div className="flex items-center gap-1">
+        <ClearFormattingButton />
+        <ClearAnnotationsButton />
       </div>
     </div>
   );

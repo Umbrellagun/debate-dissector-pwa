@@ -1,6 +1,7 @@
 import { getDB } from './db';
 import { DebateDocument, DocumentListItem } from '../../models';
 import { Descendant } from 'slate';
+import { createVersion } from './versionStorage';
 
 /**
  * Generate a unique ID for documents
@@ -148,10 +149,14 @@ function extractPreview(content: Descendant[], maxLength: number = 100): string 
   return text.slice(0, maxLength) + (text.length > maxLength ? '...' : '');
 }
 
+// Track last version time per document to avoid creating too many versions
+const lastVersionTime: Record<string, number> = {};
+const VERSION_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
  * Save a document (create or update)
  */
-export async function saveDocument(doc: DebateDocument): Promise<DebateDocument> {
+export async function saveDocument(doc: DebateDocument, forceVersion = false): Promise<DebateDocument> {
   const db = await getDB();
   const existing = await db.get('documents', doc.id);
   
@@ -159,6 +164,14 @@ export async function saveDocument(doc: DebateDocument): Promise<DebateDocument>
     ...doc,
     updatedAt: Date.now(),
   };
+  
+  // Create a version snapshot if enough time has passed or forced
+  const lastTime = lastVersionTime[doc.id] || 0;
+  const now = Date.now();
+  if (existing && (forceVersion || now - lastTime >= VERSION_INTERVAL_MS)) {
+    await createVersion(existing);
+    lastVersionTime[doc.id] = now;
+  }
   
   await db.put('documents', document);
   

@@ -1,8 +1,8 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { DebateDocument, UserPreferences, DEFAULT_USER_PREFERENCES } from '../../models';
+import { DebateDocument, UserPreferences, DEFAULT_USER_PREFERENCES, DocumentVersion } from '../../models';
 
 const DB_NAME = 'debate-dissector';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 interface DebateDissectorDB extends DBSchema {
   documents: {
@@ -25,6 +25,14 @@ interface DebateDissectorDB extends DBSchema {
       action: 'create' | 'update' | 'delete';
       timestamp: number;
       synced: boolean;
+    };
+  };
+  versions: {
+    key: string;
+    value: DocumentVersion;
+    indexes: {
+      'by-document': string;
+      'by-timestamp': number;
     };
   };
 }
@@ -53,6 +61,13 @@ export async function getDB(): Promise<IDBPDatabase<DebateDissectorDB>> {
       // Sync queue for future remote sync capability
       if (!db.objectStoreNames.contains('syncQueue')) {
         db.createObjectStore('syncQueue', { keyPath: 'id' });
+      }
+
+      // Document versions store for version history
+      if (!db.objectStoreNames.contains('versions')) {
+        const versionStore = db.createObjectStore('versions', { keyPath: 'id' });
+        versionStore.createIndex('by-document', 'documentId');
+        versionStore.createIndex('by-timestamp', 'timestamp');
       }
     },
   });

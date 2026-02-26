@@ -1,13 +1,24 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Descendant } from 'slate';
+import { Descendant, Editor, Range } from 'slate';
 import { MainLayout, Header } from '../components/layout';
-import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, EditorLeftSidebar, DEFAULT_INITIAL_VALUE } from '../components/editor';
-import { AnnotationPanel } from '../components/fallacies';
-import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem } from '../models';
+import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE } from '../components/editor';
+import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
+import { VersionHistoryPanel } from '../components/version';
+import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem, DocumentVersion } from '../models';
 import { FALLACIES } from '../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../data/rhetoric';
 import { useApp } from '../context';
+import { saveDocument as saveDoc, createVersion } from '../services/storage';
+
+// Simple SVG icon component for History
+const HistoryIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M12 7v5l4 2" />
+  </svg>
+);
 
 // Extract unique fallacy and rhetoric IDs from document content
 const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; rhetoricIds: string[] } => {
@@ -62,10 +73,22 @@ export const EditorPage: React.FC = () => {
   const editorRef = useRef<DebateEditorHandle>(null);
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
   const [rightSidebarExpanded, setRightSidebarExpanded] = useState(true);
+  const [sidebarStatesSynced, setSidebarStatesSynced] = useState(false);
   const [selectedFallacy, setSelectedFallacy] = useState<Fallacy | null>(null);
   const [selectedRhetoric, setSelectedRhetoric] = useState<Rhetoric | null>(null);
   const [currentDoc, setCurrentDoc] = useState<DebateDocument | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [annotationTab, setAnnotationTab] = useState<AnnotationTabType>('fallacies');
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  
+  // Sync sidebar states from preferences once loaded
+  useEffect(() => {
+    if (!isLoading && !sidebarStatesSynced) {
+      setShowLeftSidebar(preferences.leftSidebarOpen ?? false);
+      setRightSidebarExpanded(preferences.rightSidebarOpen ?? true);
+      setSidebarStatesSynced(true);
+    }
+  }, [isLoading, sidebarStatesSynced, preferences.leftSidebarOpen, preferences.rightSidebarOpen]);
 
   // Extract used annotations from current document content
   const { usedFallacies, usedRhetoric } = useMemo(() => {
@@ -119,6 +142,18 @@ export const EditorPage: React.FC = () => {
     setSelectedFallacy(null); // Clear fallacy selection when rhetoric is selected
   }, []);
 
+  const handleLeftSidebarToggle = useCallback(() => {
+    const newValue = !showLeftSidebar;
+    setShowLeftSidebar(newValue);
+    updatePreferences({ leftSidebarOpen: newValue });
+  }, [showLeftSidebar, updatePreferences]);
+
+  const handleRightSidebarToggle = useCallback(() => {
+    const newValue = !rightSidebarExpanded;
+    setRightSidebarExpanded(newValue);
+    updatePreferences({ rightSidebarOpen: newValue });
+  }, [rightSidebarExpanded, updatePreferences]);
+
   const handleFallacyApply = useCallback((fallacy: Fallacy) => {
     const editor = editorRef.current?.getEditor();
     if (!editor || !currentDoc) return;
@@ -155,6 +190,74 @@ export const EditorPage: React.FC = () => {
     }
   }, [currentDoc]);
 
+  const handleClearAnnotations = useCallback(() => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor) return;
+    clearAllAnnotations(editor);
+  }, []);
+
+  const handleSelectionChange = useCallback(() => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor || !editor.selection) return;
+    
+    // Get the leaf node at the current selection point
+    const [start] = Range.edges(editor.selection);
+    
+    try {
+      const [node] = Editor.node(editor, start);
+      const leaf = node as { 
+        text?: string;
+        fallacyMarks?: { fallacyId: string; appliedAt?: number }[]; 
+        rhetoricMarks?: { rhetoricId: string; appliedAt?: number }[] 
+      };
+      
+      if (!leaf || typeof leaf.text !== 'string') return;
+      
+      const fallacyMarks = leaf.fallacyMarks || [];
+      const rhetoricMarks = leaf.rhetoricMarks || [];
+      const hasFallacy = fallacyMarks.length > 0;
+      const hasRhetoric = rhetoricMarks.length > 0;
+      
+      // Find the most recently applied annotation across both types
+      const lastFallacy = hasFallacy ? fallacyMarks[fallacyMarks.length - 1] : null;
+      const lastRhetoric = hasRhetoric ? rhetoricMarks[rhetoricMarks.length - 1] : null;
+      
+      // Determine which was applied last (matches displayed color)
+      let selectFallacy = false;
+      let selectRhetoric = false;
+      
+      if (lastFallacy && lastRhetoric) {
+        // Both exist - use whichever was applied last
+        if ((lastFallacy.appliedAt || 0) > (lastRhetoric.appliedAt || 0)) {
+          selectFallacy = true;
+        } else {
+          selectRhetoric = true;
+        }
+      } else if (lastFallacy) {
+        selectFallacy = true;
+      } else if (lastRhetoric) {
+        selectRhetoric = true;
+      }
+      
+      // Switch tab and select the most recent annotation
+      if (selectRhetoric && lastRhetoric) {
+        setAnnotationTab('rhetoric');
+        const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === lastRhetoric.rhetoricId);
+        if (rhetoric) {
+          setSelectedRhetoric(rhetoric);
+        }
+      } else if (selectFallacy && lastFallacy) {
+        setAnnotationTab('fallacies');
+        const fallacy = FALLACIES.find(f => f.id === lastFallacy.fallacyId);
+        if (fallacy) {
+          setSelectedFallacy(fallacy);
+        }
+      }
+    } catch {
+      // Selection might be at an invalid point, ignore
+    }
+  }, []);
+
   const handleContentChange = useCallback((value: Descendant[]) => {
     setCurrentDoc((prev) => {
       if (!prev) return prev;
@@ -186,6 +289,26 @@ export const EditorPage: React.FC = () => {
       navigate(`/editor/${doc.id}`);
     }
   }, [currentDoc?.id, loadDocument, updatePreferences, navigate]);
+
+  const handleVersionRestore = useCallback(async (version: DocumentVersion) => {
+    if (!currentDoc) return;
+    
+    // Save current state as a version first
+    await createVersion(currentDoc, 'Before restore');
+    
+    // Restore the selected version's content
+    const restoredDoc: DebateDocument = {
+      ...currentDoc,
+      title: version.title,
+      content: version.content,
+      annotations: version.annotations,
+      updatedAt: Date.now(),
+    };
+    
+    setCurrentDoc(restoredDoc);
+    await saveDoc(restoredDoc, true); // Force create a version
+    setShowVersionHistory(false);
+  }, [currentDoc]);
 
   useEffect(() => {
     if (!currentDoc || !isInitialized) return;
@@ -229,13 +352,15 @@ export const EditorPage: React.FC = () => {
           onRhetoricSelect={handleRhetoricSelect}
           onRhetoricApply={handleRhetoricApply}
           selectedRhetoricId={selectedRhetoric?.id}
+          activeTab={annotationTab}
+          onTabChange={setAnnotationTab}
         />
       }
       rightSidebarExpanded={rightSidebarExpanded}
-      onRightSidebarToggle={() => setRightSidebarExpanded(!rightSidebarExpanded)}
+      onRightSidebarToggle={handleRightSidebarToggle}
     >
       <Header
-        onMenuClick={() => setShowLeftSidebar(!showLeftSidebar)}
+        onMenuClick={handleLeftSidebarToggle}
         titleElement={
           <input
             type="text"
@@ -251,16 +376,20 @@ export const EditorPage: React.FC = () => {
               <div className="flex items-center gap-1">
                 <span className="text-xs text-red-600 font-medium mr-1">Fallacies:</span>
                 {usedFallacies.map(f => (
-                  <span
+                  <button
                     key={f.id}
-                    className="px-2 py-1 text-xs font-medium rounded"
+                    onClick={() => {
+                      setAnnotationTab('fallacies');
+                      setSelectedFallacy(f);
+                    }}
+                    className="px-2 py-1 text-xs font-medium rounded cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                       backgroundColor: f.color,
                       color: '#fff',
                     }}
                   >
                     {f.name}
-                  </span>
+                  </button>
                 ))}
               </div>
             )}
@@ -268,19 +397,30 @@ export const EditorPage: React.FC = () => {
               <div className="flex items-center gap-1">
                 <span className="text-xs text-blue-600 font-medium mr-1">Rhetoric:</span>
                 {usedRhetoric.map(r => (
-                  <span
+                  <button
                     key={r.id}
-                    className="px-2 py-1 text-xs font-medium rounded"
+                    onClick={() => {
+                      setAnnotationTab('rhetoric');
+                      setSelectedRhetoric(r);
+                    }}
+                    className="px-2 py-1 text-xs font-medium rounded cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                       backgroundColor: r.color,
                       color: '#fff',
                     }}
                   >
                     {r.name}
-                  </span>
+                  </button>
                 ))}
               </div>
             )}
+            <button
+              onClick={() => setShowVersionHistory(true)}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+              title="Version History"
+            >
+              <HistoryIcon className="w-5 h-5" />
+            </button>
           </div>
         }
       />
@@ -291,10 +431,33 @@ export const EditorPage: React.FC = () => {
             ref={editorRef}
             initialValue={normalizeEditorContent(currentDoc.content)}
             onChange={handleContentChange}
+            onSelectionChange={handleSelectionChange}
+            onFallacyClick={(fallacyId) => {
+              const fallacy = FALLACIES.find(f => f.id === fallacyId);
+              if (fallacy) {
+                setAnnotationTab('fallacies');
+                setSelectedFallacy(fallacy);
+              }
+            }}
+            onRhetoricClick={(rhetoricId) => {
+              const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
+              if (rhetoric) {
+                setAnnotationTab('rhetoric');
+                setSelectedRhetoric(rhetoric);
+              }
+            }}
             placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
           />
         </div>
       </div>
+      
+      {showVersionHistory && (
+        <VersionHistoryPanel
+          documentId={currentDoc.id}
+          onRestore={handleVersionRestore}
+          onClose={() => setShowVersionHistory(false)}
+        />
+      )}
     </MainLayout>
   );
 };

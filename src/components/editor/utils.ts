@@ -76,9 +76,22 @@ export function applyFallacyMark(
   const marks = Editor.marks(editor);
   const existingFallacyMarks: FallacyMark[] = marks?.fallacyMarks || [];
   
-  // Check if this fallacy is already applied
+  // Check if this fallacy is already applied - if so, remove it (toggle)
   const alreadyApplied = existingFallacyMarks.some(m => m.fallacyId === fallacyId);
   if (alreadyApplied) {
+    // Remove this specific fallacy from the marks
+    const updatedMarks = existingFallacyMarks.filter(m => m.fallacyId !== fallacyId);
+    if (updatedMarks.length === 0) {
+      Editor.removeMark(editor, 'fallacyMarks');
+      Editor.removeMark(editor, 'fallacyId');
+      Editor.removeMark(editor, 'fallacyColor');
+    } else {
+      Editor.addMark(editor, 'fallacyMarks', updatedMarks);
+      // Update primary display to last remaining fallacy
+      const lastMark = updatedMarks[updatedMarks.length - 1];
+      Editor.addMark(editor, 'fallacyId', lastMark.fallacyId);
+      Editor.addMark(editor, 'fallacyColor', lastMark.color);
+    }
     return null;
   }
 
@@ -135,9 +148,16 @@ export function applyRhetoricMark(
   const marks = Editor.marks(editor);
   const existingRhetoricMarks: RhetoricMark[] = marks?.rhetoricMarks || [];
   
-  // Check if this rhetoric is already applied
+  // Check if this rhetoric is already applied - if so, remove it (toggle)
   const alreadyApplied = existingRhetoricMarks.some(m => m.rhetoricId === rhetoricId);
   if (alreadyApplied) {
+    // Remove this specific rhetoric from the marks
+    const updatedMarks = existingRhetoricMarks.filter(m => m.rhetoricId !== rhetoricId);
+    if (updatedMarks.length === 0) {
+      Editor.removeMark(editor, 'rhetoricMarks');
+    } else {
+      Editor.addMark(editor, 'rhetoricMarks', updatedMarks);
+    }
     return null;
   }
 
@@ -164,6 +184,26 @@ export function applyRhetoricMark(
  */
 export function removeRhetoricMark(editor: CustomEditor): void {
   Editor.removeMark(editor, 'rhetoricMarks');
+}
+
+/**
+ * Clear all annotations (fallacies and rhetoric) from the current selection
+ */
+export function clearAllAnnotations(editor: CustomEditor): void {
+  Editor.removeMark(editor, 'fallacyMarks');
+  Editor.removeMark(editor, 'fallacyId');
+  Editor.removeMark(editor, 'fallacyColor');
+  Editor.removeMark(editor, 'rhetoricMarks');
+}
+
+/**
+ * Clear all regular formatting (bold, italic, underline, strikethrough) from the current selection
+ */
+export function clearAllFormatting(editor: CustomEditor): void {
+  Editor.removeMark(editor, 'bold');
+  Editor.removeMark(editor, 'italic');
+  Editor.removeMark(editor, 'underline');
+  Editor.removeMark(editor, 'strikethrough');
 }
 
 /**

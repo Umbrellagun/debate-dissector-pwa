@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Rhetoric, RhetoricCategory, RHETORIC_CATEGORY_NAMES } from '../../models';
+import { useApp } from '../../context';
 
 interface RhetoricPanelProps {
   rhetoric: Rhetoric[];
   onRhetoricSelect?: (rhetoric: Rhetoric) => void;
   onRhetoricApply?: (rhetoric: Rhetoric) => void;
   selectedRhetoricId?: string;
+  searchQuery?: string;
 }
 
 export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
@@ -13,13 +15,22 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
   onRhetoricSelect,
   onRhetoricApply,
   selectedRhetoricId,
+  searchQuery: externalSearchQuery,
 }) => {
+  const { state: { preferences }, updatePreferences } = useApp();
+  
+  // Initialize from preferences
+  const initialCategories = preferences.expandedRhetoricCategories ?? ['ethos', 'pathos'];
   const [expandedCategories, setExpandedCategories] = useState<Set<RhetoricCategory>>(
-    new Set<RhetoricCategory>(['ethos', 'pathos'])
+    new Set<RhetoricCategory>(initialCategories as RhetoricCategory[])
   );
-  const [searchQuery, setSearchQuery] = useState('');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  
+  // Use external search query if provided, otherwise use internal
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const showInternalSearch = externalSearchQuery === undefined;
 
-  const toggleCategory = (category: RhetoricCategory) => {
+  const toggleCategory = useCallback((category: RhetoricCategory) => {
     setExpandedCategories((prev) => {
       const next = new Set(prev);
       if (next.has(category)) {
@@ -27,9 +38,11 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
       } else {
         next.add(category);
       }
+      // Persist to preferences
+      updatePreferences({ expandedRhetoricCategories: Array.from(next) });
       return next;
     });
-  };
+  }, [updatePreferences]);
 
   const selectedRhetoric = rhetoric.find((r) => r.id === selectedRhetoricId) || null;
 
@@ -51,19 +64,21 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
   );
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-3 border-b border-gray-200">
-        <h2 className="text-sm font-semibold text-gray-900 mb-2">Rhetoric Reference</h2>
-        <input
-          type="text"
-          placeholder="Search rhetoric..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
+    <div className="flex flex-col">
+      {showInternalSearch && (
+        <div className="p-3 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-900 mb-2">Rhetoric Reference</h2>
+          <input
+            type="text"
+            placeholder="Search rhetoric..."
+            value={internalSearchQuery}
+            onChange={(e) => setInternalSearchQuery(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      )}
 
-      <div className="flex-1 overflow-y-auto">
+      <div>
         {(Object.keys(RHETORIC_CATEGORY_NAMES) as RhetoricCategory[]).map((category) => {
           const categoryRhetoric = groupedRhetoric[category] || [];
           if (categoryRhetoric.length === 0 && searchQuery) return null;
@@ -144,7 +159,7 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
             className="w-full py-2 px-3 text-sm font-medium text-white rounded-lg"
             style={{ backgroundColor: selectedRhetoric.color }}
           >
-            Apply to Selection
+            Apply/Remove from Selected Text
           </button>
         </div>
       )}

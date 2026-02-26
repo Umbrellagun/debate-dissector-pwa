@@ -28,9 +28,12 @@ interface AnnotationTooltipProps {
   rhetoricMarks: RhetoricMark[];
   onClose: () => void;
   anchorRect: DOMRect | null;
+  tooltipRef?: React.RefObject<HTMLDivElement | null>;
+  onFallacyClick?: (fallacyId: string) => void;
+  onRhetoricClick?: (rhetoricId: string) => void;
 }
 
-const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, onClose, anchorRect }) => {
+const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, onClose, anchorRect, tooltipRef, onFallacyClick, onRhetoricClick }) => {
   if (!anchorRect) return null;
 
   const totalItems = fallacyMarks.length + rhetoricMarks.length;
@@ -62,9 +65,9 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
 
   return (
     <div
+      ref={tooltipRef}
       contentEditable={false}
       onClick={(e) => e.stopPropagation()}
-      onMouseLeave={onClose}
       style={{
         position: 'fixed',
         left: anchorRect.left + anchorRect.width / 2,
@@ -87,7 +90,26 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
             Fallacies:
           </div>
           {fallacyMarks.map((mark, idx) => (
-            <div key={mark.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: idx > 0 ? '4px' : 0 }}>
+            <button
+              key={mark.id}
+              onClick={() => onFallacyClick?.(mark.fallacyId)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginTop: idx > 0 ? '4px' : 0,
+                background: 'none',
+                border: 'none',
+                color: 'inherit',
+                cursor: 'pointer',
+                padding: '2px 4px',
+                borderRadius: '4px',
+                width: '100%',
+                textAlign: 'left',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
               <span
                 style={{
                   width: '8px',
@@ -98,7 +120,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                 }}
               />
               <span>{getFallacyName(mark.fallacyId)}</span>
-            </div>
+            </button>
           ))}
         </>
       )}
@@ -108,7 +130,26 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
             Rhetoric:
           </div>
           {rhetoricMarks.map((mark, idx) => (
-            <div key={mark.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: idx > 0 ? '4px' : 0 }}>
+            <button
+              key={mark.id}
+              onClick={() => onRhetoricClick?.(mark.rhetoricId)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginTop: idx > 0 ? '4px' : 0,
+                background: 'none',
+                border: 'none',
+                color: 'inherit',
+                cursor: 'pointer',
+                padding: '2px 4px',
+                borderRadius: '4px',
+                width: '100%',
+                textAlign: 'left',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
               <span
                 style={{
                   width: '8px',
@@ -119,7 +160,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                 }}
               />
               <span>{getRhetoricName(mark.rhetoricId)}</span>
-            </div>
+            </button>
           ))}
         </>
       )}
@@ -144,17 +185,50 @@ export interface DebateEditorHandle {
 interface DebateEditorProps {
   initialValue?: Descendant[];
   onChange?: (value: Descendant[]) => void;
+  onSelectionChange?: () => void;
+  onFallacyClick?: (fallacyId: string) => void;
+  onRhetoricClick?: (rhetoricId: string) => void;
   placeholder?: string;
   readOnly?: boolean;
 }
 
+// Context for annotation click handlers
+interface AnnotationClickContextType {
+  onFallacyClick?: (fallacyId: string) => void;
+  onRhetoricClick?: (rhetoricId: string) => void;
+}
+const AnnotationClickContext = React.createContext<AnnotationClickContextType>({});
+
 const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const customLeaf = leaf as CustomText;
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const { onFallacyClick, onRhetoricClick } = React.useContext(AnnotationClickContext);
   let style: React.CSSProperties = {};
   let className = '';
+  
+  // Handle click outside to close pinned tooltip
+  useEffect(() => {
+    if (!isPinned) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const isInsideBadge = badgeRef.current?.contains(target);
+      const isInsideTooltip = tooltipRef.current?.contains(target);
+      
+      if (!isInsideBadge && !isInsideTooltip) {
+        setShowTooltip(false);
+        setIsPinned(false);
+        setAnchorRect(null);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isPinned]);
 
   // Check for annotations
   const fallacyMarks = customLeaf.fallacyMarks || [];
@@ -216,8 +290,28 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   };
   
   const handleHideTooltip = () => {
+    // Don't hide if pinned
+    if (isPinned) return;
     setShowTooltip(false);
     setAnchorRect(null);
+  };
+  
+  const handleBadgeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isPinned) {
+      // Unpin and hide
+      setIsPinned(false);
+      setShowTooltip(false);
+      setAnchorRect(null);
+    } else {
+      // Pin and show
+      if (badgeRef.current) {
+        setAnchorRect(badgeRef.current.getBoundingClientRect());
+      }
+      setShowTooltip(true);
+      setIsPinned(true);
+    }
   };
 
   // Show badge with tooltip if multiple annotations
@@ -230,17 +324,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
             ref={badgeRef}
             contentEditable={false}
             suppressContentEditableWarning
-            onMouseEnter={handleShowTooltip}
-            onMouseLeave={handleHideTooltip}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (showTooltip) {
-                handleHideTooltip();
-              } else {
-                handleShowTooltip();
-              }
-            }}
+            onClick={handleBadgeClick}
             style={{
               position: 'absolute',
               top: '-2px',
@@ -264,7 +348,10 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
               fallacyMarks={fallacyMarks} 
               rhetoricMarks={rhetoricMarks} 
               onClose={handleHideTooltip} 
-              anchorRect={anchorRect} 
+              anchorRect={anchorRect}
+              tooltipRef={tooltipRef}
+              onFallacyClick={onFallacyClick}
+              onRhetoricClick={onRhetoricClick}
             />
           )}
         </span>
@@ -302,12 +389,20 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
     {
       initialValue = DEFAULT_INITIAL_VALUE,
       onChange,
+      onSelectionChange,
+      onFallacyClick,
+      onRhetoricClick,
       placeholder = 'Start typing or paste debate text here...',
       readOnly = false,
     },
     ref
   ) => {
     const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+    
+    const annotationClickContextValue = useMemo(() => ({
+      onFallacyClick,
+      onRhetoricClick,
+    }), [onFallacyClick, onRhetoricClick]);
 
     useImperativeHandle(ref, () => ({
       getEditor: () => editor,
@@ -319,8 +414,10 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
     const handleChange = useCallback(
       (value: Descendant[]) => {
         onChange?.(value);
+        // Also trigger selection change callback when content changes
+        onSelectionChange?.();
       },
-      [onChange]
+      [onChange, onSelectionChange]
     );
 
     const handleKeyDown = useCallback(
@@ -342,21 +439,29 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       [editor]
     );
 
+    const handleClick = useCallback(() => {
+      // Trigger selection change on click to detect annotations at cursor
+      onSelectionChange?.();
+    }, [onSelectionChange]);
+
     return (
-      <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
-        <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
-          {!readOnly && <EditorToolbar />}
-          <Editable
-            className="flex-1 p-4 focus:outline-none overflow-y-auto"
-            renderLeaf={renderLeaf}
-            renderElement={renderElement}
-            placeholder={placeholder}
-            readOnly={readOnly}
-            onKeyDown={handleKeyDown}
-            spellCheck
-          />
-        </Slate>
-      </div>
+      <AnnotationClickContext.Provider value={annotationClickContextValue}>
+        <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+          <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
+            {!readOnly && <EditorToolbar />}
+            <Editable
+              className="flex-1 p-4 focus:outline-none overflow-y-auto"
+              renderLeaf={renderLeaf}
+              renderElement={renderElement}
+              placeholder={placeholder}
+              readOnly={readOnly}
+              onKeyDown={handleKeyDown}
+              onClick={handleClick}
+              spellCheck
+            />
+          </Slate>
+        </div>
+      </AnnotationClickContext.Provider>
     );
   }
 );

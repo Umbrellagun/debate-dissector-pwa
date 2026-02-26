@@ -14,3 +14,11 @@ export {
   updatePreferences,
   resetPreferences,
 } from './preferencesStorage';
+export {
+  createVersion,
+  getVersions,
+  getVersion,
+  deleteVersion,
+  deleteAllVersions,
+  updateVersionLabel,
+} from './versionStorage';
