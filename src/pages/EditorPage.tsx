@@ -4,7 +4,7 @@ import { Descendant } from 'slate';
 import { MainLayout, Header } from '../components/layout';
 import { DebateEditor, DebateEditorHandle, applyFallacyMark, EditorLeftSidebar, DEFAULT_INITIAL_VALUE } from '../components/editor';
 import { FallacyPanel } from '../components/fallacies';
-import { Fallacy, Annotation, DebateDocument } from '../models';
+import { Fallacy, Annotation, DebateDocument, DocumentListItem } from '../models';
 import { FALLACIES } from '../data/fallacies';
 import { useApp } from '../context';
 
@@ -29,8 +29,8 @@ const normalizeEditorContent = (content: Descendant[] | undefined | null): Desce
 export const EditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state, loadDocument, createDocument, saveDocument, updatePreferences } = useApp();
-  const { preferences, isLoading } = state;
+  const { state, loadDocument, loadDocuments, createDocument, saveDocument, updatePreferences } = useApp();
+  const { documents, preferences, isLoading } = state;
 
   const editorRef = useRef<DebateEditorHandle>(null);
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
@@ -43,6 +43,9 @@ export const EditorPage: React.FC = () => {
     if (isLoading || isInitialized) return;
 
     const initDocument = async () => {
+      // Load all documents for the sidebar
+      await loadDocuments();
+
       let doc: DebateDocument | null = null;
 
       if (id) {
@@ -61,7 +64,7 @@ export const EditorPage: React.FC = () => {
     };
 
     initDocument();
-  }, [id, isLoading, isInitialized, preferences.lastEditedDocumentId, loadDocument, createDocument, updatePreferences]);
+  }, [id, isLoading, isInitialized, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences]);
 
   const handleFallacySelect = useCallback((fallacy: Fallacy | null) => {
     setSelectedFallacy(fallacy);
@@ -111,9 +114,19 @@ export const EditorPage: React.FC = () => {
     const doc = await createDocument('Untitled Debate');
     setCurrentDoc(doc);
     await updatePreferences({ lastEditedDocumentId: doc.id });
-    setShowLeftSidebar(false);
+    await loadDocuments(); // Refresh document list
     navigate(`/editor/${doc.id}`);
-  }, [createDocument, updatePreferences, navigate]);
+  }, [createDocument, updatePreferences, loadDocuments, navigate]);
+
+  const handleDocumentSelect = useCallback(async (docId: string) => {
+    if (docId === currentDoc?.id) return;
+    const doc = await loadDocument(docId);
+    if (doc) {
+      setCurrentDoc(doc);
+      await updatePreferences({ lastEditedDocumentId: doc.id });
+      navigate(`/editor/${doc.id}`);
+    }
+  }, [currentDoc?.id, loadDocument, updatePreferences, navigate]);
 
   useEffect(() => {
     if (!currentDoc || !isInitialized) return;
@@ -140,9 +153,10 @@ export const EditorPage: React.FC = () => {
       showLeftSidebar={showLeftSidebar}
       leftSidebar={
         <EditorLeftSidebar
-          documentTitle={currentDoc.title}
-          onTitleChange={handleTitleChange}
           onNewDocument={handleNewDocument}
+          documents={documents}
+          currentDocumentId={currentDoc.id}
+          onDocumentSelect={handleDocumentSelect}
         />
       }
       showRightSidebar={true}
@@ -176,13 +190,25 @@ export const EditorPage: React.FC = () => {
           </div>
         }
       />
-      <div className="flex-1 overflow-hidden bg-white">
-        <DebateEditor
-          ref={editorRef}
-          initialValue={normalizeEditorContent(currentDoc.content)}
-          onChange={handleContentChange}
-          placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
-        />
+      <div className="flex-1 overflow-hidden bg-white flex flex-col">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <input
+            type="text"
+            value={currentDoc.title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder="Untitled Debate"
+            className="w-full text-xl font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
+          />
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <DebateEditor
+            key={currentDoc.id}
+            ref={editorRef}
+            initialValue={normalizeEditorContent(currentDoc.content)}
+            onChange={handleContentChange}
+            placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
+          />
+        </div>
       </div>
     </MainLayout>
   );

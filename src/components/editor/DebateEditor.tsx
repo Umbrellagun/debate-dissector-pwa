@@ -19,21 +19,25 @@ const getFallacyName = (fallacyId: string): string => {
 interface FallacyTooltipProps {
   marks: FallacyMark[];
   onClose: () => void;
-  position: 'above' | 'below';
+  anchorRect: DOMRect | null;
 }
 
-const FallacyTooltip: React.FC<FallacyTooltipProps> = ({ marks, onClose, position }) => {
-  const positionStyles: React.CSSProperties = position === 'below'
-    ? {
-        top: '100%',
-        marginTop: '8px',
-      }
-    : {
-        bottom: '100%',
-        marginBottom: '8px',
-      };
+const FallacyTooltip: React.FC<FallacyTooltipProps> = ({ marks, onClose, anchorRect }) => {
+  if (!anchorRect) return null;
 
-  const arrowStyles: React.CSSProperties = position === 'below'
+  const estimatedHeight = marks.length * 24 + 50;
+  const viewportHeight = window.innerHeight;
+  const spaceAbove = anchorRect.top;
+  const spaceBelow = viewportHeight - anchorRect.bottom;
+  
+  const showBelow = spaceAbove < estimatedHeight + 10 && spaceBelow > estimatedHeight;
+
+  // Position directly above or below the badge with minimal gap
+  const top = showBelow 
+    ? anchorRect.bottom + 4 
+    : anchorRect.top - estimatedHeight;
+
+  const arrowStyles: React.CSSProperties = showBelow
     ? {
         top: '-5px',
         borderLeft: '6px solid transparent',
@@ -53,8 +57,9 @@ const FallacyTooltip: React.FC<FallacyTooltipProps> = ({ marks, onClose, positio
       onClick={(e) => e.stopPropagation()}
       onMouseLeave={onClose}
       style={{
-        position: 'absolute',
-        left: '50%',
+        position: 'fixed',
+        left: anchorRect.left + anchorRect.width / 2,
+        top: Math.max(10, top),
         transform: 'translateX(-50%)',
         backgroundColor: '#1f2937',
         color: '#fff',
@@ -62,10 +67,9 @@ const FallacyTooltip: React.FC<FallacyTooltipProps> = ({ marks, onClose, positio
         borderRadius: '6px',
         fontSize: '12px',
         whiteSpace: 'nowrap',
-        zIndex: 1000,
+        zIndex: 10000,
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         userSelect: 'none',
-        ...positionStyles,
       }}
     >
       <div style={{ fontWeight: 'bold', marginBottom: '4px', borderBottom: '1px solid #374151', paddingBottom: '4px' }}>
@@ -113,7 +117,7 @@ interface DebateEditorProps {
 const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const customLeaf = leaf as CustomText;
   const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState<'above' | 'below'>('above');
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   let style: React.CSSProperties = {};
   let className = '';
@@ -146,19 +150,17 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
     className += 'line-through ';
   }
 
-  // Calculate tooltip position before showing
+  // Get badge position and show tooltip
   const handleShowTooltip = () => {
     if (badgeRef.current) {
-      const rect = badgeRef.current.getBoundingClientRect();
-      const estimatedTooltipHeight = fallacyCount * 24 + 50;
-      // Check if there's enough space above (considering viewport top)
-      if (rect.top < estimatedTooltipHeight + 20) {
-        setTooltipPosition('below');
-      } else {
-        setTooltipPosition('above');
-      }
+      setAnchorRect(badgeRef.current.getBoundingClientRect());
     }
     setShowTooltip(true);
+  };
+  
+  const handleHideTooltip = () => {
+    setShowTooltip(false);
+    setAnchorRect(null);
   };
 
   // Show badge with tooltip if multiple fallacies
@@ -173,12 +175,12 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
             contentEditable={false}
             suppressContentEditableWarning
             onMouseEnter={handleShowTooltip}
-            onMouseLeave={() => setShowTooltip(false)}
+            onMouseLeave={handleHideTooltip}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               if (showTooltip) {
-                setShowTooltip(false);
+                handleHideTooltip();
               } else {
                 handleShowTooltip();
               }
@@ -200,10 +202,10 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
             }}
           >
             +{fallacyCount - 1}
-            {showTooltip && (
-              <FallacyTooltip marks={fallacyMarks} onClose={() => setShowTooltip(false)} position={tooltipPosition} />
-            )}
           </span>
+          {showTooltip && (
+            <FallacyTooltip marks={fallacyMarks} onClose={handleHideTooltip} anchorRect={anchorRect} />
+          )}
         </span>
       </span>
     );
