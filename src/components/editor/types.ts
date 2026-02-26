@@ -9,7 +9,20 @@ export type FallacyMark = {
   id: string;
   fallacyId: string;
   color: string;
+  appliedAt: number;
 };
+
+export type RhetoricMark = {
+  id: string;
+  rhetoricId: string;
+  color: string;
+  appliedAt: number;
+};
+
+// Union type for any annotation mark (fallacy or rhetoric)
+export type AnnotationMark = 
+  | (FallacyMark & { type: 'fallacy' })
+  | (RhetoricMark & { type: 'rhetoric' });
 
 export type CustomText = {
   text: string;
@@ -20,6 +33,7 @@ export type CustomText = {
   fallacyId?: string;
   fallacyColor?: string;
   fallacyMarks?: FallacyMark[];
+  rhetoricMarks?: RhetoricMark[];
 };
 
 export type ParagraphElement = {

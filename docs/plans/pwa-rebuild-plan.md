@@ -76,7 +76,8 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Implement overlapping annotations handling
 - [x] Add annotation filtering and navigation
 - [ ] Add ability to clear/remove formatting and annotations from text
-- [ ] Implement rhetoric argument labeling (in addition to fallacies)
+- [x] Implement rhetoric argument labeling (in addition to fallacies)
+- [ ] Document version history - allow reverting to previous versions
 
 ### Phase 4: User Interface & Experience
 
@@ -86,7 +87,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Implement debate editor page
 - [x] Create settings/preferences page
 - [ ] Add app version display (in settings or footer)
-- [ ] Refine title editor and hamburger menu positioning
+- [x] Refine title editor and hamburger menu positioning (moved to header)
 
 #### 4.2 Navigation and State Management
 - [x] Set up React Router for navigation

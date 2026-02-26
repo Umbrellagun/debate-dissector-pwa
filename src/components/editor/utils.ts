@@ -1,5 +1,5 @@
 import { Editor, Transforms, Element as SlateElement, Range, Text, Node } from 'slate';
-import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, CustomText } from './types';
+import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, CustomText } from './types';
 
 /**
  * Check if a mark is active at the current selection
@@ -87,6 +87,7 @@ export function applyFallacyMark(
     id: `mark_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     fallacyId,
     color: fallacyColor,
+    appliedAt: Date.now(),
   };
 
   // Add to the array of fallacy marks
@@ -109,6 +110,60 @@ export function applyFallacyMark(
 export function removeFallacyMark(editor: CustomEditor): void {
   Editor.removeMark(editor, 'fallacyId');
   Editor.removeMark(editor, 'fallacyColor');
+}
+
+/**
+ * Apply a rhetoric annotation to the current selection
+ * Supports multiple rhetoric techniques on the same text range
+ */
+export function applyRhetoricMark(
+  editor: CustomEditor,
+  rhetoricId: string,
+  rhetoricColor: string
+): { start: number; end: number } | null {
+  const { selection } = editor;
+  if (!selection || Range.isCollapsed(selection)) {
+    return null;
+  }
+
+  // Get the absolute offsets for the annotation
+  const [start, end] = Range.edges(selection);
+  const startOffset = Editor.point(editor, start, { edge: 'start' });
+  const endOffset = Editor.point(editor, end, { edge: 'end' });
+
+  // Get existing marks to preserve multiple rhetoric techniques
+  const marks = Editor.marks(editor);
+  const existingRhetoricMarks: RhetoricMark[] = marks?.rhetoricMarks || [];
+  
+  // Check if this rhetoric is already applied
+  const alreadyApplied = existingRhetoricMarks.some(m => m.rhetoricId === rhetoricId);
+  if (alreadyApplied) {
+    return null;
+  }
+
+  // Create new rhetoric mark
+  const newMark: RhetoricMark = {
+    id: `mark_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    rhetoricId,
+    color: rhetoricColor,
+    appliedAt: Date.now(),
+  };
+
+  // Add to the array of rhetoric marks
+  const updatedMarks = [...existingRhetoricMarks, newMark];
+  Editor.addMark(editor, 'rhetoricMarks', updatedMarks);
+
+  return {
+    start: startOffset.offset,
+    end: endOffset.offset,
+  };
+}
+
+/**
+ * Remove rhetoric annotation from the current selection
+ */
+export function removeRhetoricMark(editor: CustomEditor): void {
+  Editor.removeMark(editor, 'rhetoricMarks');
 }
 
 /**

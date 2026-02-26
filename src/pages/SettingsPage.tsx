@@ -16,15 +16,11 @@ export const SettingsPage: React.FC = () => {
     updatePreferences({ fontSize });
   };
 
-  const handleAutoSaveChange = (autoSave: boolean) => {
-    updatePreferences({ autoSave });
-  };
-
   return (
     <MainLayout>
       <Header
         title="Settings"
-        onMenuClick={() => navigate('/')}
+        onBackClick={() => navigate('/')}
       />
 
       <div className="flex-1 overflow-y-auto">
@@ -90,41 +86,11 @@ export const SettingsPage: React.FC = () => {
 
           <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200">
-              <h2 className="text-sm font-semibold text-gray-900">Editor</h2>
-            </div>
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Auto-save
-                  </label>
-                  <p className="text-xs text-gray-500">
-                    Automatically save changes as you type
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleAutoSaveChange(!preferences.autoSave)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    preferences.autoSave ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      preferences.autoSave ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-200">
               <h2 className="text-sm font-semibold text-gray-900">About</h2>
             </div>
             <div className="p-4 space-y-2 text-sm text-gray-600">
               <p><strong>Debate Dissector</strong> v0.1.0</p>
-              <p>A tool for analyzing debates and identifying logical fallacies.</p>
+              <p>A tool for analyzing debates, identifying logical fallacies, and rhetoric strategies.</p>
             </div>
           </section>
         </div>

@@ -2,11 +2,12 @@ import React, { useCallback, useMemo, useImperativeHandle, forwardRef, useState,
 import { createEditor, Descendant } from 'slate';
 import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps } from 'slate-react';
 import { withHistory } from 'slate-history';
-import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark } from './types';
+import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark } from './types';
 import { EditorToolbar } from './EditorToolbar';
 import { toggleMark } from './utils';
 import { MarkType } from './types';
 import { FALLACIES } from '../../data/fallacies';
+import { RHETORIC_TECHNIQUES } from '../../data/rhetoric';
 import './types'; // Import type augmentation
 
 // Helper to get fallacy name from ID
@@ -15,17 +16,25 @@ const getFallacyName = (fallacyId: string): string => {
   return fallacy?.name || fallacyId;
 };
 
-// Tooltip component for showing multiple fallacies
-interface FallacyTooltipProps {
-  marks: FallacyMark[];
+// Helper to get rhetoric name from ID
+const getRhetoricName = (rhetoricId: string): string => {
+  const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
+  return rhetoric?.name || rhetoricId;
+};
+
+// Tooltip component for showing multiple annotations (fallacies and rhetoric)
+interface AnnotationTooltipProps {
+  fallacyMarks: FallacyMark[];
+  rhetoricMarks: RhetoricMark[];
   onClose: () => void;
   anchorRect: DOMRect | null;
 }
 
-const FallacyTooltip: React.FC<FallacyTooltipProps> = ({ marks, onClose, anchorRect }) => {
+const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, onClose, anchorRect }) => {
   if (!anchorRect) return null;
 
-  const estimatedHeight = marks.length * 24 + 50;
+  const totalItems = fallacyMarks.length + rhetoricMarks.length;
+  const estimatedHeight = totalItems * 24 + (fallacyMarks.length > 0 && rhetoricMarks.length > 0 ? 80 : 50);
   const viewportHeight = window.innerHeight;
   const spaceAbove = anchorRect.top;
   const spaceBelow = viewportHeight - anchorRect.bottom;
@@ -72,23 +81,48 @@ const FallacyTooltip: React.FC<FallacyTooltipProps> = ({ marks, onClose, anchorR
         userSelect: 'none',
       }}
     >
-      <div style={{ fontWeight: 'bold', marginBottom: '4px', borderBottom: '1px solid #374151', paddingBottom: '4px' }}>
-        Applied Fallacies:
-      </div>
-      {marks.map((mark, idx) => (
-        <div key={mark.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: idx > 0 ? '4px' : 0 }}>
-          <span
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: mark.color,
-              flexShrink: 0,
-            }}
-          />
-          <span>{getFallacyName(mark.fallacyId)}</span>
-        </div>
-      ))}
+      {fallacyMarks.length > 0 && (
+        <>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', borderBottom: '1px solid #374151', paddingBottom: '4px', color: '#f87171' }}>
+            Fallacies:
+          </div>
+          {fallacyMarks.map((mark, idx) => (
+            <div key={mark.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: idx > 0 ? '4px' : 0 }}>
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: mark.color,
+                  flexShrink: 0,
+                }}
+              />
+              <span>{getFallacyName(mark.fallacyId)}</span>
+            </div>
+          ))}
+        </>
+      )}
+      {rhetoricMarks.length > 0 && (
+        <>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', marginTop: fallacyMarks.length > 0 ? '8px' : 0, borderBottom: '1px solid #374151', paddingBottom: '4px', color: '#60a5fa' }}>
+            Rhetoric:
+          </div>
+          {rhetoricMarks.map((mark, idx) => (
+            <div key={mark.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: idx > 0 ? '4px' : 0 }}>
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: mark.color,
+                  flexShrink: 0,
+                }}
+              />
+              <span>{getRhetoricName(mark.rhetoricId)}</span>
+            </div>
+          ))}
+        </>
+      )}
       <div
         style={{
           position: 'absolute',
@@ -122,19 +156,42 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   let style: React.CSSProperties = {};
   let className = '';
 
-  // Check for multiple fallacies
+  // Check for annotations
   const fallacyMarks = customLeaf.fallacyMarks || [];
+  const rhetoricMarks = customLeaf.rhetoricMarks || [];
   const fallacyCount = fallacyMarks.length;
+  const rhetoricCount = rhetoricMarks.length;
+  const totalAnnotations = fallacyCount + rhetoricCount;
   const hasFallacy = fallacyCount > 0 || customLeaf.fallacyColor;
+  const hasRhetoric = rhetoricCount > 0;
 
-  if (hasFallacy) {
-    // Use the latest fallacy color (or fallback to single fallacyColor)
-    const displayColor = fallacyCount > 0 
-      ? fallacyMarks[fallacyCount - 1].color 
-      : customLeaf.fallacyColor;
-    style.backgroundColor = displayColor;
-    style.padding = '2px 0';
-    style.borderRadius = '2px';
+  // Determine background color - use the most recently applied mark
+  if (hasFallacy || hasRhetoric) {
+    let displayColor: string | undefined;
+    
+    // Find the most recently applied mark across both types
+    const lastFallacy = fallacyCount > 0 ? fallacyMarks[fallacyCount - 1] : null;
+    const lastRhetoric = rhetoricCount > 0 ? rhetoricMarks[rhetoricCount - 1] : null;
+    
+    if (lastFallacy && lastRhetoric) {
+      // Both exist - use whichever was applied last
+      displayColor = (lastFallacy.appliedAt || 0) > (lastRhetoric.appliedAt || 0)
+        ? lastFallacy.color
+        : lastRhetoric.color;
+    } else if (lastFallacy) {
+      displayColor = lastFallacy.color;
+    } else if (lastRhetoric) {
+      displayColor = lastRhetoric.color;
+    } else if (customLeaf.fallacyColor) {
+      // Legacy fallback
+      displayColor = customLeaf.fallacyColor;
+    }
+    
+    if (displayColor) {
+      style.backgroundColor = displayColor;
+      style.padding = '2px 0';
+      style.borderRadius = '2px';
+    }
   }
 
   if (customLeaf.bold) {
@@ -163,9 +220,8 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
     setAnchorRect(null);
   };
 
-  // Show badge with tooltip if multiple fallacies
-  // Use a wrapper div with position:relative to contain the tooltip without breaking Slate
-  if (fallacyCount > 1) {
+  // Show badge with tooltip if multiple annotations
+  if (totalAnnotations > 1) {
     return (
       <span {...attributes} style={style} className={className.trim() || undefined}>
         <span style={{ position: 'relative' }}>
@@ -192,7 +248,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
               fontSize: '9px',
               fontWeight: 'bold',
               color: '#fff',
-              backgroundColor: 'rgba(0,0,0,0.6)',
+              backgroundColor: hasRhetoric && !hasFallacy ? 'rgba(59,130,246,0.8)' : 'rgba(0,0,0,0.6)',
               borderRadius: '6px',
               padding: '1px 4px',
               userSelect: 'none',
@@ -201,10 +257,15 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
               zIndex: 10,
             }}
           >
-            +{fallacyCount - 1}
+            +{totalAnnotations - 1}
           </span>
           {showTooltip && (
-            <FallacyTooltip marks={fallacyMarks} onClose={handleHideTooltip} anchorRect={anchorRect} />
+            <AnnotationTooltip 
+              fallacyMarks={fallacyMarks} 
+              rhetoricMarks={rhetoricMarks} 
+              onClose={handleHideTooltip} 
+              anchorRect={anchorRect} 
+            />
           )}
         </span>
       </span>
