@@ -41,7 +41,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Define TypeScript interfaces for Annotations/markups
 - [x] Define TypeScript interfaces for Fallacy categories and types
 - [x] Define TypeScript interfaces for User preferences
-- [ ] Define TypeScript interfaces for Rhetoric argument categories and types
+- [x] Define TypeScript interfaces for Rhetoric argument categories and types
 
 #### 2.2 Local Storage Implementation
 - [x] Create storage service for saving/loading debates
@@ -146,12 +146,12 @@ This plan outlines the process for recreating the Debate Dissector application a
 ### Testing Strategy
 
 #### Unit Tests
-- [ ] Set up Jest/Vitest testing framework
-- [ ] Test `storage.ts` service (CRUD operations, preferences)
-- [ ] Test `extractUsedAnnotations()` utility
-- [ ] Test document ID generation and validation
-- [ ] Test fallacy/rhetoric data structure integrity
-- [ ] Test version history utilities
+- [x] Set up Jest/Vitest testing framework
+- [x] Test `storage.ts` service (CRUD operations, preferences)
+- [x] Test `extractUsedAnnotations()` utility
+- [x] Test document ID generation and validation
+- [x] Test fallacy/rhetoric data structure integrity
+- [x] Test version history utilities
 
 #### Component Tests
 - [ ] Set up React Testing Library
