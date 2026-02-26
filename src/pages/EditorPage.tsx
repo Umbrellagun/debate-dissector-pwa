@@ -111,8 +111,8 @@ export const EditorPage: React.FC = () => {
     if (isLoading || isInitialized) return;
 
     const initDocument = async () => {
-      // Load all documents for the sidebar
-      await loadDocuments();
+      // Load all documents for the sidebar and get fresh list
+      const freshDocs = await loadDocuments();
 
       let doc: DebateDocument | null = null;
 
@@ -124,7 +124,7 @@ export const EditorPage: React.FC = () => {
 
       if (!doc) {
         // Check if this is a first-time user (no documents exist)
-        const isFirstTime = documents.length === 0;
+        const isFirstTime = freshDocs.length === 0;
         if (isFirstTime) {
           // Create example document with pre-marked fallacies
           doc = await createDocument(EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT);
@@ -139,7 +139,7 @@ export const EditorPage: React.FC = () => {
     };
 
     initDocument();
-  }, [id, isLoading, isInitialized, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences, documents.length]);
+  }, [id, isLoading, isInitialized, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences]);
 
   const handleFallacySelect = useCallback((fallacy: Fallacy | null) => {
     setSelectedFallacy(fallacy);

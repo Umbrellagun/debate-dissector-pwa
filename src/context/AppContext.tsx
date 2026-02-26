@@ -95,7 +95,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 interface AppContextValue {
   state: AppState;
-  loadDocuments: () => Promise<void>;
+  loadDocuments: () => Promise<DocumentListItem[]>;
   loadDocument: (id: string) => Promise<DebateDocument | null>;
   createDocument: (title: string, content?: Descendant[]) => Promise<DebateDocument>;
   saveDocument: (doc: DebateDocument) => Promise<void>;
@@ -126,9 +126,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     init();
   }, []);
 
-  const loadDocuments = async () => {
+  const loadDocuments = async (): Promise<DocumentListItem[]> => {
     const docs = await listDocuments();
     dispatch({ type: 'SET_DOCUMENTS', payload: docs });
+    return docs;
   };
 
   const loadDocument = async (id: string): Promise<DebateDocument | null> => {
