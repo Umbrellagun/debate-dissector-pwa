@@ -72,6 +72,7 @@ export const EditorPage: React.FC = () => {
   const { documents, preferences, isLoading } = state;
 
   const editorRef = useRef<DebateEditorHandle>(null);
+  const initializingRef = useRef(false);
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
   const [rightSidebarExpanded, setRightSidebarExpanded] = useState(true);
   const [sidebarStatesSynced, setSidebarStatesSynced] = useState(false);
@@ -108,34 +109,55 @@ export const EditorPage: React.FC = () => {
   }, [currentDoc?.content]);
 
   useEffect(() => {
-    if (isLoading || isInitialized) return;
+    if (isLoading || isInitialized || initializingRef.current) return;
 
     const initDocument = async () => {
-      // Load all documents for the sidebar and get fresh list
-      const freshDocs = await loadDocuments();
+      // Guard against concurrent calls (React StrictMode double-mount)
+      if (initializingRef.current) return;
+      initializingRef.current = true;
 
-      let doc: DebateDocument | null = null;
+      try {
+        // Load all documents for the sidebar and get fresh list
+        const freshDocs = await loadDocuments();
 
-      if (id) {
-        doc = await loadDocument(id);
-      } else if (preferences.lastEditedDocumentId) {
-        doc = await loadDocument(preferences.lastEditedDocumentId);
-      }
+        let doc: DebateDocument | null = null;
 
-      if (!doc) {
-        // Check if this is a first-time user (no documents exist)
-        const isFirstTime = freshDocs.length === 0;
-        if (isFirstTime) {
-          // Create example document with pre-marked fallacies
-          doc = await createDocument(EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT);
-        } else {
-          doc = await createDocument('Untitled Debate');
+        if (id) {
+          doc = await loadDocument(id);
+        } else if (preferences.lastEditedDocumentId) {
+          doc = await loadDocument(preferences.lastEditedDocumentId);
         }
-      }
 
-      setCurrentDoc(doc);
-      await updatePreferences({ lastEditedDocumentId: doc.id });
-      setIsInitialized(true);
+        if (!doc) {
+          // Check if this is a first-time user (no documents exist)
+          // Use localStorage flag to prevent duplicate example document creation
+          const exampleCreated = localStorage.getItem('debate-dissector-example-created');
+          const isFirstTime = freshDocs.length === 0 && !exampleCreated;
+          
+          if (isFirstTime) {
+            // Mark as created BEFORE creating to prevent race conditions
+            localStorage.setItem('debate-dissector-example-created', 'true');
+            // Create example document with pre-marked fallacies
+            doc = await createDocument(EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT);
+          } else if (freshDocs.length > 0) {
+            // Load the first existing document instead of creating a new one
+            doc = await loadDocument(freshDocs[0].id);
+          } else {
+            // Edge case: no docs exist but example was already created (shouldn't happen normally)
+            // Create a new untitled document
+            doc = await createDocument('Untitled Debate');
+          }
+        }
+
+        if (doc) {
+          setCurrentDoc(doc);
+          await updatePreferences({ lastEditedDocumentId: doc.id });
+        }
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Failed to initialize document:', error);
+        initializingRef.current = false;
+      }
     };
 
     initDocument();
