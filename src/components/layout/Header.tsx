@@ -42,11 +42,11 @@ export const Header: React.FC<HeaderProps> = ({
         {onMenuClick && !onBackClick && (
           <button
             onClick={onMenuClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0 touch-manipulation"
+            className="p-2 bg-violet-100 hover:bg-violet-200 rounded-lg transition-colors shrink-0 touch-manipulation"
             aria-label="Toggle menu"
           >
             <svg
-              className="w-5 h-5 text-gray-600"
+              className="w-5 h-5 text-violet-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

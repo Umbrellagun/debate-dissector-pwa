@@ -190,6 +190,9 @@ interface DebateEditorProps {
   onRhetoricClick?: (rhetoricId: string) => void;
   placeholder?: string;
   readOnly?: boolean;
+  selectedAnnotation?: { name: string; color: string } | null;
+  hasTextSelection?: boolean;
+  onApplyAnnotation?: () => void;
 }
 
 // Context for annotation click handlers
@@ -394,6 +397,9 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       onRhetoricClick,
       placeholder = 'Start typing or paste debate text here...',
       readOnly = false,
+      selectedAnnotation,
+      hasTextSelection,
+      onApplyAnnotation,
     },
     ref
   ) => {
@@ -448,7 +454,13 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       <AnnotationClickContext.Provider value={annotationClickContextValue}>
         <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
           <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
-            {!readOnly && <EditorToolbar />}
+            {!readOnly && (
+              <EditorToolbar
+                selectedAnnotation={selectedAnnotation}
+                hasTextSelection={hasTextSelection}
+                onApplyAnnotation={onApplyAnnotation}
+              />
+            )}
             <Editable
               className="flex-1 p-3 sm:p-4 md:p-6 focus:outline-none overflow-y-auto text-base leading-relaxed"
               renderLeaf={renderLeaf}

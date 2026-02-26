@@ -74,10 +74,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   <div className="border-t border-gray-200 p-2 flex justify-center">
                     <button
                       onClick={onRightSidebarToggle}
-                      className="p-3 hover:bg-gray-100 rounded-lg touch-manipulation"
+                      className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
                       title="Collapse panel"
                     >
-                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -89,10 +89,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 {onRightSidebarToggle && (
                   <button
                     onClick={onRightSidebarToggle}
-                    className="p-3 hover:bg-gray-100 rounded-lg touch-manipulation"
+                    className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
                     title="Expand panel"
                   >
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>

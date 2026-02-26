@@ -74,8 +74,19 @@ export const EditorPage: React.FC = () => {
   const editorRef = useRef<DebateEditorHandle>(null);
   const initializingRef = useRef(false);
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
-  const [rightSidebarExpanded, setRightSidebarExpanded] = useState(true);
+  const [rightSidebarExpanded, setRightSidebarExpanded] = useState(false);
   const [sidebarStatesSynced, setSidebarStatesSynced] = useState(false);
+  
+  // Detect if on mobile (viewport width < 1024px which is lg breakpoint)
+  const [isMobile, setIsMobile] = useState(() => 
+    typeof window !== 'undefined' && window.innerWidth < 1024
+  );
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [selectedFallacy, setSelectedFallacy] = useState<Fallacy | null>(null);
   const [selectedRhetoric, setSelectedRhetoric] = useState<Rhetoric | null>(null);
   const [currentDoc, setCurrentDoc] = useState<DebateDocument | null>(null);
@@ -84,14 +95,20 @@ export const EditorPage: React.FC = () => {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [hasTextSelection, setHasTextSelection] = useState(false);
   
-  // Sync sidebar states from preferences once loaded
+  // Sync sidebar states from preferences once loaded (only on desktop)
   useEffect(() => {
     if (!isLoading && !sidebarStatesSynced) {
-      setShowLeftSidebar(preferences.leftSidebarOpen ?? false);
-      setRightSidebarExpanded(preferences.rightSidebarOpen ?? true);
+      // On mobile, always start with sidebars closed
+      if (isMobile) {
+        setShowLeftSidebar(false);
+        setRightSidebarExpanded(false);
+      } else {
+        setShowLeftSidebar(preferences.leftSidebarOpen ?? false);
+        setRightSidebarExpanded(preferences.rightSidebarOpen ?? true);
+      }
       setSidebarStatesSynced(true);
     }
-  }, [isLoading, sidebarStatesSynced, preferences.leftSidebarOpen, preferences.rightSidebarOpen]);
+  }, [isLoading, sidebarStatesSynced, isMobile, preferences.leftSidebarOpen, preferences.rightSidebarOpen]);
 
   // Extract used annotations from current document content
   const { usedFallacies, usedRhetoric } = useMemo(() => {
@@ -526,32 +543,21 @@ export const EditorPage: React.FC = () => {
               }
             }}
             placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
+            selectedAnnotation={
+              selectedFallacy ? { name: selectedFallacy.name, color: selectedFallacy.color } :
+              selectedRhetoric ? { name: selectedRhetoric.name, color: selectedRhetoric.color } :
+              null
+            }
+            hasTextSelection={hasTextSelection}
+            onApplyAnnotation={() => {
+              if (selectedFallacy) {
+                handleFallacyApply(selectedFallacy);
+              } else if (selectedRhetoric) {
+                handleRhetoricApply(selectedRhetoric);
+              }
+            }}
           />
         </div>
-        
-        {/* Floating Apply/Remove Button - visible on mobile when text is selected and annotation is chosen */}
-        {hasTextSelection && (selectedFallacy || selectedRhetoric) && (
-          <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-            <button
-              onClick={() => {
-                if (selectedFallacy) {
-                  handleFallacyApply(selectedFallacy);
-                } else if (selectedRhetoric) {
-                  handleRhetoricApply(selectedRhetoric);
-                }
-              }}
-              className="flex items-center gap-2 px-4 py-3 rounded-full shadow-lg touch-manipulation font-medium text-white"
-              style={{
-                backgroundColor: selectedFallacy?.color || selectedRhetoric?.color || '#3b82f6',
-              }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-              <span>Apply {selectedFallacy?.name || selectedRhetoric?.name}</span>
-            </button>
-          </div>
-        )}
       </div>
       
       {showVersionHistory && (

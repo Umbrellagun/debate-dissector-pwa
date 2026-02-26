@@ -155,9 +155,19 @@ const ClearAnnotationsButton: React.FC = () => {
   );
 };
 
-export const EditorToolbar: React.FC = () => {
+interface EditorToolbarProps {
+  selectedAnnotation?: { name: string; color: string } | null;
+  hasTextSelection?: boolean;
+  onApplyAnnotation?: () => void;
+}
+
+export const EditorToolbar: React.FC<EditorToolbarProps> = ({
+  selectedAnnotation,
+  hasTextSelection,
+  onApplyAnnotation,
+}) => {
   return (
-    <div className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 bg-gray-50">
+    <div className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 bg-gray-50 flex-wrap">
       <div className="flex items-center gap-0.5 border-r border-gray-300 pr-2 mr-1">
         <MarkButton mark="bold" icon={<BoldIcon />} title="Bold (Ctrl+B)" />
         <MarkButton mark="italic" icon={<ItalicIcon />} title="Italic (Ctrl+I)" />
@@ -173,6 +183,27 @@ export const EditorToolbar: React.FC = () => {
         <ClearFormattingButton />
         <ClearAnnotationsButton />
       </div>
+      {/* Apply Annotation Button - shows when text is selected and annotation is chosen */}
+      {hasTextSelection && selectedAnnotation && onApplyAnnotation && (
+        <div className="flex items-center ml-auto pl-2 border-l border-gray-300">
+          <button
+            type="button"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onApplyAnnotation();
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-white shadow-sm touch-manipulation"
+            style={{ backgroundColor: selectedAnnotation.color }}
+            title={`Apply ${selectedAnnotation.name}`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            <span className="hidden sm:inline">Apply</span>
+            <span className="truncate max-w-[80px]">{selectedAnnotation.name}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
