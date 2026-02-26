@@ -1,7 +1,7 @@
 {
   "short_name": "Debate Dissector",
   "name": "Debate Dissector - Logical Fallacy Analysis Tool",
-  "description": "Mark up arguments and identify logical fallacies in debates",
+  "description": "Mark up arguments and identify logical fallacies in debates. Annotate text with fallacies and rhetorical devices for critical analysis.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -11,20 +11,37 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "./",
   "scope": ".",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "theme_color": "#3B82F6",
   "background_color": "#F9FAFB",
-  "categories": ["education", "productivity", "utilities"]
+  "categories": ["education", "productivity", "utilities"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "New Document",
+      "short_name": "New",
+      "description": "Create a new debate document",
+      "url": "./editor/new",
+      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
+    }
+  ]
 }

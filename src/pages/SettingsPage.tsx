@@ -2,11 +2,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout, Header } from '../components/layout';
 import { useApp } from '../context';
+import { useInstallPrompt } from '../hooks';
+import packageJson from '../../package.json';
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, updatePreferences } = useApp();
   const { preferences } = state;
+  const { isInstalled, isInstallable, promptInstall } = useInstallPrompt();
 
   const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
     updatePreferences({ theme });
@@ -88,9 +91,34 @@ export const SettingsPage: React.FC = () => {
             <div className="px-4 py-3 border-b border-gray-200">
               <h2 className="text-sm font-semibold text-gray-900">About</h2>
             </div>
-            <div className="p-4 space-y-2 text-sm text-gray-600">
-              <p><strong>Debate Dissector</strong> v0.1.0</p>
-              <p>A tool for analyzing debates, identifying logical fallacies, and rhetoric strategies.</p>
+            <div className="p-4 space-y-3 text-sm text-gray-600">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">Debate Dissector</p>
+                  <p className="text-xs text-gray-500">Version {packageJson.version}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isInstalled ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Installed
+                    </span>
+                  ) : isInstallable ? (
+                    <button
+                      onClick={promptInstall}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Install App
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              <p>A tool for analyzing debates, identifying logical fallacies, and rhetorical strategies.</p>
             </div>
           </section>
         </div>

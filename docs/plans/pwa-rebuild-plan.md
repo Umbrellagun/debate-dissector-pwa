@@ -86,7 +86,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Build debate list/browser component
 - [x] Implement debate editor page
 - [x] Create settings/preferences page
-- [ ] Add app version display (in settings or footer)
+- [x] Add app version display (in settings or footer)
 - [x] Refine title editor and hamburger menu positioning (moved to header)
 
 #### 4.2 Navigation and State Management
@@ -110,9 +110,9 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add offline indication and synchronization status
 
 #### 5.2 Installation Experience
-- [ ] Create app manifest
-- [ ] Design splash screen and icons
-- [ ] Implement "Add to Home Screen" prompt
+- [x] Create app manifest
+- [x] Design splash screen and icons
+- [x] Implement "Add to Home Screen" prompt
 - [ ] Test installation flow on various devices
 
 #### 5.3 Performance Optimization
