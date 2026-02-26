@@ -143,12 +143,49 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ### Testing and Deployment
 
-#### Testing Strategy
-- [ ] Unit tests for core utilities and services
-- [ ] Component tests for UI elements
-- [ ] Integration tests for key workflows
-- [ ] Accessibility testing
-- [ ] Performance benchmarks
+### Testing Strategy
+
+#### Unit Tests
+- [ ] Set up Jest/Vitest testing framework
+- [ ] Test `storage.ts` service (CRUD operations, preferences)
+- [ ] Test `extractUsedAnnotations()` utility
+- [ ] Test document ID generation and validation
+- [ ] Test fallacy/rhetoric data structure integrity
+- [ ] Test version history utilities
+
+#### Component Tests
+- [ ] Set up React Testing Library
+- [ ] Test `AnnotationPanel` (dropdowns, search filtering, hint dismissal)
+- [ ] Test `FallacyPanel` (category expansion, selection, apply button)
+- [ ] Test `RhetoricPanel` (category expansion, selection, apply button)
+- [ ] Test `Header` (title editing, badge counts, menu actions)
+- [ ] Test `EditorToolbar` (formatting buttons, clear functionality)
+- [ ] Test `DocumentList` (selection, creation, deletion)
+- [ ] Test `VersionHistoryPanel` (version listing, restore, delete)
+
+#### E2E Tests
+- [ ] Set up Playwright test framework
+- [ ] Test document lifecycle: create → edit → save → reload → verify
+- [ ] Test annotation workflow: select text → apply fallacy → verify marks → remove
+- [ ] Test version history: edit → create version → restore → verify content
+- [ ] Test offline functionality: go offline → edit → reconnect → verify persistence
+- [ ] Test preferences persistence: change settings → reload → verify restored
+
+#### Accessibility Tests
+- [ ] Integrate axe-core for automated a11y testing
+- [ ] Test keyboard navigation through all interactive elements
+- [ ] Test screen reader compatibility (ARIA labels, announcements)
+- [ ] Verify color contrast meets WCAG AA standards
+- [ ] Test focus management in modals and dialogs
+- [ ] Verify all form inputs have proper labels
+
+#### Performance Benchmarks
+- [ ] Set up Lighthouse CI for automated performance audits
+- [ ] Establish bundle size budget (<200KB gzipped)
+- [ ] Benchmark Time to Interactive (<3s on 3G)
+- [ ] Test large document performance (1000+ words, 50+ annotations)
+- [ ] Benchmark IndexedDB operations (<100ms for typical operations)
+- [ ] Monitor memory usage during extended editing sessions
 
 #### Deployment Plan
 - [ ] Configure CI/CD pipeline
