@@ -89,13 +89,20 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add app version display (in settings or footer)
 - [x] Refine title editor and hamburger menu positioning (moved to header)
 
-#### 4.2 Navigation and State Management
+#### 4.2 Annotation Statistics & Visualization
+- [ ] Calculate text coverage percentage per fallacy/rhetoric type
+- [ ] Create visual breakdown chart (pie/bar chart of annotation distribution)
+- [ ] Show total annotated vs unannotated text percentage
+- [ ] Display annotation stats in document summary or sidebar
+- [ ] Add export/share capability for annotation reports
+
+#### 4.3 Navigation and State Management
 - [x] Set up React Router for navigation
 - [x] Implement global state management (Context API)
 - [x] Create navigation components
 - [x] Design state persistence strategy
 
-#### 4.3 Responsive Design
+#### 4.4 Responsive Design
 - [x] Ensure mobile-friendly layout
 - [x] Implement touch interactions for mobile devices
 - [x] Optimize editor experience for different screen sizes
@@ -120,6 +127,14 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Optimize asset loading
 - [ ] Add performance monitoring
 - [ ] Ensure fast startup and interaction times
+
+#### 5.4 Analytics
+- [ ] Set up privacy-friendly analytics (Umami)
+- [ ] Track page views and navigation patterns
+- [ ] Track feature usage (annotations applied, documents created)
+- [ ] Monitor PWA installation events
+- [ ] Add error tracking and reporting
+- [ ] Create analytics dashboard or reporting
 
 ### Phase 6: Preparing for Future Features
 
@@ -188,10 +203,9 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Monitor memory usage during extended editing sessions
 
 #### Deployment Plan
-- [ ] Configure CI/CD pipeline
-- [ ] Set up hosting on Vercel or Netlify
-- [ ] Configure CDN and caching
-- [ ] Implement analytics
+- [x] Configure CI/CD pipeline (GitHub Actions)
+- [x] Set up hosting on Vercel or Netlify (configs ready)
+- [x] Configure CDN and caching headers
 
 ---
 
