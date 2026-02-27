@@ -108,6 +108,14 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Optimize editor experience for different screen sizes
 - [ ] Test and refine across device types
 
+#### 4.5 About & Legal Pages
+- [ ] Create About page with app description and mission
+- [ ] Add support/donation links (Ko-fi, GitHub Sponsors, etc.)
+- [ ] Add contact information or contact form
+- [ ] Create Privacy Policy page
+- [ ] Create Terms of Service page
+- [ ] Add links to About/Legal pages from Settings or footer
+
 ### Phase 5: PWA Features
 
 #### 5.1 Offline Capabilities
@@ -129,10 +137,10 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Ensure fast startup and interaction times
 
 #### 5.4 Analytics
-- [ ] Set up privacy-friendly analytics (Umami)
-- [ ] Track page views and navigation patterns
-- [ ] Track feature usage (annotations applied, documents created)
-- [ ] Monitor PWA installation events
+- [x] Set up privacy-friendly analytics (Umami self-hosted)
+- [x] Create useAnalytics hook with typed events
+- [x] Track feature usage (documents created/deleted)
+- [x] Monitor PWA installation events
 - [ ] Add error tracking and reporting
 - [ ] Create analytics dashboard or reporting
 
@@ -208,34 +216,3 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Configure CDN and caching headers
 
 ---
-
-## Target Project Structure
-
-```
-src/
-├── components/
-│   ├── core/          # Base UI components
-│   ├── layout/        # Layout components
-│   ├── editor/        # Slate.js editor components
-│   └── fallacies/     # Fallacy-related components
-├── hooks/             # Custom React hooks
-├── context/           # React context providers
-├── models/            # TypeScript interfaces and types
-├── services/
-│   ├── storage/       # Local storage service
-│   └── fallacies/     # Fallacy data service
-├── utils/             # Utility functions
-└── pages/             # Main application pages
-```
-
----
-
-## Initial Development Focus (Sprint 1)
-
-For the first development sprint, we should focus on:
-1. Project setup and core architecture
-2. Basic Slate.js editor implementation
-3. Local storage service
-4. Fallacy reference data model and UI
-
-This will establish the foundation while validating our approach with the most critical technical aspects.
