@@ -30,16 +30,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Left Sidebar Overlay (mobile) */}
-      {showLeftSidebar && leftSidebar && (
+      {/* Left Sidebar */}
+      {leftSidebar && (
         <>
           {/* Backdrop for mobile */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className={`fixed inset-0 bg-black z-40 lg:hidden transition-opacity duration-300 ${
+              showLeftSidebar ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
+            }`}
             onClick={onLeftSidebarClose}
           />
           {/* Sidebar */}
-          <aside className="fixed lg:relative inset-y-0 left-0 z-50 w-72 lg:w-64 border-r border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg lg:shadow-none">
+          <aside 
+            className={`fixed lg:relative inset-y-0 left-0 z-50 w-72 lg:w-64 border-r border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg lg:shadow-none transition-transform duration-300 ${
+              showLeftSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:hidden'
+            }`}
+          >
             {leftSidebar}
           </aside>
         </>
