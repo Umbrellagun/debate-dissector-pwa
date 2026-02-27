@@ -22,8 +22,11 @@ interface InstallPromptState {
 const DISMISS_KEY = 'pwa-install-dismissed';
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
+// Store the deferred prompt globally so it persists across navigation
+let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
+
 export const useInstallPrompt = (): InstallPromptState => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(globalDeferredPrompt);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
 
@@ -53,7 +56,9 @@ export const useInstallPrompt = (): InstallPromptState => {
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const prompt = e as BeforeInstallPromptEvent;
+      globalDeferredPrompt = prompt; // Store globally
+      setDeferredPrompt(prompt);
       
       // Check if we should show the prompt
       const dismissedAt = localStorage.getItem(DISMISS_KEY);
@@ -65,6 +70,7 @@ export const useInstallPrompt = (): InstallPromptState => {
 
     const handleAppInstalled = () => {
       setIsInstalled(true);
+      globalDeferredPrompt = null; // Clear global reference
       setDeferredPrompt(null);
       setShowPrompt(false);
       trackAnalyticsEvent('pwa_installed');
@@ -101,6 +107,7 @@ export const useInstallPrompt = (): InstallPromptState => {
       setIsInstalled(true);
     }
     
+    globalDeferredPrompt = null; // Clear global reference after use
     setDeferredPrompt(null);
     setShowPrompt(false);
   }, [deferredPrompt]);

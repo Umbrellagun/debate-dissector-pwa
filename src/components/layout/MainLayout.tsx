@@ -40,13 +40,30 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             }`}
             onClick={onLeftSidebarClose}
           />
-          {/* Sidebar */}
+          {/* Sidebar - slides in from left on both mobile and desktop */}
           <aside 
-            className={`fixed lg:relative inset-y-0 left-0 z-50 w-72 lg:w-64 border-r border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg lg:shadow-none transition-transform duration-300 ${
-              showLeftSidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:hidden'
+            className={`fixed inset-y-0 left-0 z-50 w-72 lg:w-64 border-r border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
+              showLeftSidebar ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
-            {leftSidebar}
+            <div className="h-full flex flex-col">
+              <div className="flex-1 overflow-y-auto">
+                {leftSidebar}
+              </div>
+              {onLeftSidebarClose && (
+                <div className="border-t border-gray-200 p-2 flex justify-center">
+                  <button
+                    onClick={onLeftSidebarClose}
+                    className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
+                    title="Close panel"
+                  >
+                    <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
           </aside>
         </>
       )}
@@ -60,51 +77,48 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {effectiveShowRightSidebar && effectiveRightSidebar && (
         <>
           {/* Backdrop for mobile when expanded */}
-          {rightSidebarExpanded && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          <div 
+            className={`fixed inset-0 bg-black z-40 lg:hidden transition-opacity duration-300 ${
+              rightSidebarExpanded ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
+            }`}
+            onClick={onRightSidebarToggle}
+          />
+          {/* Open button - visible on desktop when sidebar is closed */}
+          {!rightSidebarExpanded && onRightSidebarToggle && (
+            <button
               onClick={onRightSidebarToggle}
-            />
+              className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 p-3 bg-violet-100 hover:bg-violet-200 rounded-l-lg shadow-lg touch-manipulation"
+              title="Open panel"
+            >
+              <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
           )}
+          {/* Sidebar - slides in from right on both mobile and desktop */}
           <aside 
-            className={`fixed lg:relative inset-y-0 right-0 z-50 border-l border-gray-200 bg-white overflow-y-auto flex-shrink-0 transition-all duration-300 shadow-lg lg:shadow-none ${
-              rightSidebarExpanded ? 'w-80 sm:w-80' : 'w-12'
-            } ${!rightSidebarExpanded ? 'hidden lg:block' : ''}`}
+            className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
+              rightSidebarExpanded ? 'translate-x-0' : 'translate-x-full'
+            }`}
           >
-            {rightSidebarExpanded ? (
-              <div className="h-full flex flex-col">
-                <div className="flex-1 overflow-y-auto">
-                  {effectiveRightSidebar}
-                </div>
-                {onRightSidebarToggle && (
-                  <div className="border-t border-gray-200 p-2 flex justify-center">
-                    <button
-                      onClick={onRightSidebarToggle}
-                      className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
-                      title="Collapse panel"
-                    >
-                      <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </div>
-                )}
+            <div className="h-full flex flex-col">
+              <div className="flex-1 overflow-y-auto">
+                {effectiveRightSidebar}
               </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-end pb-2">
-                {onRightSidebarToggle && (
+              {onRightSidebarToggle && (
+                <div className="border-t border-gray-200 p-2 flex justify-center">
                   <button
                     onClick={onRightSidebarToggle}
                     className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
-                    title="Expand panel"
+                    title="Close panel"
                   >
                     <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </aside>
         </>
       )}

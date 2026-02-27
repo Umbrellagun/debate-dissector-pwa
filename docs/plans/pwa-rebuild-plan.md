@@ -116,6 +116,37 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Create Terms of Service page
 - [ ] Add links to About/Legal pages from Settings or footer
 
+#### 4.6 Roadmap & Changelog
+- [ ] Create public roadmap page showing planned features
+- [ ] Display feature status (planned, in progress, completed)
+- [ ] Allow users to vote/request features (optional)
+- [ ] Create changelog/release notes page
+- [ ] Show "What's New" modal on first visit after update
+- [ ] Version update notifications in app
+- [ ] Link to roadmap from Settings or About page
+- [ ] Auto-generate changelog from GitHub releases (optional)
+
+#### 4.7 Trello API Integration
+- [ ] Set up Trello API authentication (API key + token)
+- [ ] Create script to parse pwa-rebuild-plan.md into tasks
+- [ ] Sync plan items to Trello board cards
+- [ ] Map checkbox status to Trello card lists (Todo/In Progress/Done)
+- [ ] Add GitHub Action to auto-sync on plan changes
+- [ ] Optional: Two-way sync via Trello webhooks
+
+#### 4.8 Internationalization (i18n)
+- [ ] Set up i18n framework (react-i18next or similar)
+- [ ] Extract all UI strings to translation files
+- [ ] Create English (en) base translation file
+- [ ] Add language selector in Settings
+- [ ] Translate fallacy names and descriptions
+- [ ] Translate rhetoric technique names and descriptions
+- [ ] Add Spanish (es) translation
+- [ ] Add French (fr) translation
+- [ ] Add additional languages as needed
+- [ ] Persist language preference in user settings
+- [ ] Support RTL languages (Arabic, Hebrew) if needed
+
 ### Phase 5: PWA Features
 
 #### 5.1 Offline Capabilities
@@ -131,10 +162,10 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Test installation flow on various devices
 
 #### 5.3 Performance Optimization
-- [ ] Implement code splitting
-- [ ] Optimize asset loading
-- [ ] Add performance monitoring
-- [ ] Ensure fast startup and interaction times
+- [x] Implement code splitting (React.lazy + Suspense for routes)
+- [x] Optimize asset loading (Tailwind CSS purging, lazy components)
+- [x] Add performance monitoring (Web Vitals: CLS, FID, FCP, LCP, TTFB)
+- [x] Ensure fast startup and interaction times (loading spinner fallback)
 
 #### 5.4 Analytics
 - [x] Set up privacy-friendly analytics (Umami self-hosted)
@@ -143,6 +174,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Monitor PWA installation events
 - [ ] Add error tracking and reporting
 - [ ] Create analytics dashboard or reporting
+- [ ] See [Umami Setup Guide](../guides/umami-setup.md) for deployment instructions
 
 ### Phase 6: Preparing for Future Features
 
