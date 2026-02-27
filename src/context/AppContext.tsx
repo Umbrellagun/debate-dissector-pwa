@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Descendant } from 'slate';
 import { DebateDocument, DocumentListItem, UserPreferences, DEFAULT_USER_PREFERENCES } from '../models';
+import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 import {
   listDocuments,
   getDocument,
@@ -167,6 +168,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       },
     });
     dispatch({ type: 'SET_CURRENT_DOCUMENT', payload: doc });
+    trackAnalyticsEvent('document_created', { title: title || 'Untitled' });
     return doc;
   };
 
@@ -188,6 +190,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const deleteDocument = async (id: string) => {
     await deleteDoc(id);
     dispatch({ type: 'REMOVE_DOCUMENT', payload: id });
+    trackAnalyticsEvent('document_deleted', { documentId: id });
     if (state.currentDocument?.id === id) {
       dispatch({ type: 'SET_CURRENT_DOCUMENT', payload: null });
     }

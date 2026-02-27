@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { trackAnalyticsEvent } from './useAnalytics';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -58,6 +59,7 @@ export const useInstallPrompt = (): InstallPromptState => {
       const dismissedAt = localStorage.getItem(DISMISS_KEY);
       if (!dismissedAt) {
         setShowPrompt(true);
+        trackAnalyticsEvent('pwa_prompt_shown');
       }
     };
 
@@ -65,6 +67,7 @@ export const useInstallPrompt = (): InstallPromptState => {
       setIsInstalled(true);
       setDeferredPrompt(null);
       setShowPrompt(false);
+      trackAnalyticsEvent('pwa_installed');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -105,6 +108,7 @@ export const useInstallPrompt = (): InstallPromptState => {
   const dismissPrompt = useCallback(() => {
     localStorage.setItem(DISMISS_KEY, Date.now().toString());
     setShowPrompt(false);
+    trackAnalyticsEvent('pwa_prompt_dismissed');
   }, []);
 
   return {
