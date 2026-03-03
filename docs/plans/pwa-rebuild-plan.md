@@ -196,6 +196,74 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Prepare for future real-time features
 - [ ] Implement conflict resolution strategy
 
+#### 6.4 Sharing Features (PocketBase Backend)
+Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting and Cloudflare protection.
+
+**Stack**: PocketBase (Go binary + SQLite) → Fly.io (hosting) → Cloudflare (DDoS/CDN)
+
+**Repos**:
+- `debate-dissector-pwa` - React PWA (this repo)
+- `debate-dissector-api` - PocketBase backend (separate repo)
+
+##### Infrastructure Setup
+- [x] Set up PocketBase project with shared_debates collection
+- [x] Deploy PocketBase to Fly.io (free tier)
+- [ ] Configure Cloudflare DNS and DDoS protection
+- [x] Set up environment variables for API URL
+- [x] Configure CORS for PWA domain (PocketBase default allows all)
+
+##### Database Schema (shared_debates collection)
+- [x] id (auto-generated, 15 chars)
+- [x] content (JSON - document data)
+- [x] title (string)
+- [x] authorName (string, optional)
+- [x] expiresAt (datetime, nullable)
+- [x] passwordHash (string, nullable)
+- [x] reportCount (number) - for moderation
+- [x] isBlocked (bool) - admin content blocking
+
+##### Security & Rate Limiting
+- [x] Configure PocketBase rate limiting (60 req/min per IP)
+- [x] Set max request size (5MB)
+- [x] Disable collection listing (require exact ID to fetch)
+- [ ] Configure Cloudflare WAF rules
+- [ ] Add CAPTCHA for share creation (optional)
+
+##### Frontend Integration
+- [x] Create PocketBase SDK service (`src/services/sharing/index.ts`)
+- [x] Add "Share" button to editor toolbar
+- [x] Create share modal UI with options (expiration, password)
+- [x] Implement copy-to-clipboard for share links
+- [x] Add `/s/:id` route for viewing shared documents
+- [x] Implement "View Only" mode (read-only editor)
+- [x] Add "Import as Copy" button to save locally
+- [ ] Create "My Shared Links" management UI in Settings
+
+##### Analytics & Moderation
+- [ ] Track share views via Umami analytics
+- [ ] Add "Report" functionality for inappropriate content
+- [x] Create admin dashboard access via PocketBase UI
+
+#### 6.5 Feature Flags (PocketBase)
+Runtime feature toggles using PocketBase settings collection.
+
+##### Backend Setup
+- [ ] Create `app_settings` collection with single record
+- [ ] Add `features` JSON field for flag configuration
+- [ ] Set API rules (public read, admin-only write)
+
+##### Frontend Integration
+- [ ] Create feature flags service (`src/services/features.ts`)
+- [ ] Add FeatureFlagsProvider context
+- [ ] Implement `useFeatureFlag()` hook
+- [ ] Cache flags with localStorage fallback
+- [ ] Add flag checks to sharing features (for gradual rollout)
+
+##### Example Flags
+- `sharing_enabled` - Toggle sharing feature
+- `maintenance_mode` - Show maintenance banner
+- `max_share_size_kb` - Configurable limits
+
 ### Testing and Deployment
 
 ### Testing Strategy

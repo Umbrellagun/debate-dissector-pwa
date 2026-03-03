@@ -1,16 +1,22 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Descendant, Editor, Range } from 'slate';
 import { MainLayout, Header } from '../components/layout';
 import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { VersionHistoryPanel } from '../components/version';
+import { createShare } from '../services/sharing';
 import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem, DocumentVersion } from '../models';
 import { FALLACIES } from '../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../data/rhetoric';
 import { EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT } from '../data/exampleDocument';
 import { useApp } from '../context';
 import { saveDocument as saveDoc, createVersion } from '../services/storage';
+import { SharedDebate } from '../services/sharing';
+
+export interface SharedDocumentState {
+  sharedDebate: SharedDebate;
+}
 
 // Simple SVG icon component for History
 const HistoryIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -68,7 +74,13 @@ const normalizeEditorContent = (content: Descendant[] | undefined | null): Desce
 export const EditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { state, loadDocument, loadDocuments, createDocument, saveDocument, deleteDocument, updatePreferences } = useApp();
+  
+  // Check if viewing a shared document (passed via location state from SharedDebatePage)
+  const sharedDocState = location.state as SharedDocumentState | null;
+  const isViewingShared = !!sharedDocState?.sharedDebate;
+  const sharedDebate = sharedDocState?.sharedDebate;
   const { documents, preferences, isLoading } = state;
 
   const editorRef = useRef<DebateEditorHandle>(null);
@@ -93,7 +105,12 @@ export const EditorPage: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [annotationTab, setAnnotationTab] = useState<AnnotationTabType>('fallacies');
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [hasTextSelection, setHasTextSelection] = useState(false);
+  const [sharePopup, setSharePopup] = useState<{ url: string; copied: boolean } | null>(null);
+  
+  // Cache share URLs per document to avoid creating duplicates
+  const shareUrlCache = useRef<Record<string, string>>({});
   
   // Sync sidebar states from preferences once loaded (only on desktop)
   useEffect(() => {
@@ -126,7 +143,24 @@ export const EditorPage: React.FC = () => {
   }, [currentDoc?.content]);
 
   useEffect(() => {
-    if (isLoading || isInitialized || initializingRef.current) return;
+    // For shared documents, create a virtual document from the shared data
+    if (isViewingShared && sharedDebate && !isInitialized) {
+      const content = sharedDebate.content.content as Descendant[];
+      const annotations = sharedDebate.content.annotations || {};
+      const virtualDoc: DebateDocument = {
+        id: `shared_${sharedDebate.id}`,
+        title: sharedDebate.title,
+        content,
+        annotations,
+        createdAt: new Date(sharedDebate.created).getTime(),
+        updatedAt: new Date(sharedDebate.created).getTime(),
+      };
+      setCurrentDoc(virtualDoc);
+      setIsInitialized(true);
+      return;
+    }
+
+    if (isLoading || isInitialized || initializingRef.current || isViewingShared) return;
 
     const initDocument = async () => {
       // Guard against concurrent calls (React StrictMode double-mount)
@@ -178,7 +212,68 @@ export const EditorPage: React.FC = () => {
     };
 
     initDocument();
-  }, [id, isLoading, isInitialized, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences]);
+  }, [id, isLoading, isInitialized, isViewingShared, sharedDebate, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences]);
+
+  // Handler for importing a shared document as a local copy
+  const handleImportAsCopy = useCallback(async () => {
+    if (!sharedDebate || !currentDoc) return;
+
+    const content = sharedDebate.content.content as Descendant[];
+    const annotations = sharedDebate.content.annotations || {};
+
+    // Create document first (without annotations)
+    const newDoc = await createDocument(`${sharedDebate.title} (Copy)`, content);
+    
+    // Then save with annotations
+    await saveDocument({
+      ...newDoc,
+      annotations,
+    });
+
+    // Navigate to the new document (clears shared state)
+    navigate(`/editor/${newDoc.id}`, { replace: true });
+  }, [sharedDebate, currentDoc, createDocument, saveDocument, navigate]);
+
+  // One-click share: upload to PocketBase and copy link (with caching)
+  const handleShare = useCallback(async () => {
+    if (!currentDoc || isSharing) return;
+
+    // Check cache first
+    const cachedUrl = shareUrlCache.current[currentDoc.id];
+    if (cachedUrl) {
+      setSharePopup({ url: cachedUrl, copied: false });
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      const result = await createShare({
+        title: currentDoc.title,
+        content: currentDoc.content,
+        annotations: currentDoc.annotations || {},
+      });
+
+      // Cache the URL
+      shareUrlCache.current[currentDoc.id] = result.shareUrl;
+      setSharePopup({ url: result.shareUrl, copied: false });
+    } catch (error) {
+      console.error('Failed to share:', error);
+      setSharePopup(null);
+    } finally {
+      setIsSharing(false);
+    }
+  }, [currentDoc, isSharing]);
+
+  const handleCopyShareLink = useCallback(async () => {
+    if (!sharePopup) return;
+    try {
+      await navigator.clipboard.writeText(sharePopup.url);
+      setSharePopup({ ...sharePopup, copied: true });
+      setTimeout(() => setSharePopup(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  }, [sharePopup]);
 
   const handleFallacySelect = useCallback((fallacy: Fallacy | null) => {
     setSelectedFallacy(fallacy);
@@ -440,15 +535,19 @@ export const EditorPage: React.FC = () => {
       onRightSidebarToggle={handleRightSidebarToggle}
     >
       <Header
-        onMenuClick={handleLeftSidebarToggle}
+        onMenuClick={isViewingShared ? () => navigate('/') : handleLeftSidebarToggle}
         titleElement={
-          <input
-            type="text"
-            value={currentDoc.title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="Untitled Debate"
-            className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
-          />
+          isViewingShared ? (
+            <h1 className="text-lg font-semibold text-gray-900">{currentDoc.title}</h1>
+          ) : (
+            <input
+              type="text"
+              value={currentDoc.title}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              placeholder="Untitled Debate"
+              className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
+            />
+          )
         }
         actions={
           <div className="flex items-center gap-2 sm:gap-4">
@@ -499,14 +598,47 @@ export const EditorPage: React.FC = () => {
                 </div>
               )}
             </div>
-            {/* Version history - shown first on mobile for better UX */}
-            <button
-              onClick={() => setShowVersionHistory(true)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
-              title="Version History"
-            >
-              <HistoryIcon className="w-5 h-5" />
-            </button>
+            {/* Shared document actions */}
+            {isViewingShared && (
+              <>
+                <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                  View Only
+                </span>
+                <button
+                  onClick={handleImportAsCopy}
+                  className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors text-sm font-medium"
+                >
+                  Import as Copy
+                </button>
+              </>
+            )}
+            {/* Share button - only for local documents */}
+            {!isViewingShared && (
+              <button
+                onClick={handleShare}
+                disabled={isSharing}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation disabled:opacity-50"
+                title={isSharing ? 'Sharing...' : 'Share'}
+              >
+                {isSharing ? (
+                  <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                )}
+              </button>
+            )}
+            {/* Version history - only for local documents */}
+            {!isViewingShared && (
+              <button
+                onClick={() => setShowVersionHistory(true)}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
+                title="Version History"
+              >
+                <HistoryIcon className="w-5 h-5" />
+              </button>
+            )}
             {/* Annotation panel toggle - visible on mobile */}
             <button
               onClick={handleRightSidebarToggle}
@@ -526,8 +658,9 @@ export const EditorPage: React.FC = () => {
             key={currentDoc.id}
             ref={editorRef}
             initialValue={normalizeEditorContent(currentDoc.content)}
-            onChange={handleContentChange}
+            onChange={isViewingShared ? () => {} : handleContentChange}
             onSelectionChange={handleSelectionChange}
+            readOnly={isViewingShared}
             onFallacyClick={(fallacyId) => {
               const fallacy = FALLACIES.find(f => f.id === fallacyId);
               if (fallacy) {
@@ -566,6 +699,61 @@ export const EditorPage: React.FC = () => {
           onRestore={handleVersionRestore}
           onClose={() => setShowVersionHistory(false)}
         />
+      )}
+
+      {/* Share popup */}
+      {sharePopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setSharePopup(null)}>
+          <div 
+            className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4 animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Share Link</h3>
+              <button
+                onClick={() => setSharePopup(null)}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={sharePopup.url}
+                className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-700 select-all"
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                onClick={handleCopyShareLink}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  sharePopup.copied
+                    ? 'bg-green-500 text-white'
+                    : 'bg-violet-600 text-white hover:bg-violet-700'
+                }`}
+              >
+                {sharePopup.copied ? (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied!
+                  </span>
+                ) : (
+                  'Copy'
+                )}
+              </button>
+            </div>
+            
+            <p className="mt-3 text-xs text-gray-500">
+              Anyone with this link can view this document.
+            </p>
+          </div>
+        </div>
       )}
     </MainLayout>
   );

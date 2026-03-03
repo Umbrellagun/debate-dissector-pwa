@@ -7,6 +7,7 @@ import './App.css';
 // Code splitting: Lazy load pages for better initial load performance
 const EditorPage = lazy(() => import('./pages/EditorPage').then(m => ({ default: m.EditorPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const SharedDebatePage = lazy(() => import('./pages/SharedDebatePage').then(m => ({ default: m.SharedDebatePage })));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -26,6 +27,8 @@ function App() {
           <Routes>
             <Route path="/" element={<EditorPage />} />
             <Route path="/editor/:id" element={<EditorPage />} />
+            <Route path="/s/:id" element={<SharedDebatePage />} />
+            <Route path="/s/:id/view" element={<EditorPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </Suspense>

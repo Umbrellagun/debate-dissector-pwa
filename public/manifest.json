@@ -31,7 +31,7 @@
   "scope": ".",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#3B82F6",
+  "theme_color": "#7C3AED",
   "background_color": "#F9FAFB",
   "categories": ["education", "productivity", "utilities"],
   "prefer_related_applications": false,
