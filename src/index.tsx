@@ -14,11 +14,23 @@ root.render(
   </React.StrictMode>
 );
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.register();
-
-// Report Core Web Vitals to analytics
-// Metrics: CLS, FID, FCP, LCP, TTFB
-reportWebVitals(sendToAnalytics);
+// Defer non-critical initialization to improve initial load time
+requestIdleCallback(() => {
+  // Register service worker after initial render
+  serviceWorkerRegistration.register();
+  
+  // Report Core Web Vitals to analytics
+  reportWebVitals(sendToAnalytics);
+  
+  // Load Umami analytics dynamically (non-blocking)
+  const umamiUrl = process.env.REACT_APP_UMAMI_SCRIPT_URL;
+  const umamiId = process.env.REACT_APP_UMAMI_WEBSITE_ID;
+  if (umamiUrl && umamiId) {
+    const script = document.createElement('script');
+    script.src = umamiUrl;
+    script.async = true;
+    script.defer = true;
+    script.dataset.websiteId = umamiId;
+    document.head.appendChild(script);
+  }
+}, { timeout: 2000 });
