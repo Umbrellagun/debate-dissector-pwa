@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context';
-import { OfflineIndicator, InstallPrompt, ErrorBoundary } from './components/core';
+import { OfflineIndicator, InstallPrompt, ErrorBoundary, SkipLink } from './components/core';
 import './App.css';
 
 // Code splitting: Lazy load pages for better initial load performance
@@ -27,6 +27,7 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AppProvider>
+          <SkipLink />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<EditorPage />} />

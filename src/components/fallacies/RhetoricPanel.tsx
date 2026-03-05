@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Rhetoric, RhetoricCategory, RHETORIC_CATEGORY_NAMES } from '../../models';
 import { useApp } from '../../context';
 
@@ -61,8 +61,18 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
     {} as Record<RhetoricCategory, Rhetoric[]>
   );
 
+  const searchResultsMessage = useMemo(() => {
+    if (!searchQuery) return '';
+    return `${filteredRhetoric.length} rhetoric item${filteredRhetoric.length === 1 ? '' : 's'} found`;
+  }, [searchQuery, filteredRhetoric.length]);
+
   return (
     <div className="flex flex-col">
+      {/* Screen reader announcement for search results */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {searchResultsMessage}
+      </div>
+
       {showInternalSearch && (
         <div className="p-3 border-b border-gray-200">
           <h2 className="text-sm font-semibold text-gray-900 mb-2">Rhetoric Reference</h2>
@@ -72,6 +82,8 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
             value={internalSearchQuery}
             onChange={(e) => setInternalSearchQuery(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            aria-label="Search rhetoric"
+            role="searchbox"
           />
         </div>
       )}
@@ -86,6 +98,8 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
               <button
                 onClick={() => toggleCategory(category)}
                 className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50"
+                aria-expanded={expandedCategories.has(category)}
+                aria-controls={`rhetoric-category-${category}`}
               >
                 <span className="text-sm font-medium text-gray-700">
                   {RHETORIC_CATEGORY_NAMES[category]}
@@ -108,7 +122,7 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
               </button>
 
               {expandedCategories.has(category) && (
-                <div className="pb-2">
+                <div id={`rhetoric-category-${category}`} className="pb-2" role="group" aria-label={`${RHETORIC_CATEGORY_NAMES[category]} rhetoric`}>
                   {categoryRhetoric.map((item) => (
                     <button
                       key={item.id}
@@ -120,6 +134,7 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
                       <span
                         className="w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: item.color }}
+                        aria-hidden="true"
                       />
                       <span className="text-sm text-gray-800">{item.name}</span>
                     </button>

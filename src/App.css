@@ -51,3 +51,23 @@
 .animate-slide-up {
   animation: slide-up 0.3s ease-out forwards;
 }
+
+/* Accessibility: Ensure focused elements are visible and not hidden under fixed sidebars */
+*:focus {
+  scroll-margin: 80px;
+  scroll-padding: 80px;
+}
+
+/* Enhanced focus outline for better visibility */
+*:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+/* Ensure main content area respects sidebar widths for focus scrolling */
+#main-content *:focus {
+  scroll-margin-left: 20rem; /* Account for right sidebar (w-80 = 20rem) */
+  scroll-margin-right: 20rem;
+  scroll-margin-top: 4rem; /* Account for header */
+  scroll-margin-bottom: 2rem;
+}

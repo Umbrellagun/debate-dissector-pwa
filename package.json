@@ -61,6 +61,7 @@
     ]
   },
   "devDependencies": {
+    "@types/jest-axe": "^3.5.9",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "autoprefixer": "^10.4.24",
@@ -70,6 +71,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^4.6.2",
     "fake-indexeddb": "^6.2.5",
+    "jest-axe": "^10.0.0",
     "postcss": "^8.5.6",
     "prettier": "^3.4.2"
   }

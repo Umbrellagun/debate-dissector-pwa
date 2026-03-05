@@ -296,12 +296,14 @@ Runtime feature toggles using PocketBase settings collection.
 - [ ] Test preferences persistence: change settings → reload → verify restored
 
 #### Accessibility Tests
-- [ ] Integrate axe-core for automated a11y testing
-- [ ] Test keyboard navigation through all interactive elements
-- [ ] Test screen reader compatibility (ARIA labels, announcements)
-- [ ] Verify color contrast meets WCAG AA standards
-- [ ] Test focus management in modals and dialogs
-- [ ] Verify all form inputs have proper labels
+- [x] Integrate jest-axe for automated a11y testing
+- [x] Test keyboard navigation through all interactive elements
+- [x] Test screen reader compatibility (ARIA labels, announcements)
+- [x] Verify color contrast meets WCAG AA standards
+- [x] Test focus management in modals and dialogs
+- [x] Verify all form inputs have proper labels
+- [ ] Manual accessibility testing with actual screen readers (NVDA, VoiceOver)
+- [ ] Manual testing by users with disabilities or accessibility specialists
 
 #### Performance Benchmarks
 - [ ] Set up Lighthouse CI for automated performance audits

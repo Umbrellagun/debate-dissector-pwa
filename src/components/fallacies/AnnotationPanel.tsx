@@ -91,6 +91,8 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          aria-label="Search fallacies and rhetoric"
+          role="searchbox"
         />
       </div>
 
@@ -117,12 +119,14 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
           <button
             onClick={handleFallaciesToggle}
             className="w-full flex items-center justify-between px-4 py-3 bg-red-50 hover:bg-red-100 transition-colors border-b border-red-200 sticky top-0 z-10"
+            aria-expanded={fallaciesExpanded}
+            aria-controls="fallacies-panel"
           >
             <span className="font-medium text-red-700">Fallacies</span>
             <ChevronIcon expanded={fallaciesExpanded} className="w-5 h-5 text-red-600" />
           </button>
           {fallaciesExpanded && (
-            <div className="border-b border-gray-200">
+            <div id="fallacies-panel" className="border-b border-gray-200" role="region" aria-label="Fallacies list">
               <FallacyPanel
                 fallacies={fallacies}
                 onFallacySelect={onFallacySelect}
@@ -139,12 +143,14 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
           <button
             onClick={handleRhetoricToggle}
             className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 hover:bg-blue-100 transition-colors border-b border-blue-200 sticky top-[52px] z-10"
+            aria-expanded={rhetoricExpanded}
+            aria-controls="rhetoric-panel"
           >
             <span className="font-medium text-blue-700">Rhetoric</span>
             <ChevronIcon expanded={rhetoricExpanded} className="w-5 h-5 text-blue-600" />
           </button>
           {rhetoricExpanded && (
-            <div className="border-b border-gray-200">
+            <div id="rhetoric-panel" className="border-b border-gray-200" role="region" aria-label="Rhetoric list">
               <RhetoricPanel
                 rhetoric={rhetoric}
                 onRhetoricSelect={onRhetoricSelect}
