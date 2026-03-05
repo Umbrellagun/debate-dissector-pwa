@@ -21,3 +21,6 @@ Disallow: /
 # Allow regular search engines
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://debate-dissector.com/sitemap.xml

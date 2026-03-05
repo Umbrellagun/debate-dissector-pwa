@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout, Header } from '../components/layout';
 import { useApp } from '../context';
@@ -10,6 +10,15 @@ export const SettingsPage: React.FC = () => {
   const { state, updatePreferences } = useApp();
   const { preferences } = state;
   const { isInstalled, isInstallable, promptInstall } = useInstallPrompt();
+  const [emailCopied, setEmailCopied] = useState(false);
+
+  const handleCopyEmail = () => {
+    const e = ['calebsundance3', 'gmail', 'com'].join('@').replace('@com', '.com');
+    navigator.clipboard.writeText(e).then(() => {
+      setEmailCopied(true);
+      setTimeout(() => setEmailCopied(false), 2000);
+    });
+  };
 
   const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
     updatePreferences({ theme });
@@ -119,6 +128,54 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
               <p>A tool for analyzing debates, identifying logical fallacies, and rhetorical strategies.</p>
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <span className="text-gray-500">Contact:</span>
+                <button
+                  onClick={handleCopyEmail}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  {emailCopied ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                      Copy Email
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <span className="text-gray-500">Support:</span>
+                <a
+                  href="https://patreon.com/calebsundance"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14.82 2.41c3.96 0 7.18 3.24 7.18 7.21 0 3.96-3.22 7.18-7.18 7.18-3.97 0-7.21-3.22-7.21-7.18 0-3.97 3.24-7.21 7.21-7.21M2 21.6h3.5V2.41H2V21.6z"/>
+                  </svg>
+                  Patreon
+                </a>
+                <a
+                  href="https://venmo.com/u/lifenav"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.5 2c.91 1.51 1.32 3.07 1.32 5.06 0 6.31-5.39 14.52-9.77 20.28H3.47L.5 2.38l7.06-.66 1.96 15.74C11.5 14.12 14.04 8.88 14.04 5.5c0-1.86-.47-3.14-1.14-4.17L19.5 2z"/>
+                  </svg>
+                  Venmo
+                </a>
+              </div>
             </div>
           </section>
         </div>
