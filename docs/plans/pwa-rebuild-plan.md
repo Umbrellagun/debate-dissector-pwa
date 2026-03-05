@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** February 25, 2026
+**Last Updated:** March 5, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -109,9 +109,9 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Test and refine across device types
 
 #### 4.5 About & Legal Pages
-- [ ] Create About page with app description and mission
-- [ ] Add support/donation links (Ko-fi, GitHub Sponsors, etc.)
-- [ ] Add contact information or contact form
+- [x] Create About page with app description and mission (in Settings)
+- [x] Add support/donation links (Patreon, Venmo)
+- [x] Add contact information (obfuscated email copy button)
 - [ ] Create Privacy Policy page
 - [ ] Create Terms of Service page
 - [ ] Add links to About/Legal pages from Settings or footer
@@ -172,8 +172,9 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Create useAnalytics hook with typed events
 - [x] Track feature usage (documents created/deleted)
 - [x] Monitor PWA installation events
-- [ ] Add error tracking and reporting
+- [x] Add error tracking and reporting (ErrorBoundary component)
 - [ ] Create analytics dashboard or reporting
+- [ ] Review cookie/analytics consent requirements for Umami
 - [ ] See [Umami Setup Guide](../guides/umami-setup.md) for deployment instructions
 
 ### Phase 6: Preparing for Future Features
@@ -314,5 +315,30 @@ Runtime feature toggles using PocketBase settings collection.
 - [x] Configure CI/CD pipeline (GitHub Actions)
 - [x] Set up hosting on Vercel or Netlify (configs ready)
 - [x] Configure CDN and caching headers
+
+### Phase 7: SEO & Security
+
+#### 7.1 Anti-Scraping & AI Bot Protection
+- [x] Update robots.txt to block AI crawlers (GPTBot, CCBot, Claude, etc.)
+- [x] Add `<meta name="robots" content="noai, noimageai">` tag
+- [x] Add X-Robots-Tag header to API responses (main.go middleware)
+- [ ] Configure Cloudflare Bot Fight Mode
+- [ ] Set up Cloudflare WAF rules for AI user-agents
+
+#### 7.2 SEO Optimization
+- [x] Add Open Graph meta tags for social sharing
+- [x] Add Twitter Card meta tags
+- [x] Add structured data (JSON-LD WebApplication schema)
+- [x] Create sitemap.xml
+- [x] Add sitemap reference to robots.txt
+- [x] Add canonical URL
+- [x] Add keywords and author meta tags
+- [ ] Purchase debatedissector.com and add as alternate domain
+
+#### 7.3 Standard Webapp Features
+- [x] Add 404 Not Found page with catch-all route
+- [x] Add ErrorBoundary for React crash handling
+- [ ] Create Privacy Policy page
+- [ ] Create Terms of Service page
 
 ---

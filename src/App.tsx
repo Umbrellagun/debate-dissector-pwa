@@ -1,13 +1,14 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context';
-import { OfflineIndicator, InstallPrompt } from './components/core';
+import { OfflineIndicator, InstallPrompt, ErrorBoundary } from './components/core';
 import './App.css';
 
 // Code splitting: Lazy load pages for better initial load performance
 const EditorPage = lazy(() => import('./pages/EditorPage').then(m => ({ default: m.EditorPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const SharedDebatePage = lazy(() => import('./pages/SharedDebatePage').then(m => ({ default: m.SharedDebatePage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -21,21 +22,24 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppProvider>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<EditorPage />} />
-            <Route path="/editor/:id" element={<EditorPage />} />
-            <Route path="/s/:id" element={<SharedDebatePage />} />
-            <Route path="/s/:id/view" element={<EditorPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </Suspense>
-        <OfflineIndicator />
-        <InstallPrompt />
-      </AppProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AppProvider>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<EditorPage />} />
+              <Route path="/editor/:id" element={<EditorPage />} />
+              <Route path="/s/:id" element={<SharedDebatePage />} />
+              <Route path="/s/:id/view" element={<EditorPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
+          <OfflineIndicator />
+          <InstallPrompt />
+        </AppProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
