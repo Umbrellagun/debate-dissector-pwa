@@ -278,14 +278,14 @@ Runtime feature toggles using PocketBase settings collection.
 - [x] Test version history utilities
 
 #### Component Tests
-- [ ] Set up React Testing Library
-- [ ] Test `AnnotationPanel` (dropdowns, search filtering, hint dismissal)
-- [ ] Test `FallacyPanel` (category expansion, selection, apply button)
-- [ ] Test `RhetoricPanel` (category expansion, selection, apply button)
-- [ ] Test `Header` (title editing, badge counts, menu actions)
-- [ ] Test `EditorToolbar` (formatting buttons, clear functionality)
-- [ ] Test `DocumentList` (selection, creation, deletion)
-- [ ] Test `VersionHistoryPanel` (version listing, restore, delete)
+- [x] Set up React Testing Library
+- [x] Test `AnnotationPanel` (dropdowns, search filtering, hint dismissal)
+- [x] Test `FallacyPanel` (category expansion, selection, apply button)
+- [x] Test `RhetoricPanel` (category expansion, selection, apply button)
+- [x] Test `Header` (title editing, badge counts, menu actions)
+- [x] Test `EditorToolbar` (formatting buttons, clear functionality)
+- [x] Test `DebateList` (selection, creation, deletion)
+- [x] Test `VersionHistoryPanel` (version listing, restore, delete)
 
 #### E2E Tests
 - [ ] Set up Playwright test framework
@@ -310,6 +310,12 @@ Runtime feature toggles using PocketBase settings collection.
 - [ ] Test large document performance (1000+ words, 50+ annotations)
 - [ ] Benchmark IndexedDB operations (<100ms for typical operations)
 - [ ] Monitor memory usage during extended editing sessions
+
+#### Test Automation
+- [x] Add test scripts to package.json (`test:ci`, `test:unit`, `test:components`, `test:coverage`)
+- [ ] Configure GitHub Actions to run tests on PR/push
+- [ ] Add test coverage reporting to CI
+- [ ] Set up test failure notifications
 
 #### Deployment Plan
 - [x] Configure CI/CD pipeline (GitHub Actions)

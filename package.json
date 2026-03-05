@@ -34,6 +34,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:ci": "react-scripts test --watchAll=false --coverage",
+    "test:unit": "react-scripts test --watchAll=false --testPathPattern='services|utils|data|hooks'",
+    "test:components": "react-scripts test --watchAll=false --testPathPattern='components'",
+    "test:coverage": "react-scripts test --watchAll=false --coverage --coverageReporters=text-summary",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "eject": "react-scripts eject"
