@@ -9,6 +9,8 @@ const EditorPage = lazy(() => import('./pages/EditorPage').then(m => ({ default:
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const SharedDebatePage = lazy(() => import('./pages/SharedDebatePage').then(m => ({ default: m.SharedDebatePage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
+const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage').then(m => ({ default: m.TermsOfServicePage })));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -32,6 +34,8 @@ function App() {
               <Route path="/s/:id" element={<SharedDebatePage />} />
               <Route path="/s/:id/view" element={<EditorPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsOfServicePage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>

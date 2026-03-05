@@ -112,9 +112,9 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Create About page with app description and mission (in Settings)
 - [x] Add support/donation links (Patreon, Venmo)
 - [x] Add contact information (obfuscated email copy button)
-- [ ] Create Privacy Policy page
-- [ ] Create Terms of Service page
-- [ ] Add links to About/Legal pages from Settings or footer
+- [x] Create Privacy Policy page
+- [x] Create Terms of Service page
+- [x] Add links to About/Legal pages from Settings or footer
 
 #### 4.6 Roadmap & Changelog
 - [ ] Create public roadmap page showing planned features
@@ -338,7 +338,7 @@ Runtime feature toggles using PocketBase settings collection.
 #### 7.3 Standard Webapp Features
 - [x] Add 404 Not Found page with catch-all route
 - [x] Add ErrorBoundary for React crash handling
-- [ ] Create Privacy Policy page
-- [ ] Create Terms of Service page
+- [x] Create Privacy Policy page
+- [x] Create Terms of Service page
 
 ---
