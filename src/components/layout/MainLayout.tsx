@@ -36,9 +36,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   useEffect(() => {
     if (showLeftSidebar && leftSidebarRef.current) {
       previousFocusRef.current = document.activeElement as HTMLElement;
-      const firstFocusable = leftSidebarRef.current.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
+      // On mobile, avoid focusing inputs to prevent keyboard popup
+      // Focus buttons/links instead, or the close button as fallback
+      const isMobile = window.innerWidth < 1024;
+      const selector = isMobile
+        ? 'button, [href], [tabindex]:not([tabindex="-1"])'
+        : 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const firstFocusable = leftSidebarRef.current.querySelector<HTMLElement>(selector);
       firstFocusable?.focus();
     } else if (!showLeftSidebar && previousFocusRef.current) {
       previousFocusRef.current.focus();
@@ -52,8 +56,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       const isMobile = window.innerWidth < 1024;
       if (isMobile) {
         previousFocusRef.current = document.activeElement as HTMLElement;
+        // Avoid focusing inputs on mobile to prevent keyboard popup
         const firstFocusable = rightSidebarRef.current.querySelector<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          'button, [href], [tabindex]:not([tabindex="-1"])'
         );
         firstFocusable?.focus();
       }
