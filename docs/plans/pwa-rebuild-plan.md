@@ -79,6 +79,17 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Implement rhetoric argument labeling (in addition to fallacies)
 - [ ] Document version history - allow reverting to previous versions
 
+#### 3.4 Comments System
+- [ ] Design comment data model (linked to text ranges, author, timestamp)
+- [ ] Implement text selection for adding comments
+- [ ] Create comment annotation marks in Slate editor
+- [ ] Build comment sidebar/panel UI to display all comments
+- [ ] Add inline comment indicators (highlight or icon)
+- [ ] Implement comment threading (replies to comments)
+- [ ] Add comment resolution/dismissal functionality
+- [ ] Support comment editing and deletion
+- [ ] **LEGAL:** If comments include user identity, update Privacy Policy
+
 ### Phase 4: User Interface & Experience
 
 #### 4.1 Main Application Views

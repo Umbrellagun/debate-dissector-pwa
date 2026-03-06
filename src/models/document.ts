@@ -49,7 +49,7 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   fallaciesExpanded: true,
   rhetoricExpanded: true,
   annotationHintDismissed: false,
-  leftSidebarOpen: true,
+  leftSidebarOpen: false,
   rightSidebarOpen: true,
   expandedFallacyCategories: ['informal', 'red-herring'],
   expandedRhetoricCategories: ['ethos', 'pathos'],

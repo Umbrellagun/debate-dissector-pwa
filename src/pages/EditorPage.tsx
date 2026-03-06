@@ -112,20 +112,20 @@ export const EditorPage: React.FC = () => {
   // Cache share URLs per document to avoid creating duplicates
   const shareUrlCache = useRef<Record<string, string>>({});
   
-  // Sync sidebar states from preferences once loaded (only on desktop)
+  // Sync sidebar states from preferences once loaded
   useEffect(() => {
     if (!isLoading && !sidebarStatesSynced) {
-      // On mobile, always start with sidebars closed
+      // Left sidebar always starts closed
+      setShowLeftSidebar(false);
+      // Right sidebar: on mobile start closed, on desktop restore saved preference
       if (isMobile) {
-        setShowLeftSidebar(false);
         setRightSidebarExpanded(false);
       } else {
-        setShowLeftSidebar(preferences.leftSidebarOpen ?? false);
         setRightSidebarExpanded(preferences.rightSidebarOpen ?? true);
       }
       setSidebarStatesSynced(true);
     }
-  }, [isLoading, sidebarStatesSynced, isMobile, preferences.leftSidebarOpen, preferences.rightSidebarOpen]);
+  }, [isLoading, sidebarStatesSynced, isMobile, preferences.rightSidebarOpen]);
 
   // Extract used annotations from current document content
   const { usedFallacies, usedRhetoric } = useMemo(() => {
