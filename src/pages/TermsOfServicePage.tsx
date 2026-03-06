@@ -75,8 +75,8 @@ export const TermsOfServicePage: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">Data Loss</h2>
                 <p className="text-gray-600">
                   While we strive to maintain data integrity, we are not responsible for data loss. 
-                  Local data depends on your browser's storage, and shared documents may be deleted 
-                  after expiration or for policy violations. We recommend keeping backups of important work.
+                  Local data depends on your browser's storage, and shared documents may be removed 
+                  for policy violations or service changes. We recommend keeping backups of important work.
                 </p>
               </div>
 

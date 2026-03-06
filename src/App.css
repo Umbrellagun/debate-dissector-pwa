@@ -71,3 +71,23 @@
   scroll-margin-top: 4rem; /* Account for header */
   scroll-margin-bottom: 2rem;
 }
+
+/* Red wave animation for signature text */
+@keyframes wave-red {
+  0%, 100% {
+    color: #374151;
+  }
+  25% {
+    color: #dc2626;
+  }
+  50% {
+    color: #ef4444;
+  }
+  75% {
+    color: #b91c1c;
+  }
+}
+
+.animate-wave-red {
+  animation: wave-red 2s ease-in-out infinite;
+}

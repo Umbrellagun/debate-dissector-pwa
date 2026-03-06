@@ -127,7 +127,44 @@ export const SettingsPage: React.FC = () => {
                   ) : null}
                 </div>
               </div>
-              <p>A tool for analyzing debates, identifying logical fallacies, and rhetorical strategies.</p>
+              <p className="text-gray-600 font-medium">
+                A tool for analyzing debates, identifying logical fallacies, and rhetorical strategies.
+              </p>
+              
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500 italic mb-3">Author's Note</p>
+                <div className="text-sm text-gray-600 space-y-3">
+                  <p>
+                    This app was an idea that I had years ago when I was first getting into coding. 
+                    I was at a coding bootcamp and had recently left Rutgers where I had been pursuing an English degree. 
+                    I envisioned a tool where I could physically demonstrate how arguments are structured and where they break down. 
+                    I wanted to build something that would help people think more clearly about complex issues.
+                  </p>
+                  <p>
+                    I've spent far too many discussions, online or in person, where people talked in circles, avoided adressing issues with statements they've made. 
+                    It is easy to get turned around in these discussions. 
+                  </p>
+                  <p>And thus, this app was created.</p>
+                  <p>
+                    If you like it or have feedback, please reach out! My email is below. If you are inclined to support me and projects I work on there are also links below.
+                  </p>
+                  <p className="pt-2">
+                    Stay awesome,
+                    <br />
+                    <span className="inline-block mt-1 font-semibold text-base">
+                      {'Caleb Sundance'.split('').map((char, i) => (
+                        <span
+                          key={i}
+                          className="inline-block animate-wave-red"
+                          style={{ animationDelay: `${i * 0.08}s` }}
+                        >
+                          {char === ' ' ? '\u00A0' : char}
+                        </span>
+                      ))}
+                    </span>
+                  </p>
+                </div>
+              </div>
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                 <span className="text-gray-500">Contact:</span>
                 <button

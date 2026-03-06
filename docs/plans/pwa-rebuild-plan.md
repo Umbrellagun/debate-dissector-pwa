@@ -120,6 +120,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Create public roadmap page showing planned features
 - [ ] Display feature status (planned, in progress, completed)
 - [ ] Allow users to vote/request features (optional)
+- [ ] **LEGAL:** If feature voting added, update Privacy Policy (collecting user votes/preferences)
 - [ ] Create changelog/release notes page
 - [ ] Show "What's New" modal on first visit after update
 - [ ] Version update notifications in app
@@ -174,7 +175,8 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Monitor PWA installation events
 - [x] Add error tracking and reporting (ErrorBoundary component)
 - [ ] Create analytics dashboard or reporting
-- [ ] Review cookie/analytics consent requirements for Umami
+- [x] Review cookie/analytics consent requirements for Umami (not required - Umami is GDPR-compliant)
+- [ ] Add optional "Disable Analytics" toggle in Settings (user preference, not legally required)
 - [ ] See [Umami Setup Guide](../guides/umami-setup.md) for deployment instructions
 
 ### Phase 6: Preparing for Future Features
@@ -184,6 +186,8 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Design user profile data structure
 - [ ] Add auth state handling (without implementation)
 - [ ] Prepare UI components for login/signup
+- [ ] **LEGAL:** Update Privacy Policy (user data collection, email storage, account data)
+- [ ] **LEGAL:** Update ToS (account terms, user responsibilities, ToS agreement checkbox on signup)
 
 #### 6.2 API Service Layer
 - [ ] Design API service structure
@@ -196,6 +200,8 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Add document versioning capabilities
 - [ ] Prepare for future real-time features
 - [ ] Implement conflict resolution strategy
+- [ ] **LEGAL:** Update Privacy Policy (shared data between users, collaboration data)
+- [ ] **LEGAL:** Update ToS (user conduct in shared documents, content ownership)
 
 #### 6.4 Sharing Features (PocketBase Backend)
 Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting and Cloudflare protection.
@@ -210,6 +216,7 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [x] Set up PocketBase project with shared_debates collection
 - [x] Deploy PocketBase to Fly.io (free tier)
 - [ ] Configure Cloudflare DNS and DDoS protection
+- [ ] **LEGAL:** Add Cloudflare to Privacy Policy (DDoS protection, CDN, request metadata processing)
 - [x] Set up environment variables for API URL
 - [x] Configure CORS for PWA domain (PocketBase default allows all)
 
@@ -229,6 +236,7 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [x] Disable collection listing (require exact ID to fetch)
 - [ ] Configure Cloudflare WAF rules
 - [ ] Add CAPTCHA for share creation (optional)
+- [ ] **LEGAL:** If CAPTCHA added, update Privacy Policy (third-party CAPTCHA service)
 
 ##### Frontend Integration
 - [x] Create PocketBase SDK service (`src/services/sharing/index.ts`)
@@ -243,6 +251,7 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 ##### Analytics & Moderation
 - [ ] Track share views via Umami analytics
 - [ ] Add "Report" functionality for inappropriate content
+- [ ] **LEGAL:** Update ToS (content moderation policy, report handling)
 - [x] Create admin dashboard access via PocketBase UI
 
 #### 6.5 Feature Flags (PocketBase)
@@ -250,6 +259,7 @@ Runtime feature toggles using PocketBase settings collection.
 
 ##### Backend Setup
 - [ ] Create `app_settings` collection with single record
+- [ ] **LEGAL:** If maintenance_mode flag used, update ToS (service availability disclaimers)
 - [ ] Add `features` JSON field for flag configuration
 - [ ] Set API rules (public read, admin-only write)
 

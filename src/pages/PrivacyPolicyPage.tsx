@@ -39,8 +39,8 @@ export const PrivacyPolicyPage: React.FC = () => {
                   <div>
                     <h3 className="font-medium text-gray-800">Shared Documents</h3>
                     <p>
-                      When you share a document, the content is uploaded to our servers and stored temporarily. 
-                      Shared documents may have expiration dates after which they are automatically deleted.
+                      When you share a document, the content is uploaded to our servers. 
+                      Shared documents are stored indefinitely unless removed for policy violations or service changes.
                     </p>
                   </div>
                   <div>
@@ -70,11 +70,7 @@ export const PrivacyPolicyPage: React.FC = () => {
                 <div className="space-y-3 text-gray-600">
                   <div>
                     <h3 className="font-medium text-gray-800">Hosting</h3>
-                    <p>Our app is hosted on Vercel/Netlify and our API on Fly.io. These services may collect server logs.</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-800">Cloudflare</h3>
-                    <p>We use Cloudflare for DDoS protection and CDN services, which may process request metadata.</p>
+                    <p>Our app is hosted on Vercel and our API on Fly.io. These services may collect server logs.</p>
                   </div>
                 </div>
               </div>
