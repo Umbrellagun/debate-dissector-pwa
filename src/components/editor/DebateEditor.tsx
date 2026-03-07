@@ -16,10 +16,22 @@ const getFallacyName = (fallacyId: string): string => {
   return fallacy?.name || fallacyId;
 };
 
+// Helper to get fallacy color from ID (dynamic lookup)
+const getFallacyColor = (fallacyId: string): string | undefined => {
+  const fallacy = FALLACIES.find(f => f.id === fallacyId);
+  return fallacy?.color;
+};
+
 // Helper to get rhetoric name from ID
 const getRhetoricName = (rhetoricId: string): string => {
   const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
   return rhetoric?.name || rhetoricId;
+};
+
+// Helper to get rhetoric color from ID (dynamic lookup)
+const getRhetoricColor = (rhetoricId: string): string | undefined => {
+  const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
+  return rhetoric?.color;
 };
 
 // Tooltip component for showing multiple annotations (fallacies and rhetoric)
@@ -115,7 +127,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  backgroundColor: mark.color,
+                  backgroundColor: getFallacyColor(mark.fallacyId) || mark.color,
                   flexShrink: 0,
                 }}
               />
@@ -155,7 +167,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  backgroundColor: mark.color,
+                  backgroundColor: getRhetoricColor(mark.rhetoricId) || mark.color,
                   flexShrink: 0,
                 }}
               />
@@ -242,7 +254,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const hasFallacy = fallacyCount > 0 || customLeaf.fallacyColor;
   const hasRhetoric = rhetoricCount > 0;
 
-  // Determine background color - use the most recently applied mark
+  // Determine background color - use dynamic lookup from fallacy/rhetoric ID
   if (hasFallacy || hasRhetoric) {
     let displayColor: string | undefined;
     
@@ -253,15 +265,17 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
     if (lastFallacy && lastRhetoric) {
       // Both exist - use whichever was applied last
       displayColor = (lastFallacy.appliedAt || 0) > (lastRhetoric.appliedAt || 0)
-        ? lastFallacy.color
-        : lastRhetoric.color;
+        ? getFallacyColor(lastFallacy.fallacyId) || lastFallacy.color
+        : getRhetoricColor(lastRhetoric.rhetoricId) || lastRhetoric.color;
     } else if (lastFallacy) {
-      displayColor = lastFallacy.color;
+      // Dynamic lookup by ID, fallback to stored color
+      displayColor = getFallacyColor(lastFallacy.fallacyId) || lastFallacy.color;
     } else if (lastRhetoric) {
-      displayColor = lastRhetoric.color;
-    } else if (customLeaf.fallacyColor) {
-      // Legacy fallback
-      displayColor = customLeaf.fallacyColor;
+      // Dynamic lookup by ID, fallback to stored color
+      displayColor = getRhetoricColor(lastRhetoric.rhetoricId) || lastRhetoric.color;
+    } else if (customLeaf.fallacyId) {
+      // Legacy fallback - try dynamic lookup first
+      displayColor = getFallacyColor(customLeaf.fallacyId) || customLeaf.fallacyColor;
     }
     
     if (displayColor) {

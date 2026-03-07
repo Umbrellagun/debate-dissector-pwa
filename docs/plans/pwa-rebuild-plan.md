@@ -79,7 +79,33 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Implement rhetoric argument labeling (in addition to fallacies)
 - [ ] Document version history - allow reverting to previous versions
 
-#### 3.4 Comments System
+#### 3.4 Speaker/Participant Formatting
+- [ ] Define speaker data model (name, color, optional avatar/icon)
+- [ ] Add speaker assignment toolbar button or context menu
+- [ ] Create visual indicators for speaker turns (color bars, backgrounds, or borders)
+- [ ] Implement alternating speaker detection (auto-suggest based on paragraph breaks)
+- [ ] Add speaker legend/key in document header or sidebar
+- [ ] Support custom speaker colors and labels
+- [ ] Create speaker management UI (add, edit, remove speakers)
+- [ ] Persist speaker assignments with document
+- [ ] Add speaker filtering (show/hide specific speakers)
+- [ ] Export with speaker formatting preserved (HTML/PDF)
+
+#### 3.5 Argument Mapping & Rebuttal Links
+- [ ] Define argument point data model (id, text range, label, type: claim/rebuttal/support)
+- [ ] Implement point selection and labeling UI (mark text as a "point")
+- [ ] Create link system to connect rebuttals to original points
+- [ ] Add visual link indicators in editor (subtle connectors, numbered references)
+- [ ] Build "Argument Map" alternative view mode
+- [ ] Implement tree/graph visualization of linked points (arrows, hierarchy)
+- [ ] Support multiple link types (rebuts, supports, references, concedes)
+- [ ] Add point navigation (click link to jump to connected point)
+- [ ] Create argument flow summary panel (condensed view of all points)
+- [ ] Color-code links by type or speaker
+- [ ] Export argument map as image or structured data
+- [ ] Add keyboard shortcuts for quick point marking and linking
+
+#### 3.6 Comments System
 - [ ] Design comment data model (linked to text ranges, author, timestamp)
 - [ ] Implement text selection for adding comments
 - [ ] Create comment annotation marks in Slate editor

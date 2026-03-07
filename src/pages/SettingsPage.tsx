@@ -141,10 +141,10 @@ export const SettingsPage: React.FC = () => {
                     I wanted to build something that would help people think more clearly about complex issues.
                   </p>
                   <p>
-                    I've spent far too many discussions, online or in person, where people talked in circles, avoided adressing issues with statements they've made. 
+                    I've spent far too many discussions, online or in person, where people talked in circles, avoided addressing issues with statements they've made. 
                     It is easy to get turned around in these discussions. 
                   </p>
-                  <p>And thus, this app was created.</p>
+                  <p>So, I created this app.</p>
                   <p>
                     If you like it or have feedback, please reach out! My email is below. If you are inclined to support me and projects I work on there are also links below.
                   </p>
