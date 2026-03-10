@@ -20,6 +20,12 @@ jobs:
         working-directory: scripts/trello-sync
         run: npm install
       
+      - name: Debug secrets
+        run: |
+          echo "API_KEY exists: ${{ secrets.TRELLO_API_KEY != '' }}"
+          echo "TOKEN exists: ${{ secrets.TRELLO_TOKEN != '' }}"
+          echo "BOARD_ID exists: ${{ secrets.TRELLO_BOARD_ID != '' }}"
+      
       - name: Sync to Trello
         working-directory: scripts/trello-sync
         env:
