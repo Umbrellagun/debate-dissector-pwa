@@ -154,22 +154,20 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add links to About/Legal pages from Settings or footer
 
 #### 4.6 Roadmap & Changelog
-- [ ] Create public roadmap page showing planned features
-- [ ] Display feature status (planned, in progress, completed)
-- [ ] Allow users to vote/request features (optional)
-- [ ] **LEGAL:** If feature voting added, update Privacy Policy (collecting user votes/preferences)
-- [ ] Create changelog/release notes page
+- [x] Create public roadmap link (Trello board)
+- [x] Create changelog/release notes page
+- [x] Add "What's New" section in About page
 - [ ] Show "What's New" modal on first visit after update
 - [ ] Version update notifications in app
-- [ ] Link to roadmap from Settings or About page
+- [x] Link to roadmap from Settings/About page
 - [ ] Auto-generate changelog from GitHub releases (optional)
 
 #### 4.7 Trello API Integration
-- [ ] Set up Trello API authentication (API key + token)
-- [ ] Create script to parse pwa-rebuild-plan.md into tasks
-- [ ] Sync plan items to Trello board cards
-- [ ] Map checkbox status to Trello card lists (Todo/In Progress/Done)
-- [ ] Add GitHub Action to auto-sync on plan changes
+- [x] Set up Trello API authentication (API key + token)
+- [x] Create script to parse pwa-rebuild-plan.md into tasks
+- [x] Sync plan items to Trello board cards
+- [x] Map checkbox status to Trello card lists (Todo/In Progress/Done)
+- [x] Add GitHub Action to auto-sync on plan changes
 - [ ] Optional: Two-way sync via Trello webhooks
 
 #### 4.8 Internationalization (i18n)
@@ -232,15 +230,30 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Implement service interfaces for future remote operations
 - [ ] Add synchronization preparation utilities
 
-#### 6.3 Collaboration Foundations
-- [ ] Define data structures for collaborative features
-- [ ] Add document versioning capabilities
-- [ ] Prepare for future real-time features
-- [ ] Implement conflict resolution strategy
-- [ ] **LEGAL:** Update Privacy Policy (shared data between users, collaboration data)
-- [ ] **LEGAL:** Update ToS (user conduct in shared documents, content ownership)
+#### 6.3 Feature Flags (PocketBase)
+Runtime feature toggles using PocketBase settings collection.
 
-#### 6.4 Sharing Features (PocketBase Backend)
+##### Backend Setup
+- [ ] Create `app_settings` collection with single record
+- [ ] **LEGAL:** If maintenance_mode flag used, update ToS (service availability disclaimers)
+- [ ] Add `features` JSON field for flag configuration
+- [ ] Set API rules (public read, admin-only write)
+
+##### Frontend Integration
+- [ ] Create feature flags service (`src/services/features.ts`)
+- [ ] Add FeatureFlagsProvider context
+- [ ] Implement `useFeatureFlag()` hook
+- [ ] Cache flags with localStorage fallback
+- [ ] Add flag checks to sharing features (for gradual rollout)
+
+##### Example Flags
+- `sharing_enabled` - Toggle sharing feature
+- `maintenance_mode` - Show maintenance banner
+- `max_share_size_kb` - Configurable limits
+
+### Phase 7: Backend Integration (PocketBase)
+
+#### 7.1 Sharing Features
 Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting and Cloudflare protection.
 
 **Stack**: PocketBase (Go binary + SQLite) → Fly.io (hosting) → Cloudflare (DDoS/CDN)
@@ -267,14 +280,6 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [x] reportCount (number) - for moderation
 - [x] isBlocked (bool) - admin content blocking
 
-##### Security & Rate Limiting
-- [x] Configure PocketBase rate limiting (60 req/min per IP)
-- [x] Set max request size (5MB)
-- [x] Disable collection listing (require exact ID to fetch)
-- [ ] Configure Cloudflare WAF rules
-- [ ] Add CAPTCHA for share creation (optional)
-- [ ] **LEGAL:** If CAPTCHA added, update Privacy Policy (third-party CAPTCHA service)
-
 ##### Frontend Integration
 - [x] Create PocketBase SDK service (`src/services/sharing/index.ts`)
 - [x] Add "Share" button to editor toolbar
@@ -285,38 +290,11 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [x] Add "Import as Copy" button to save locally
 - [ ] Create "My Shared Links" management UI in Settings
 
-##### Analytics & Moderation
-- [ ] Track share views via Umami analytics
-- [ ] Add "Report" functionality for inappropriate content
-- [ ] **LEGAL:** Update ToS (content moderation policy, report handling)
-- [x] Create admin dashboard access via PocketBase UI
+### Phase 8: Testing & Deployment
 
-#### 6.5 Feature Flags (PocketBase)
-Runtime feature toggles using PocketBase settings collection.
+#### 8.1 Testing Strategy
 
-##### Backend Setup
-- [ ] Create `app_settings` collection with single record
-- [ ] **LEGAL:** If maintenance_mode flag used, update ToS (service availability disclaimers)
-- [ ] Add `features` JSON field for flag configuration
-- [ ] Set API rules (public read, admin-only write)
-
-##### Frontend Integration
-- [ ] Create feature flags service (`src/services/features.ts`)
-- [ ] Add FeatureFlagsProvider context
-- [ ] Implement `useFeatureFlag()` hook
-- [ ] Cache flags with localStorage fallback
-- [ ] Add flag checks to sharing features (for gradual rollout)
-
-##### Example Flags
-- `sharing_enabled` - Toggle sharing feature
-- `maintenance_mode` - Show maintenance banner
-- `max_share_size_kb` - Configurable limits
-
-### Testing and Deployment
-
-### Testing Strategy
-
-#### Unit Tests
+##### Unit Tests
 - [x] Set up Jest/Vitest testing framework
 - [x] Test `storage.ts` service (CRUD operations, preferences)
 - [x] Test `extractUsedAnnotations()` utility
@@ -324,7 +302,7 @@ Runtime feature toggles using PocketBase settings collection.
 - [x] Test fallacy/rhetoric data structure integrity
 - [x] Test version history utilities
 
-#### Component Tests
+##### Component Tests
 - [x] Set up React Testing Library
 - [x] Test `AnnotationPanel` (dropdowns, search filtering, hint dismissal)
 - [x] Test `FallacyPanel` (category expansion, selection, apply button)
@@ -334,7 +312,7 @@ Runtime feature toggles using PocketBase settings collection.
 - [x] Test `DebateList` (selection, creation, deletion)
 - [x] Test `VersionHistoryPanel` (version listing, restore, delete)
 
-#### E2E Tests
+##### E2E Tests
 - [ ] Set up Playwright test framework
 - [ ] Test document lifecycle: create → edit → save → reload → verify
 - [ ] Test annotation workflow: select text → apply fallacy → verify marks → remove
@@ -342,7 +320,7 @@ Runtime feature toggles using PocketBase settings collection.
 - [ ] Test offline functionality: go offline → edit → reconnect → verify persistence
 - [ ] Test preferences persistence: change settings → reload → verify restored
 
-#### Accessibility Tests
+##### Accessibility Tests
 - [x] Integrate jest-axe for automated a11y testing
 - [x] Test keyboard navigation through all interactive elements
 - [x] Test screen reader compatibility (ARIA labels, announcements)
@@ -352,7 +330,7 @@ Runtime feature toggles using PocketBase settings collection.
 - [ ] Manual accessibility testing with actual screen readers (NVDA, VoiceOver)
 - [ ] Manual testing by users with disabilities or accessibility specialists
 
-#### Performance Benchmarks
+##### Performance Benchmarks
 - [ ] Set up Lighthouse CI for automated performance audits
 - [ ] Establish bundle size budget (<200KB gzipped)
 - [ ] Benchmark Time to Interactive (<3s on 3G)
@@ -360,27 +338,27 @@ Runtime feature toggles using PocketBase settings collection.
 - [ ] Benchmark IndexedDB operations (<100ms for typical operations)
 - [ ] Monitor memory usage during extended editing sessions
 
-#### Test Automation
+##### Test Automation
 - [x] Add test scripts to package.json (`test:ci`, `test:unit`, `test:components`, `test:coverage`)
 - [ ] Configure GitHub Actions to run tests on PR/push
 - [ ] Add test coverage reporting to CI
 - [ ] Set up test failure notifications
 
-#### Deployment Plan
+#### 8.2 Deployment
 - [x] Configure CI/CD pipeline (GitHub Actions)
 - [x] Set up hosting on Vercel or Netlify (configs ready)
 - [x] Configure CDN and caching headers
 
-### Phase 7: SEO & Security
+### Phase 9: SEO & Security
 
-#### 7.1 Anti-Scraping & AI Bot Protection
+#### 9.1 Anti-Scraping & AI Bot Protection
 - [x] Update robots.txt to block AI crawlers (GPTBot, CCBot, Claude, etc.)
 - [x] Add `<meta name="robots" content="noai, noimageai">` tag
 - [x] Add X-Robots-Tag header to API responses (main.go middleware)
 - [ ] Configure Cloudflare Bot Fight Mode
 - [ ] Set up Cloudflare WAF rules for AI user-agents
 
-#### 7.2 SEO Optimization
+#### 9.2 SEO Optimization
 - [x] Add Open Graph meta tags for social sharing
 - [x] Add Twitter Card meta tags
 - [x] Add structured data (JSON-LD WebApplication schema)
@@ -388,12 +366,26 @@ Runtime feature toggles using PocketBase settings collection.
 - [x] Add sitemap reference to robots.txt
 - [x] Add canonical URL
 - [x] Add keywords and author meta tags
-- [ ] Purchase debatedissector.com and add as alternate domain
+- [x] Purchase debatedissector.com and add as alternate domain
 
-#### 7.3 Standard Webapp Features
+#### 9.3 Standard Webapp Features
 - [x] Add 404 Not Found page with catch-all route
 - [x] Add ErrorBoundary for React crash handling
 - [x] Create Privacy Policy page
 - [x] Create Terms of Service page
+
+#### 9.4 Backend Security & Rate Limiting
+- [x] Configure PocketBase rate limiting (60 req/min per IP)
+- [x] Set max request size (5MB)
+- [x] Disable collection listing (require exact ID to fetch)
+- [ ] Configure Cloudflare WAF rules
+- [ ] Add CAPTCHA for share creation (optional)
+- [ ] **LEGAL:** If CAPTCHA added, update Privacy Policy (third-party CAPTCHA service)
+
+#### 9.5 Content Moderation
+- [ ] Track share views via Umami analytics
+- [ ] Add "Report" functionality for inappropriate content
+- [ ] **LEGAL:** Update ToS (content moderation policy, report handling)
+- [x] Create admin dashboard access via PocketBase UI
 
 ---

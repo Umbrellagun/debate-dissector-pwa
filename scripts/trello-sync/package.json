@@ -1,0 +1,16 @@
+{
+  "name": "trello-sync",
+  "version": "2.0.0",
+  "description": "Sync pwa-rebuild-plan.md tasks to Trello board",
+  "main": "sync.js",
+  "type": "module",
+  "scripts": {
+    "sync": "node sync.js",
+    "dry-run": "node sync.js --dry-run",
+    "clean-sync": "node sync.js --clean"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2"
+  }
+}

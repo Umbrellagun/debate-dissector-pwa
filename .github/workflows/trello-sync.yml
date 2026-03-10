@@ -1,0 +1,29 @@
+name: Sync to Trello
+
+on:
+  push:
+    paths:
+      - 'docs/plans/trello-roadmap.md'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        working-directory: scripts/trello-sync
+        run: npm install
+      
+      - name: Sync to Trello
+        working-directory: scripts/trello-sync
+        env:
+          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_BOARD_ID: ${{ secrets.TRELLO_BOARD_ID }}
+        run: npm run sync

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { MainLayout, Header } from '../components/layout';
 import { useApp } from '../context';
 import { useInstallPrompt } from '../hooks';
+import { getLatestVersion } from '../data/changelog';
 import packageJson from '../../package.json';
 
 export const SettingsPage: React.FC = () => {
@@ -130,6 +131,32 @@ export const SettingsPage: React.FC = () => {
               <p className="text-gray-600 font-medium">
                 A tool for analyzing debates, identifying logical fallacies, and rhetorical strategies.
               </p>
+
+              {(() => {
+                const latestVersion = getLatestVersion();
+                if (!latestVersion) return null;
+                return (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm text-gray-500 italic">What's New in v{latestVersion.version}</p>
+                      <Link
+                        to="/changelog"
+                        className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        View all updates →
+                      </Link>
+                    </div>
+                    <ul className="text-sm text-gray-600 space-y-1.5 mb-0">
+                      {latestVersion.changes.map((change, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-green-500 mt-0.5">•</span>
+                          <span>{change}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })()}
               
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-500 italic mb-3">Author's Note</p>
@@ -164,6 +191,20 @@ export const SettingsPage: React.FC = () => {
                     </span>
                   </p>
                 </div>
+              </div>
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <span className="text-gray-500">Roadmap:</span>
+                <a
+                  href="https://trello.com/b/18eIup2Z/debate-dissector"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-sky-100 text-sky-700 rounded-md hover:bg-sky-200 transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.5 2h-15A2.5 2.5 0 002 4.5v15A2.5 2.5 0 004.5 22h15a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0019.5 2zM9.25 18.5h-3.5a.75.75 0 01-.75-.75V6.25a.75.75 0 01.75-.75h3.5a.75.75 0 01.75.75v11.5a.75.75 0 01-.75.75zm9 -5h-3.5a.75.75 0 01-.75-.75V6.25a.75.75 0 01.75-.75h3.5a.75.75 0 01.75.75v6.5a.75.75 0 01-.75.75z"/>
+                  </svg>
+                  View Progress on Trello
+                </a>
               </div>
               <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                 <span className="text-gray-500">Contact:</span>
