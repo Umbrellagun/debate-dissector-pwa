@@ -36,6 +36,9 @@ export interface UserPreferences {
   // Individual category dropdowns (stored as arrays of expanded category IDs)
   expandedFallacyCategories: string[];
   expandedRhetoricCategories: string[];
+  // Pinned annotations for quick access in toolbar
+  pinnedFallacies: string[];
+  pinnedRhetoric: string[];
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -53,6 +56,8 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   rightSidebarOpen: true,
   expandedFallacyCategories: ['informal', 'red-herring'],
   expandedRhetoricCategories: ['ethos', 'pathos'],
+  pinnedFallacies: [],
+  pinnedRhetoric: [],
 };
 
 export interface DocumentVersion {

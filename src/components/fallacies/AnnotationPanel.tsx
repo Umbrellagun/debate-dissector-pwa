@@ -167,6 +167,14 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
       {selectedFallacyId && (() => {
         const selectedFallacy = fallacies.find(f => f.id === selectedFallacyId);
         if (!selectedFallacy) return null;
+        const isPinned = preferences.pinnedFallacies?.includes(selectedFallacy.id);
+        const handleTogglePin = () => {
+          const current = preferences.pinnedFallacies || [];
+          const updated = isPinned
+            ? current.filter(id => id !== selectedFallacy.id)
+            : [...current, selectedFallacy.id];
+          updatePreferences({ pinnedFallacies: updated });
+        };
         return (
           <div className="border-t border-gray-200 bg-gray-50 p-4 flex-shrink-0">
             <div className="flex items-start justify-between mb-3">
@@ -177,15 +185,27 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 />
                 <h3 className="font-semibold text-gray-900">{selectedFallacy.name}</h3>
               </div>
-              <button
-                onClick={() => onFallacySelect?.(null as unknown as Fallacy)}
-                className="p-1 hover:bg-gray-200 rounded transition-colors"
-                aria-label="Close details"
-              >
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleTogglePin}
+                  className={`p-1.5 rounded transition-colors ${isPinned ? 'bg-amber-100 text-amber-600' : 'hover:bg-gray-200 text-gray-400'}`}
+                  aria-label={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
+                  title={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
+                >
+                  <svg className="w-4 h-4" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onFallacySelect?.(null as unknown as Fallacy)}
+                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                  aria-label="Close details"
+                >
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <span className="inline-block px-2 py-0.5 text-xs font-medium text-gray-600 bg-gray-200 rounded mb-3">
               {FALLACY_CATEGORY_NAMES[selectedFallacy.category]}
@@ -217,6 +237,14 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
       {selectedRhetoricId && !selectedFallacyId && (() => {
         const selectedRhetoric = rhetoric.find(r => r.id === selectedRhetoricId);
         if (!selectedRhetoric) return null;
+        const isPinned = preferences.pinnedRhetoric?.includes(selectedRhetoric.id);
+        const handleTogglePin = () => {
+          const current = preferences.pinnedRhetoric || [];
+          const updated = isPinned
+            ? current.filter(id => id !== selectedRhetoric.id)
+            : [...current, selectedRhetoric.id];
+          updatePreferences({ pinnedRhetoric: updated });
+        };
         return (
           <div className="border-t border-gray-200 bg-blue-50 p-4 flex-shrink-0">
             <div className="flex items-start justify-between mb-3">
@@ -227,15 +255,27 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 />
                 <h3 className="font-semibold text-gray-900">{selectedRhetoric.name}</h3>
               </div>
-              <button
-                onClick={() => onRhetoricSelect?.(null as unknown as Rhetoric)}
-                className="p-1 hover:bg-gray-200 rounded transition-colors"
-                aria-label="Close details"
-              >
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleTogglePin}
+                  className={`p-1.5 rounded transition-colors ${isPinned ? 'bg-amber-100 text-amber-600' : 'hover:bg-gray-200 text-gray-400'}`}
+                  aria-label={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
+                  title={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
+                >
+                  <svg className="w-4 h-4" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => onRhetoricSelect?.(null as unknown as Rhetoric)}
+                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                  aria-label="Close details"
+                >
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <span className="inline-block px-2 py-0.5 text-xs font-medium text-gray-600 bg-gray-200 rounded mb-3">
               {RHETORIC_CATEGORY_NAMES[selectedRhetoric.category]}

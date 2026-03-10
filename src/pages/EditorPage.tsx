@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Descendant, Editor, Range } from 'slate';
 import { MainLayout, Header } from '../components/layout';
-import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE } from '../components/editor';
+import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { VersionHistoryPanel } from '../components/version';
 import { createShare } from '../services/sharing';
@@ -141,6 +141,39 @@ export const EditorPage: React.FC = () => {
       .filter((r): r is Rhetoric => r !== undefined);
     return { usedFallacies, usedRhetoric };
   }, [currentDoc?.content]);
+
+  // Build list of pinned annotations for toolbar shortcuts
+  const pinnedAnnotations = useMemo((): PinnedAnnotation[] => {
+    const pinned: PinnedAnnotation[] = [];
+    
+    // Add pinned fallacies
+    (preferences.pinnedFallacies || []).forEach(id => {
+      const fallacy = FALLACIES.find(f => f.id === id);
+      if (fallacy) {
+        pinned.push({
+          id: fallacy.id,
+          name: fallacy.name,
+          color: fallacy.color,
+          type: 'fallacy',
+        });
+      }
+    });
+    
+    // Add pinned rhetoric
+    (preferences.pinnedRhetoric || []).forEach(id => {
+      const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === id);
+      if (rhetoric) {
+        pinned.push({
+          id: rhetoric.id,
+          name: rhetoric.name,
+          color: rhetoric.color,
+          type: 'rhetoric',
+        });
+      }
+    });
+    
+    return pinned;
+  }, [preferences.pinnedFallacies, preferences.pinnedRhetoric]);
 
   useEffect(() => {
     // For shared documents, create a virtual document from the shared data
@@ -338,6 +371,24 @@ export const EditorPage: React.FC = () => {
     if (!editor) return;
     clearAllAnnotations(editor);
   }, []);
+
+  const handleApplyPinnedAnnotation = useCallback((annotation: PinnedAnnotation) => {
+    if (annotation.type === 'fallacy') {
+      const fallacy = FALLACIES.find(f => f.id === annotation.id);
+      if (fallacy) {
+        handleFallacyApply(fallacy);
+      }
+    } else {
+      const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === annotation.id);
+      if (rhetoric) {
+        handleRhetoricApply(rhetoric);
+      }
+    }
+    // Close sidebar on mobile after applying
+    if (isMobile) {
+      setRightSidebarExpanded(false);
+    }
+  }, [handleFallacyApply, handleRhetoricApply, isMobile]);
 
   const handleSelectionChange = useCallback(() => {
     const editor = editorRef.current?.getEditor();
@@ -690,6 +741,8 @@ export const EditorPage: React.FC = () => {
                 handleRhetoricApply(selectedRhetoric);
               }
             }}
+            pinnedAnnotations={pinnedAnnotations}
+            onApplyPinnedAnnotation={handleApplyPinnedAnnotation}
           />
         </div>
       </div>

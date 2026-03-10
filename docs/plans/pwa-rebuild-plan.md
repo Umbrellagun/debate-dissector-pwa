@@ -77,6 +77,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add annotation filtering and navigation
 - [x] Add ability to clear/remove formatting and annotations from text
 - [x] Implement rhetoric argument labeling (in addition to fallacies)
+- [x] Pinned annotation shortcuts (bookmark fallacies/rhetoric for quick toolbar access)
 - [ ] Document version history - allow reverting to previous versions
 
 #### 3.4 Speaker/Participant Formatting

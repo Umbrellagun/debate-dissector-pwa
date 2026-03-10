@@ -3,7 +3,7 @@ import { createEditor, Descendant } from 'slate';
 import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps } from 'slate-react';
 import { withHistory } from 'slate-history';
 import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark } from './types';
-import { EditorToolbar } from './EditorToolbar';
+import { EditorToolbar, PinnedAnnotation } from './EditorToolbar';
 import { toggleMark } from './utils';
 import { MarkType } from './types';
 import { FALLACIES } from '../../data/fallacies';
@@ -205,6 +205,8 @@ interface DebateEditorProps {
   selectedAnnotation?: { name: string; color: string } | null;
   hasTextSelection?: boolean;
   onApplyAnnotation?: () => void;
+  pinnedAnnotations?: PinnedAnnotation[];
+  onApplyPinnedAnnotation?: (annotation: PinnedAnnotation) => void;
 }
 
 // Context for annotation click handlers
@@ -414,6 +416,8 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       selectedAnnotation,
       hasTextSelection,
       onApplyAnnotation,
+      pinnedAnnotations,
+      onApplyPinnedAnnotation,
     },
     ref
   ) => {
@@ -473,6 +477,8 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
                 selectedAnnotation={selectedAnnotation}
                 hasTextSelection={hasTextSelection}
                 onApplyAnnotation={onApplyAnnotation}
+                pinnedAnnotations={pinnedAnnotations}
+                onApplyPinnedAnnotation={onApplyPinnedAnnotation}
               />
             )}
             <Editable

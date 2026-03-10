@@ -7,6 +7,16 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.2.0',
+    date: 'March 9, 2026',
+    title: 'Pinned Annotation Shortcuts',
+    changes: [
+      'Pin your favorite fallacies and rhetoric for quick toolbar access',
+      'Pinned annotations appear as shortcut buttons in the editor toolbar',
+      'Mobile: sidebar auto-closes after applying pinned annotation',
+    ],
+  },
+  {
     version: '1.1.0',
     date: 'March 7, 2026',
     title: 'Trello Integration & Dynamic Colors',

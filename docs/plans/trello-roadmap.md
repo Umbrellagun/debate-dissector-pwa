@@ -25,6 +25,7 @@ The main debate analysis functionality.
 #### 2.2 Annotation System
 - [x] Fallacy and Rhetoric color-coded annotations
 - [x] Annotation filtering and navigation
+- [x] Pinned annotation shortcuts for quick toolbar access
 
 #### 2.3 Document Management
 - [x] Create, edit, delete debates

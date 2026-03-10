@@ -159,16 +159,27 @@ const ClearAnnotationsButton: React.FC = () => {
   );
 };
 
+export interface PinnedAnnotation {
+  id: string;
+  name: string;
+  color: string;
+  type: 'fallacy' | 'rhetoric';
+}
+
 interface EditorToolbarProps {
   selectedAnnotation?: { name: string; color: string } | null;
   hasTextSelection?: boolean;
   onApplyAnnotation?: () => void;
+  pinnedAnnotations?: PinnedAnnotation[];
+  onApplyPinnedAnnotation?: (annotation: PinnedAnnotation) => void;
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   selectedAnnotation,
   hasTextSelection,
   onApplyAnnotation,
+  pinnedAnnotations = [],
+  onApplyPinnedAnnotation,
 }) => {
   return (
     <div className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 bg-gray-50 flex-wrap" role="toolbar" aria-label="Text formatting options">
@@ -187,6 +198,35 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         <ClearFormattingButton />
         <ClearAnnotationsButton />
       </div>
+      {/* Pinned Annotation Shortcuts */}
+      {pinnedAnnotations.length > 0 && (
+        <div className="flex items-center gap-1 pl-2 border-l border-gray-300">
+          {pinnedAnnotations.map((annotation) => (
+            <button
+              key={`${annotation.type}-${annotation.id}`}
+              type="button"
+              disabled={!hasTextSelection}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                if (hasTextSelection) {
+                  onApplyPinnedAnnotation?.(annotation);
+                }
+              }}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-white shadow-sm transition-opacity touch-manipulation ${
+                hasTextSelection ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'
+              }`}
+              style={{ backgroundColor: annotation.color }}
+              title={hasTextSelection ? `Apply ${annotation.name} (${annotation.type})` : 'Select text first'}
+              aria-label={`Apply or remove ${annotation.name} annotation`}
+            >
+              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+              </svg>
+              <span className="truncate max-w-[60px]">{annotation.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
       {/* Apply Annotation Button - shows when text is selected and annotation is chosen */}
       {hasTextSelection && selectedAnnotation && onApplyAnnotation && (
         <div className="flex items-center ml-auto pl-2 border-l border-gray-300">
