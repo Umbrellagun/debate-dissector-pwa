@@ -253,8 +253,8 @@ async function syncToTrello(sections) {
     await deleteAllCards();
   }
   
-  // Get unique phases for lists
-  const phases = [...new Set(sections.map(s => s.phaseLabel))];
+  // Get unique phases for lists (use full phase name like "Phase 1: Foundation")
+  const phases = [...new Set(sections.map(s => s.phase))];
   
   // Get or create phase-based lists
   const phaseLists = DRY_RUN 
@@ -273,13 +273,13 @@ async function syncToTrello(sections) {
   for (const section of sections) {
     const cardName = section.name;
     const progress = `[${section.completedCount}/${section.totalCount}]`;
-    const targetList = phaseLists[section.phaseLabel];
+    const targetList = phaseLists[section.phase];
     
     // Check if card already exists (by name)
     const existingCard = existingCards.find(c => c.name === cardName);
     
     if (DRY_RUN) {
-      console.log(`📄 Would create/update: "${cardName}" ${progress} in ${section.phaseLabel}`);
+      console.log(`📄 Would create/update: "${cardName}" ${progress} in ${section.phase}`);
       section.tasks.forEach(task => {
         const check = task.complete ? '✓' : '○';
         console.log(`   ${check} ${task.title}`);
@@ -385,7 +385,7 @@ async function main() {
   // Show breakdown
   const totalTasks = sections.reduce((sum, s) => sum + s.totalCount, 0);
   const completedTasks = sections.reduce((sum, s) => sum + s.completedCount, 0);
-  const phases = [...new Set(sections.map(s => s.phaseLabel))];
+  const phases = [...new Set(sections.map(s => s.phase))];
   
   console.log(`📊 Found ${sections.length} sections across ${phases.length} phases`);
   console.log(`   Tasks: ${completedTasks}/${totalTasks} completed\n`);
