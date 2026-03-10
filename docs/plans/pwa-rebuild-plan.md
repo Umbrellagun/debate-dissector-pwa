@@ -331,11 +331,11 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [ ] Manual testing by users with disabilities or accessibility specialists
 
 ##### Performance Benchmarks
-- [ ] Set up Lighthouse CI for automated performance audits
-- [ ] Establish bundle size budget (<200KB gzipped)
-- [ ] Benchmark Time to Interactive (<3s on 3G)
-- [ ] Test large document performance (1000+ words, 50+ annotations)
-- [ ] Benchmark IndexedDB operations (<100ms for typical operations)
+- [x] Set up Lighthouse CI for automated performance audits
+- [x] Establish bundle size budget (<200KB gzipped)
+- [x] Benchmark Time to Interactive (<3s on 3G)
+- [x] Test large document performance (1000+ words, 50+ annotations)
+- [x] Benchmark IndexedDB operations (<100ms for typical operations)
 - [ ] Monitor memory usage during extended editing sessions
 
 ##### Test Automation

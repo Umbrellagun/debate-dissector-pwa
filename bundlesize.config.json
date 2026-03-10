@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "build/static/js/*.js",
+      "maxSize": "200 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "build/static/css/*.css",
+      "maxSize": "50 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "build/index.html",
+      "maxSize": "10 kB",
+      "compression": "gzip"
+    }
+  ]
+}

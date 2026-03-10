@@ -38,6 +38,8 @@
     "test:unit": "react-scripts test --watchAll=false --testPathPattern='services|utils|data|hooks'",
     "test:components": "react-scripts test --watchAll=false --testPathPattern='components'",
     "test:coverage": "react-scripts test --watchAll=false --coverage --coverageReporters=text-summary",
+    "test:perf": "react-scripts test --watchAll=false --testPathPattern='performance'",
+    "lighthouse": "lhci autorun",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "eject": "react-scripts eject"
@@ -61,6 +63,7 @@
     ]
   },
   "devDependencies": {
+    "@lhci/cli": "^0.13.0",
     "@types/jest-axe": "^3.5.9",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
@@ -74,5 +77,25 @@
     "jest-axe": "^10.0.0",
     "postcss": "^8.5.6",
     "prettier": "^3.4.2"
+  },
+  "overrides": {
+    "nth-check": "^2.1.1",
+    "ws": "^8.18.0",
+    "cookie": "^0.7.1",
+    "tar-fs": "^3.0.6",
+    "tmp": "^0.2.3",
+    "underscore": "^1.13.7",
+    "serialize-javascript": "^6.0.2",
+    "@tootallnate/once": "^3.0.1",
+    "http-proxy-agent": "^7.0.0",
+    "resolve-url-loader": {
+      "postcss": "^8.4.31"
+    },
+    "css-minimizer-webpack-plugin": {
+      "serialize-javascript": "^6.0.2"
+    },
+    "rollup-plugin-terser": {
+      "serialize-javascript": "^6.0.2"
+    }
   }
 }

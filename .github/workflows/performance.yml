@@ -1,0 +1,131 @@
+name: Performance CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          CI: true
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          configPath: ./lighthouserc.js
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  bundle-size:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          CI: true
+
+      - name: Check bundle size
+        run: |
+          echo "📦 Bundle Size Report"
+          echo "===================="
+          
+          # Get JS bundle sizes
+          echo ""
+          echo "JavaScript bundles (gzipped):"
+          for file in build/static/js/*.js; do
+            if [ -f "$file" ]; then
+              gzip -k "$file"
+              size=$(stat -f%z "${file}.gz" 2>/dev/null || stat -c%s "${file}.gz")
+              size_kb=$((size / 1024))
+              filename=$(basename "$file")
+              echo "  $filename: ${size_kb}KB"
+              rm "${file}.gz"
+            fi
+          done
+          
+          # Get CSS bundle sizes
+          echo ""
+          echo "CSS bundles (gzipped):"
+          for file in build/static/css/*.css; do
+            if [ -f "$file" ]; then
+              gzip -k "$file"
+              size=$(stat -f%z "${file}.gz" 2>/dev/null || stat -c%s "${file}.gz")
+              size_kb=$((size / 1024))
+              filename=$(basename "$file")
+              echo "  $filename: ${size_kb}KB"
+              rm "${file}.gz"
+            fi
+          done
+          
+          # Total JS size check
+          echo ""
+          total_js=0
+          for file in build/static/js/*.js; do
+            if [ -f "$file" ]; then
+              gzip -k "$file"
+              size=$(stat -f%z "${file}.gz" 2>/dev/null || stat -c%s "${file}.gz")
+              total_js=$((total_js + size))
+              rm "${file}.gz"
+            fi
+          done
+          total_js_kb=$((total_js / 1024))
+          
+          echo "Total JS (gzipped): ${total_js_kb}KB"
+          
+          # Budget check: 200KB
+          if [ $total_js_kb -gt 200 ]; then
+            echo "❌ FAIL: JS bundle exceeds 200KB budget!"
+            exit 1
+          else
+            echo "✅ PASS: JS bundle within 200KB budget"
+          fi
+
+  performance-tests:
+    name: Performance Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance tests
+        run: npm run test:perf
+        env:
+          CI: true
