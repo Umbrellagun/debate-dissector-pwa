@@ -2,8 +2,9 @@ import React, { useCallback, useMemo, useImperativeHandle, forwardRef, useState,
 import { createEditor, Descendant } from 'slate';
 import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps } from 'slate-react';
 import { withHistory } from 'slate-history';
-import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark } from './types';
-import { EditorToolbar, PinnedAnnotation } from './EditorToolbar';
+import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark, ParagraphElement, BlockQuoteElement } from './types';
+import { Speaker } from '../../models';
+import { EditorToolbar, PinnedAnnotation, PinnedSpeaker } from './EditorToolbar';
 import { toggleMark } from './utils';
 import { MarkType } from './types';
 import { FALLACIES } from '../../data/fallacies';
@@ -207,6 +208,10 @@ interface DebateEditorProps {
   onApplyAnnotation?: () => void;
   pinnedAnnotations?: PinnedAnnotation[];
   onApplyPinnedAnnotation?: (annotation: PinnedAnnotation) => void;
+  speakers?: Speaker[];
+  hiddenSpeakerIds?: string[];
+  pinnedSpeakers?: PinnedSpeaker[];
+  onAssignPinnedSpeaker?: (speakerId: string) => void;
 }
 
 // Context for annotation click handlers
@@ -215,6 +220,12 @@ interface AnnotationClickContextType {
   onRhetoricClick?: (rhetoricId: string) => void;
 }
 const AnnotationClickContext = React.createContext<AnnotationClickContextType>({});
+
+// Context for speakers
+const SpeakersContext = React.createContext<Speaker[]>([]);
+
+// Context for hidden speaker IDs (for filtering)
+const HiddenSpeakersContext = React.createContext<string[]>([]);
 
 const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const customLeaf = leaf as CustomText;
@@ -387,18 +398,59 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
 
 const Element: React.FC<RenderElementProps> = ({ attributes, children, element }) => {
   const customElement = element as CustomElement;
+  const speakers = React.useContext(SpeakersContext);
+  const hiddenSpeakerIds = React.useContext(HiddenSpeakersContext);
+  
+  // Get speaker info if element has a speakerId
+  const speakerId = (customElement as ParagraphElement | BlockQuoteElement).speakerId;
+  const speaker = speakerId ? speakers.find(s => s.id === speakerId) : null;
+  const isHidden = speakerId ? hiddenSpeakerIds.includes(speakerId) : false;
+  
+  // Hidden style for filtered paragraphs
+  const hiddenStyle: React.CSSProperties = isHidden ? { 
+    opacity: 0.3, 
+    filter: 'grayscale(100%)',
+    pointerEvents: 'none' as const,
+  } : {};
+  
   switch (customElement.type) {
     case 'heading-one':
       return <h1 {...attributes} className="text-2xl font-bold mb-2">{children}</h1>;
     case 'heading-two':
       return <h2 {...attributes} className="text-xl font-semibold mb-2">{children}</h2>;
     case 'block-quote':
+      if (speaker) {
+        return (
+          <div {...attributes} className="relative mb-2" style={hiddenStyle}>
+            <div 
+              className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
+              style={{ backgroundColor: speaker.color }}
+              title={speaker.name}
+            />
+            <blockquote className="border-l-4 border-gray-300 pl-4 ml-3 italic text-gray-600">
+              {children}
+            </blockquote>
+          </div>
+        );
+      }
       return (
         <blockquote {...attributes} className="border-l-4 border-gray-300 pl-4 italic text-gray-600">
           {children}
         </blockquote>
       );
     default:
+      if (speaker) {
+        return (
+          <div {...attributes} className="relative mb-2" style={hiddenStyle}>
+            <div 
+              className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
+              style={{ backgroundColor: speaker.color }}
+              title={speaker.name}
+            />
+            <p className="pl-3">{children}</p>
+          </div>
+        );
+      }
       return <p {...attributes} className="mb-2">{children}</p>;
   }
 };
@@ -418,6 +470,10 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       onApplyAnnotation,
       pinnedAnnotations,
       onApplyPinnedAnnotation,
+      speakers = [],
+      hiddenSpeakerIds = [],
+      pinnedSpeakers = [],
+      onAssignPinnedSpeaker,
     },
     ref
   ) => {
@@ -470,29 +526,35 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
 
     return (
       <AnnotationClickContext.Provider value={annotationClickContextValue}>
-        <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
-          <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
-            {!readOnly && (
-              <EditorToolbar
-                selectedAnnotation={selectedAnnotation}
-                hasTextSelection={hasTextSelection}
-                onApplyAnnotation={onApplyAnnotation}
-                pinnedAnnotations={pinnedAnnotations}
-                onApplyPinnedAnnotation={onApplyPinnedAnnotation}
-              />
-            )}
-            <Editable
-              className="flex-1 p-3 sm:p-4 md:p-6 focus:outline-none overflow-y-auto text-base leading-relaxed"
-              renderLeaf={renderLeaf}
-              renderElement={renderElement}
-              placeholder={placeholder}
-              readOnly={readOnly}
-              onKeyDown={handleKeyDown}
-              onClick={handleClick}
-              spellCheck
-            />
-          </Slate>
-        </div>
+        <SpeakersContext.Provider value={speakers}>
+          <HiddenSpeakersContext.Provider value={hiddenSpeakerIds}>
+            <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+              <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
+                {!readOnly && (
+                  <EditorToolbar
+                    selectedAnnotation={selectedAnnotation}
+                    hasTextSelection={hasTextSelection}
+                    onApplyAnnotation={onApplyAnnotation}
+                    pinnedAnnotations={pinnedAnnotations}
+                    onApplyPinnedAnnotation={onApplyPinnedAnnotation}
+                    pinnedSpeakers={pinnedSpeakers}
+                    onAssignPinnedSpeaker={onAssignPinnedSpeaker}
+                  />
+                )}
+                <Editable
+                  className="flex-1 p-3 sm:p-4 md:p-6 focus:outline-none overflow-y-auto text-base leading-relaxed"
+                  renderLeaf={renderLeaf}
+                  renderElement={renderElement}
+                  placeholder={placeholder}
+                  readOnly={readOnly}
+                  onKeyDown={handleKeyDown}
+                  onClick={handleClick}
+                  spellCheck
+                />
+              </Slate>
+            </div>
+          </HiddenSpeakersContext.Provider>
+        </SpeakersContext.Provider>
       </AnnotationClickContext.Provider>
     );
   }

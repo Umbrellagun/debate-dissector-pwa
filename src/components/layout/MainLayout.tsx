@@ -88,9 +88,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {/* Left Sidebar */}
       {leftSidebar && (
         <>
-          {/* Backdrop for mobile */}
+          {/* Backdrop - closes sidebar when clicked */}
           <div 
-            className={`fixed inset-0 bg-black z-40 lg:hidden transition-opacity duration-300 ${
+            className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
               showLeftSidebar ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
             }`}
             onClick={onLeftSidebarClose}
@@ -136,9 +136,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {/* Right Sidebar - Fallacy Reference Panel */}
       {effectiveShowRightSidebar && effectiveRightSidebar && (
         <>
-          {/* Backdrop for mobile when expanded */}
+          {/* Backdrop - closes sidebar when clicked */}
           <div 
-            className={`fixed inset-0 bg-black z-40 lg:hidden transition-opacity duration-300 ${
+            className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
               rightSidebarExpanded ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
             }`}
             onClick={onRightSidebarToggle}

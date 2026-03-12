@@ -7,6 +7,20 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.3.0',
+    date: 'March 12, 2026',
+    title: 'Speaker Pinning & UX Improvements',
+    changes: [
+      'Pin speakers to toolbar for quick paragraph assignment',
+      'Toggle pinned speaker buttons to remove speaker from paragraph',
+      'Default speakers (A & B) auto-created for new documents',
+      'First two speakers auto-pinned on document load',
+      'Click outside sidebars to close them (all screen sizes)',
+      'Updated pin icons throughout the app',
+      'Removed auto-assign alternating speakers feature',
+    ],
+  },
+  {
     version: '1.2.0',
     date: 'March 9, 2026',
     title: 'Pinned Annotation Shortcuts',

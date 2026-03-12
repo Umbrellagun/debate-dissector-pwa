@@ -1,6 +1,19 @@
 import { Descendant } from 'slate';
+import { Speaker, DEFAULT_SPEAKER_COLORS } from '../models';
 
 export const EXAMPLE_DOCUMENT_TITLE = 'Example: Analyzing a Political Debate';
+
+// Default speakers for the example document
+export const EXAMPLE_SPEAKERS: Speaker[] = [
+  { id: 'speaker_a', name: 'Speaker A', color: DEFAULT_SPEAKER_COLORS[0], shortName: 'A' },
+  { id: 'speaker_b', name: 'Speaker B', color: DEFAULT_SPEAKER_COLORS[1], shortName: 'B' },
+];
+
+// Default speakers for new documents
+export const DEFAULT_SPEAKERS: Speaker[] = [
+  { id: 'speaker_a', name: 'Speaker A', color: DEFAULT_SPEAKER_COLORS[0], shortName: 'A' },
+  { id: 'speaker_b', name: 'Speaker B', color: DEFAULT_SPEAKER_COLORS[1], shortName: 'B' },
+];
 
 export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
   {
@@ -20,14 +33,16 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
   },
   {
     type: 'paragraph',
+    speakerId: 'speaker_a',
     children: [
-      { text: 'Speaker A: "We need to invest more in renewable energy to combat climate change."' },
+      { text: '"We need to invest more in renewable energy to combat climate change."' },
     ],
   },
   {
     type: 'paragraph',
+    speakerId: 'speaker_b',
     children: [
-      { text: 'Speaker B: "' },
+      { text: '"' },
       {
         text: "So you want to destroy the entire oil industry and put millions of people out of work?",
         fallacyId: 'straw-man',
@@ -56,14 +71,16 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
   },
   {
     type: 'paragraph',
+    speakerId: 'speaker_a',
     children: [
-      { text: 'Speaker A: "That\'s not what I said. I\'m talking about gradual investment in—"' },
+      { text: '"That\'s not what I said. I\'m talking about gradual investment in—"' },
     ],
   },
   {
     type: 'paragraph',
+    speakerId: 'speaker_b',
     children: [
-      { text: 'Speaker B: "' },
+      { text: '"' },
       {
         text: "Either we keep using fossil fuels or the economy collapses.",
         fallacyId: 'false-dilemma',

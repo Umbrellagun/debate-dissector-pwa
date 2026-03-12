@@ -36,16 +36,24 @@ The main debate analysis functionality.
 Enhanced editing capabilities.
 
 #### 3.1 Speaker Formatting
-- [ ] Assign speakers to text sections
-- [ ] Visual indicators for speaker turns
-- [ ] Speaker management UI
+- [x] Assign speakers to text sections
+- [x] Visual indicators for speaker turns
+- [x] Speaker management UI
 
 #### 3.2 Argument Mapping
 - [ ] Mark claims, rebuttals, and support points
 - [ ] Link related arguments
 - [ ] Argument flow visualization
 
-#### 3.3 Comments System
+#### 3.3 Claim & Evidence Markup
+- [ ] Mark claims, evidence, and unsupported assertions
+- [ ] Flag text needing source citations
+- [ ] Visual indicators for claim types (statistics, quotes, anecdotes)
+- [ ] Evidence linking (connect sources to claims)
+- [ ] Verification status tracking
+- [ ] Evidence report generation
+
+#### 3.4 Comments System
 - [ ] Add comments to text selections
 - [ ] Comment threading and replies
 - [ ] Comment resolution

@@ -1,11 +1,32 @@
 import { Descendant } from 'slate';
 import { Annotation } from './annotation';
 
+// Speaker/Participant data model
+export interface Speaker {
+  id: string;
+  name: string;
+  color: string;
+  shortName?: string; // Optional abbreviated name (e.g., "JB" for "Joe Biden")
+}
+
+// Default speaker colors for auto-assignment
+export const DEFAULT_SPEAKER_COLORS = [
+  '#3B82F6', // blue
+  '#EF4444', // red
+  '#10B981', // green
+  '#F59E0B', // amber
+  '#8B5CF6', // violet
+  '#EC4899', // pink
+  '#06B6D4', // cyan
+  '#F97316', // orange
+];
+
 export interface DebateDocument {
   id: string;
   title: string;
   content: Descendant[];
   annotations: Record<string, Annotation>;
+  speakers?: Speaker[]; // List of speakers in this document
   createdAt: number;
   updatedAt: number;
   tags?: string[];

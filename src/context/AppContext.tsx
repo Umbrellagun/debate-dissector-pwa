@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Descendant } from 'slate';
-import { DebateDocument, DocumentListItem, UserPreferences, DEFAULT_USER_PREFERENCES } from '../models';
+import { DebateDocument, DocumentListItem, UserPreferences, DEFAULT_USER_PREFERENCES, Speaker } from '../models';
 import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 import {
   listDocuments,
@@ -98,7 +98,7 @@ interface AppContextValue {
   state: AppState;
   loadDocuments: () => Promise<DocumentListItem[]>;
   loadDocument: (id: string) => Promise<DebateDocument | null>;
-  createDocument: (title: string, content?: Descendant[]) => Promise<DebateDocument>;
+  createDocument: (title: string, content?: Descendant[], speakers?: Speaker[]) => Promise<DebateDocument>;
   saveDocument: (doc: DebateDocument) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
@@ -144,7 +144,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const createDocument = async (
     title: string,
-    content: Descendant[] = [{ type: 'paragraph', children: [{ text: '' }] }]
+    content: Descendant[] = [{ type: 'paragraph', children: [{ text: '' }] }],
+    speakers?: Speaker[]
   ): Promise<DebateDocument> => {
     const now = Date.now();
     const doc: DebateDocument = {
@@ -152,6 +153,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       title,
       content,
       annotations: {},
+      speakers,
       createdAt: now,
       updatedAt: now,
     };
