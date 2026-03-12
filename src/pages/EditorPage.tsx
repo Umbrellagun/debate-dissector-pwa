@@ -2,14 +2,15 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Descendant, Editor, Range } from 'slate';
 import { MainLayout, Header } from '../components/layout';
-import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation } from '../components/editor';
+import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
+import { SpeakerPanel } from '../components/speakers';
 import { VersionHistoryPanel } from '../components/version';
 import { createShare } from '../services/sharing';
-import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem, DocumentVersion } from '../models';
+import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem, DocumentVersion, Speaker, DEFAULT_SPEAKER_COLORS } from '../models';
 import { FALLACIES } from '../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../data/rhetoric';
-import { EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT } from '../data/exampleDocument';
+import { EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT, EXAMPLE_SPEAKERS, DEFAULT_SPEAKERS } from '../data/exampleDocument';
 import { useApp } from '../context';
 import { saveDocument as saveDoc, createVersion } from '../services/storage';
 import { SharedDebate } from '../services/sharing';
@@ -108,6 +109,9 @@ export const EditorPage: React.FC = () => {
   const [isSharing, setIsSharing] = useState(false);
   const [hasTextSelection, setHasTextSelection] = useState(false);
   const [sharePopup, setSharePopup] = useState<{ url: string; copied: boolean } | null>(null);
+  const [showSpeakerPanel, setShowSpeakerPanel] = useState(false);
+  const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
+  const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   
   // Cache share URLs per document to avoid creating duplicates
   const shareUrlCache = useRef<Record<string, string>>({});
@@ -127,6 +131,21 @@ export const EditorPage: React.FC = () => {
     }
   }, [isLoading, sidebarStatesSynced, isMobile, preferences.rightSidebarOpen]);
 
+  // Auto-pin the first two speakers when document loads
+  useEffect(() => {
+    if (currentDoc?.speakers && currentDoc.speakers.length >= 2) {
+      const firstTwoIds = currentDoc.speakers.slice(0, 2).map(s => s.id);
+      setPinnedSpeakerIds(prev => {
+        // Only update if the first two speakers aren't already pinned
+        const alreadyPinned = firstTwoIds.every(id => prev.includes(id));
+        if (alreadyPinned) return prev;
+        // Merge: keep existing pins, add new first two
+        const newPins = Array.from(new Set(firstTwoIds.concat(prev)));
+        return newPins;
+      });
+    }
+  }, [currentDoc?.id, currentDoc?.speakers]);
+
   // Extract used annotations from current document content
   const { usedFallacies, usedRhetoric } = useMemo(() => {
     if (!currentDoc?.content) {
@@ -140,6 +159,27 @@ export const EditorPage: React.FC = () => {
       .map(id => RHETORIC_TECHNIQUES.find(r => r.id === id))
       .filter((r): r is Rhetoric => r !== undefined);
     return { usedFallacies, usedRhetoric };
+  }, [currentDoc?.content]);
+
+  // Extract used speaker IDs from document content
+  const usedSpeakerIds = useMemo(() => {
+    if (!currentDoc?.content) return [];
+    const speakerIds = new Set<string>();
+    const traverse = (nodes: Descendant[]) => {
+      for (const node of nodes) {
+        if ('type' in node && (node.type === 'paragraph' || node.type === 'block-quote')) {
+          const element = node as { speakerId?: string };
+          if (element.speakerId) {
+            speakerIds.add(element.speakerId);
+          }
+        }
+        if ('children' in node && Array.isArray(node.children)) {
+          traverse(node.children as Descendant[]);
+        }
+      }
+    };
+    traverse(currentDoc.content);
+    return Array.from(speakerIds);
   }, [currentDoc?.content]);
 
   // Build list of pinned annotations for toolbar shortcuts
@@ -174,6 +214,15 @@ export const EditorPage: React.FC = () => {
     
     return pinned;
   }, [preferences.pinnedFallacies, preferences.pinnedRhetoric]);
+
+  // Build list of pinned speakers for toolbar shortcuts
+  const pinnedSpeakers = useMemo(() => {
+    if (!currentDoc?.speakers) return [];
+    return pinnedSpeakerIds
+      .map(id => currentDoc.speakers?.find(s => s.id === id))
+      .filter((s): s is Speaker => !!s)
+      .map(s => ({ id: s.id, name: s.name, color: s.color }));
+  }, [pinnedSpeakerIds, currentDoc?.speakers]);
 
   useEffect(() => {
     // For shared documents, create a virtual document from the shared data
@@ -221,15 +270,15 @@ export const EditorPage: React.FC = () => {
           if (isFirstTime) {
             // Mark as created BEFORE creating to prevent race conditions
             localStorage.setItem('debate-dissector-example-created', 'true');
-            // Create example document with pre-marked fallacies
-            doc = await createDocument(EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT);
+            // Create example document with pre-marked fallacies and speakers
+            doc = await createDocument(EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT, EXAMPLE_SPEAKERS);
           } else if (freshDocs.length > 0) {
             // Load the first existing document instead of creating a new one
             doc = await loadDocument(freshDocs[0].id);
           } else {
             // Edge case: no docs exist but example was already created (shouldn't happen normally)
-            // Create a new untitled document
-            doc = await createDocument('Untitled Debate');
+            // Create a new untitled document with default speakers
+            doc = await createDocument('Untitled Debate', undefined, DEFAULT_SPEAKERS);
           }
         }
 
@@ -389,6 +438,56 @@ export const EditorPage: React.FC = () => {
       setRightSidebarExpanded(false);
     }
   }, [handleFallacyApply, handleRhetoricApply, isMobile]);
+
+  // Speaker handlers
+  const handleSpeakerAdd = useCallback((speaker: Speaker) => {
+    if (!currentDoc) return;
+    const updatedSpeakers = [...(currentDoc.speakers || []), speaker];
+    setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+  }, [currentDoc]);
+
+  const handleSpeakerUpdate = useCallback((speaker: Speaker) => {
+    if (!currentDoc) return;
+    const updatedSpeakers = (currentDoc.speakers || []).map(s => 
+      s.id === speaker.id ? speaker : s
+    );
+    setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+  }, [currentDoc]);
+
+  const handleSpeakerDelete = useCallback((speakerId: string) => {
+    if (!currentDoc) return;
+    const updatedSpeakers = (currentDoc.speakers || []).filter(s => s.id !== speakerId);
+    setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+  }, [currentDoc]);
+
+  const handleAssignSpeaker = useCallback((speakerId: string | null) => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor) return;
+    assignSpeakerToSelection(editor, speakerId);
+  }, []);
+
+  // Toggle version for pinned speaker buttons - removes speaker if already assigned
+  const handleToggleAssignSpeaker = useCallback((speakerId: string) => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor) return;
+    assignSpeakerToSelection(editor, speakerId, true);
+  }, []);
+
+  const handleToggleSpeakerVisibility = useCallback((speakerId: string) => {
+    setHiddenSpeakerIds(prev => 
+      prev.includes(speakerId) 
+        ? prev.filter(id => id !== speakerId)
+        : [...prev, speakerId]
+    );
+  }, []);
+
+  const handleToggleSpeakerPin = useCallback((speakerId: string) => {
+    setPinnedSpeakerIds(prev => 
+      prev.includes(speakerId) 
+        ? prev.filter(id => id !== speakerId)
+        : [...prev, speakerId]
+    );
+  }, []);
 
   const handleSelectionChange = useCallback(() => {
     const editor = editorRef.current?.getEditor();
@@ -691,6 +790,20 @@ export const EditorPage: React.FC = () => {
                 <HistoryIcon className="w-5 h-5" />
               </button>
             )}
+            {/* Speaker panel toggle */}
+            {!isViewingShared && (
+              <button
+                onClick={() => setShowSpeakerPanel(!showSpeakerPanel)}
+                className={`p-2 rounded-lg transition-colors touch-manipulation ${
+                  showSpeakerPanel ? 'bg-cyan-100 hover:bg-cyan-200' : 'hover:bg-gray-100'
+                }`}
+                title="Speakers"
+              >
+                <svg className={`w-5 h-5 ${showSpeakerPanel ? 'text-cyan-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
+            )}
             {/* Annotation panel toggle */}
             <button
               onClick={handleRightSidebarToggle}
@@ -743,6 +856,10 @@ export const EditorPage: React.FC = () => {
             }}
             pinnedAnnotations={pinnedAnnotations}
             onApplyPinnedAnnotation={handleApplyPinnedAnnotation}
+            speakers={currentDoc.speakers || []}
+            hiddenSpeakerIds={hiddenSpeakerIds}
+            pinnedSpeakers={pinnedSpeakers}
+            onAssignPinnedSpeaker={handleToggleAssignSpeaker}
           />
         </div>
       </div>
@@ -754,6 +871,55 @@ export const EditorPage: React.FC = () => {
           onClose={() => setShowVersionHistory(false)}
         />
       )}
+
+      {/* Speaker Panel - Slide-over from right */}
+      <>
+        {/* Backdrop */}
+        <div 
+          className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
+            showSpeakerPanel ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setShowSpeakerPanel(false)}
+        />
+        {/* Panel */}
+        <aside 
+          className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
+            showSpeakerPanel ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          role="complementary"
+          aria-label="Speaker panel"
+          aria-hidden={!showSpeakerPanel}
+        >
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <SpeakerPanel
+                speakers={currentDoc.speakers || []}
+                usedSpeakerIds={usedSpeakerIds}
+                hiddenSpeakerIds={hiddenSpeakerIds}
+                pinnedSpeakerIds={pinnedSpeakerIds}
+                onSpeakerAdd={handleSpeakerAdd}
+                onSpeakerUpdate={handleSpeakerUpdate}
+                onSpeakerDelete={handleSpeakerDelete}
+                onAssignSpeaker={handleAssignSpeaker}
+                onToggleSpeakerVisibility={handleToggleSpeakerVisibility}
+                onToggleSpeakerPin={handleToggleSpeakerPin}
+              />
+            </div>
+            <div className="border-t border-gray-200 p-2 flex justify-center">
+              <button
+                onClick={() => setShowSpeakerPanel(false)}
+                className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
+                title="Close panel"
+                aria-label="Close speaker panel"
+              >
+                <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </aside>
+      </>
 
       {/* Share popup */}
       {sharePopup && (

@@ -192,8 +192,8 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                   aria-label={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
                   title={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
                 >
-                  <svg className="w-4 h-4" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}>
+                    <path d="M12 17v5M9 3h6a2 2 0 012 2v4l2 2v2H5v-2l2-2V5a2 2 0 012-2z" />
                   </svg>
                 </button>
                 <button
@@ -262,8 +262,8 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                   aria-label={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
                   title={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
                 >
-                  <svg className="w-4 h-4" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}>
+                    <path d="M12 17v5M9 3h6a2 2 0 012 2v4l2 2v2H5v-2l2-2V5a2 2 0 012-2z" />
                   </svg>
                 </button>
                 <button

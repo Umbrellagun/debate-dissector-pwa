@@ -166,12 +166,20 @@ export interface PinnedAnnotation {
   type: 'fallacy' | 'rhetoric';
 }
 
+export interface PinnedSpeaker {
+  id: string;
+  name: string;
+  color: string;
+}
+
 interface EditorToolbarProps {
   selectedAnnotation?: { name: string; color: string } | null;
   hasTextSelection?: boolean;
   onApplyAnnotation?: () => void;
   pinnedAnnotations?: PinnedAnnotation[];
   onApplyPinnedAnnotation?: (annotation: PinnedAnnotation) => void;
+  pinnedSpeakers?: PinnedSpeaker[];
+  onAssignPinnedSpeaker?: (speakerId: string) => void;
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
@@ -180,6 +188,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   onApplyAnnotation,
   pinnedAnnotations = [],
   onApplyPinnedAnnotation,
+  pinnedSpeakers = [],
+  onAssignPinnedSpeaker,
 }) => {
   return (
     <div className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 bg-gray-50 flex-wrap" role="toolbar" aria-label="Text formatting options">
@@ -219,10 +229,34 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
               title={hasTextSelection ? `Apply ${annotation.name} (${annotation.type})` : 'Select text first'}
               aria-label={`Apply or remove ${annotation.name} annotation`}
             >
-              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M16 4a1 1 0 00-1.41 0L13 5.59 9.41 2a1 1 0 00-1.41 0L6 4a1 1 0 000 1.41L7.59 7 4 10.59a1 1 0 000 1.41l2 2a1 1 0 001.41 0L11 10.41 12.59 12l-5 5a1 1 0 000 1.41l2 2a1 1 0 001.41 0l5-5L17.59 17a1 1 0 001.41 0l2-2a1 1 0 000-1.41L17.41 10 21 6.41A1 1 0 0021 5l-2-2a1 1 0 00-1.41 0L14 6.59 12.41 5 16 1.41A1 1 0 0016 0V4z" />
               </svg>
               <span className="truncate max-w-[60px]">{annotation.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {/* Pinned Speaker Shortcuts */}
+      {pinnedSpeakers.length > 0 && (
+        <div className="flex items-center gap-1 pl-2 border-l border-gray-300">
+          {pinnedSpeakers.map((speaker) => (
+            <button
+              key={`speaker-${speaker.id}`}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onAssignPinnedSpeaker?.(speaker.id);
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-white shadow-sm hover:opacity-90 transition-opacity touch-manipulation"
+              style={{ backgroundColor: speaker.color }}
+              title={`Assign ${speaker.name} to current paragraph`}
+              aria-label={`Assign speaker ${speaker.name}`}
+            >
+              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="truncate max-w-[60px]">{speaker.name}</span>
             </button>
           ))}
         </div>

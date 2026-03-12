@@ -143,4 +143,66 @@ describe('EditorToolbar', () => {
     // Should not throw when clicked
     fireEvent.mouseDown(removeButton);
   });
+
+  describe('pinned speakers', () => {
+    const pinnedSpeakers = [
+      { id: 'speaker_a', name: 'Speaker A', color: '#3B82F6' },
+      { id: 'speaker_b', name: 'Speaker B', color: '#10B981' },
+    ];
+
+    it('renders pinned speaker buttons', () => {
+      renderWithSlate(
+        <EditorToolbar 
+          pinnedSpeakers={pinnedSpeakers}
+        />
+      );
+      
+      expect(screen.getByText('Speaker A')).toBeInTheDocument();
+      expect(screen.getByText('Speaker B')).toBeInTheDocument();
+    });
+
+    it('does not render speaker section when no pinned speakers', () => {
+      renderWithSlate(<EditorToolbar pinnedSpeakers={[]} />);
+      
+      expect(screen.queryByText('Speaker A')).not.toBeInTheDocument();
+    });
+
+    it('calls onAssignPinnedSpeaker when speaker button clicked', () => {
+      const onAssignPinnedSpeaker = jest.fn();
+      renderWithSlate(
+        <EditorToolbar 
+          pinnedSpeakers={pinnedSpeakers}
+          onAssignPinnedSpeaker={onAssignPinnedSpeaker}
+        />
+      );
+      
+      const speakerButton = screen.getByText('Speaker A').closest('button');
+      if (speakerButton) {
+        fireEvent.mouseDown(speakerButton);
+        expect(onAssignPinnedSpeaker).toHaveBeenCalledWith('speaker_a');
+      }
+    });
+
+    it('applies speaker color to button', () => {
+      renderWithSlate(
+        <EditorToolbar 
+          pinnedSpeakers={pinnedSpeakers}
+        />
+      );
+      
+      const speakerButton = screen.getByText('Speaker A').closest('button');
+      expect(speakerButton).toHaveStyle({ backgroundColor: '#3B82F6' });
+    });
+
+    it('shows speaker icon in button', () => {
+      renderWithSlate(
+        <EditorToolbar 
+          pinnedSpeakers={pinnedSpeakers}
+        />
+      );
+      
+      const speakerButton = screen.getByLabelText('Assign speaker Speaker A');
+      expect(speakerButton).toBeInTheDocument();
+    });
+  });
 });

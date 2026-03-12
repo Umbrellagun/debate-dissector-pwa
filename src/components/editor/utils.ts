@@ -1,5 +1,5 @@
-import { Editor, Transforms, Element as SlateElement, Range, Text, Node } from 'slate';
-import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, CustomText } from './types';
+import { Editor, Transforms, Element as SlateElement, Range, Text, Node, Path } from 'slate';
+import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, CustomText, ParagraphElement, BlockQuoteElement } from './types';
 
 /**
  * Check if a mark is active at the current selection
@@ -380,4 +380,97 @@ export function selectPreviousAnnotation(
   const range = Editor.range(editor, target.path);
   Transforms.select(editor, range);
   return true;
+}
+
+/**
+ * Assign a speaker to the block(s) at the current selection
+ * If toggle is true and the block already has this speaker, remove the speaker
+ */
+export function assignSpeakerToSelection(
+  editor: CustomEditor,
+  speakerId: string | null,
+  toggle: boolean = false
+): void {
+  const { selection } = editor;
+  if (!selection) return;
+
+  // Get all block nodes in the selection
+  const blocks = Array.from(
+    Editor.nodes(editor, {
+      at: selection,
+      match: (n) => 
+        SlateElement.isElement(n) && 
+        (n.type === 'paragraph' || n.type === 'block-quote'),
+    })
+  );
+
+  // Update each block with the speaker ID
+  for (const [node, path] of blocks) {
+    const currentSpeakerId = (node as ParagraphElement | BlockQuoteElement).speakerId;
+    
+    // If toggle mode and same speaker, remove it
+    if (toggle && speakerId !== null && currentSpeakerId === speakerId) {
+      Transforms.unsetNodes(editor, 'speakerId', { at: path });
+    } else if (speakerId === null) {
+      Transforms.unsetNodes(editor, 'speakerId', { at: path });
+    } else {
+      Transforms.setNodes(
+        editor,
+        { speakerId } as Partial<ParagraphElement | BlockQuoteElement>,
+        { at: path }
+      );
+    }
+  }
+}
+
+/**
+ * Get the speaker ID of the block at the current cursor position
+ */
+export function getSpeakerAtSelection(editor: CustomEditor): string | null {
+  const { selection } = editor;
+  if (!selection) return null;
+
+  const [match] = Array.from(
+    Editor.nodes(editor, {
+      at: selection,
+      match: (n) =>
+        SlateElement.isElement(n) &&
+        (n.type === 'paragraph' || n.type === 'block-quote') &&
+        'speakerId' in n,
+    })
+  );
+
+  if (match) {
+    const [node] = match;
+    return (node as ParagraphElement | BlockQuoteElement).speakerId || null;
+  }
+
+  return null;
+}
+
+/**
+ * Get all unique speaker IDs used in the document
+ */
+export function getUsedSpeakerIds(editor: CustomEditor): string[] {
+  const speakerIds = new Set<string>();
+
+  const blocks = Array.from(
+    Editor.nodes(editor, {
+      at: [],
+      match: (n) =>
+        SlateElement.isElement(n) &&
+        (n.type === 'paragraph' || n.type === 'block-quote') &&
+        'speakerId' in n &&
+        typeof (n as ParagraphElement | BlockQuoteElement).speakerId === 'string',
+    })
+  );
+
+  for (const [node] of blocks) {
+    const speakerId = (node as ParagraphElement | BlockQuoteElement).speakerId;
+    if (speakerId) {
+      speakerIds.add(speakerId);
+    }
+  }
+
+  return Array.from(speakerIds);
 }

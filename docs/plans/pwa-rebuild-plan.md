@@ -81,15 +81,15 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Document version history - allow reverting to previous versions
 
 #### 3.4 Speaker/Participant Formatting
-- [ ] Define speaker data model (name, color, optional avatar/icon)
-- [ ] Add speaker assignment toolbar button or context menu
-- [ ] Create visual indicators for speaker turns (color bars, backgrounds, or borders)
-- [ ] Implement alternating speaker detection (auto-suggest based on paragraph breaks)
-- [ ] Add speaker legend/key in document header or sidebar
-- [ ] Support custom speaker colors and labels
-- [ ] Create speaker management UI (add, edit, remove speakers)
-- [ ] Persist speaker assignments with document
-- [ ] Add speaker filtering (show/hide specific speakers)
+- [x] Define speaker data model (name, color, optional avatar/icon)
+- [x] Add speaker assignment toolbar button or context menu
+- [x] Create visual indicators for speaker turns (color bars, backgrounds, or borders)
+- [x] Implement alternating speaker detection (auto-suggest based on paragraph breaks)
+- [x] Add speaker legend/key in document header or sidebar
+- [x] Support custom speaker colors and labels
+- [x] Create speaker management UI (add, edit, remove speakers)
+- [x] Persist speaker assignments with document
+- [x] Add speaker filtering (show/hide specific speakers)
 - [ ] Export with speaker formatting preserved (HTML/PDF)
 
 #### 3.5 Argument Mapping & Rebuttal Links
@@ -106,7 +106,27 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Export argument map as image or structured data
 - [ ] Add keyboard shortcuts for quick point marking and linking
 
-#### 3.6 Comments System
+#### 3.6 Claim & Evidence Markup
+- [ ] Define structural markup data model (id, text range, type, metadata)
+- [ ] Implement markup types:
+  - [ ] **Claim** - A statement or assertion being made
+  - [ ] **Evidence** - Supporting data, facts, or citations provided
+  - [ ] **Source Needed** - Flag for claims lacking supporting evidence
+  - [ ] **Unsupported Assertion** - Opinion stated as fact without backing
+  - [ ] **Statistic** - Numerical data that should be verifiable
+  - [ ] **Quote** - Direct quotation from a source
+  - [ ] **Anecdote** - Personal story used as evidence
+- [ ] Create markup toolbar/panel UI for applying structural tags
+- [ ] Add visual indicators for each markup type (icons, colors, underlines)
+- [ ] Implement "Source Needed" counter/summary
+- [ ] Build evidence linking (connect evidence to the claim it supports)
+- [ ] Add source citation input (URL, author, date, publication)
+- [ ] Create verification status indicators (verified, disputed, unverified)
+- [ ] Generate "Evidence Report" summary of claims and their support
+- [ ] Integrate with Argument Mapping for claim-rebuttal connections
+- [ ] Add keyboard shortcuts for quick markup application
+
+#### 3.7 Comments System
 - [ ] Design comment data model (linked to text ranges, author, timestamp)
 - [ ] Implement text selection for adding comments
 - [ ] Create comment annotation marks in Slate editor

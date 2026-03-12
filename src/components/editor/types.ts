@@ -38,6 +38,7 @@ export type CustomText = {
 
 export type ParagraphElement = {
   type: 'paragraph';
+  speakerId?: string; // Optional speaker assignment
   children: CustomText[];
 };
 
@@ -53,6 +54,7 @@ export type HeadingTwoElement = {
 
 export type BlockQuoteElement = {
   type: 'block-quote';
+  speakerId?: string; // Optional speaker assignment
   children: CustomText[];
 };
 
