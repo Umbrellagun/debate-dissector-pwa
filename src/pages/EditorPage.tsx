@@ -2,9 +2,11 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Descendant, Editor, Range } from 'slate';
 import { MainLayout, Header } from '../components/layout';
-import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
+import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, applyStructuralMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { SpeakerPanel } from '../components/speakers';
+import { SourceCitation } from '../components/structural';
+import { STRUCTURAL_MARKUPS, StructuralMarkup } from '../data/structuralMarkup';
 import { VersionHistoryPanel } from '../components/version';
 import { createShare } from '../services/sharing';
 import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem, DocumentVersion, Speaker, DEFAULT_SPEAKER_COLORS } from '../models';
@@ -52,6 +54,30 @@ const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; 
   
   traverse(content);
   return { fallacyIds: Array.from(fallacyIds), rhetoricIds: Array.from(rhetoricIds) };
+};
+
+// Extract structural markup statistics from document content
+const extractStructuralMarkupStats = (content: Descendant[]): Record<string, number> => {
+  const stats: Record<string, number> = {};
+  
+  const traverse = (nodes: Descendant[]) => {
+    for (const node of nodes) {
+      if ('text' in node) {
+        const textNode = node as { structuralMarks?: { markupId: string }[] };
+        if (textNode.structuralMarks) {
+          textNode.structuralMarks.forEach(m => {
+            stats[m.markupId] = (stats[m.markupId] || 0) + 1;
+          });
+        }
+      }
+      if ('children' in node && Array.isArray((node as { children: Descendant[] }).children)) {
+        traverse((node as { children: Descendant[] }).children);
+      }
+    }
+  };
+  
+  traverse(content);
+  return stats;
 };
 
 // Validate and normalize editor content to ensure it's always valid for Slate
@@ -110,6 +136,14 @@ export const EditorPage: React.FC = () => {
   const [hasTextSelection, setHasTextSelection] = useState(false);
   const [sharePopup, setSharePopup] = useState<{ url: string; copied: boolean } | null>(null);
   const [showSpeakerPanel, setShowSpeakerPanel] = useState(false);
+  const [selectedStructuralMarkup, setSelectedStructuralMarkup] = useState<StructuralMarkup | null>(null);
+  const [selectedStructuralMetadata, setSelectedStructuralMetadata] = useState<{
+    sourceUrl?: string;
+    sourceAuthor?: string;
+    sourceDate?: string;
+    sourcePublication?: string;
+    verificationStatus?: 'unverified' | 'verified' | 'disputed';
+  } | undefined>(undefined);
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   
@@ -159,6 +193,12 @@ export const EditorPage: React.FC = () => {
       .map(id => RHETORIC_TECHNIQUES.find(r => r.id === id))
       .filter((r): r is Rhetoric => r !== undefined);
     return { usedFallacies, usedRhetoric };
+  }, [currentDoc?.content]);
+
+  // Extract structural markup statistics from current document content
+  const structuralMarkupStats = useMemo(() => {
+    if (!currentDoc?.content) return {};
+    return extractStructuralMarkupStats(currentDoc.content);
   }, [currentDoc?.content]);
 
   // Extract used speaker IDs from document content
@@ -359,12 +399,20 @@ export const EditorPage: React.FC = () => {
 
   const handleFallacySelect = useCallback((fallacy: Fallacy | null) => {
     setSelectedFallacy(fallacy);
-    setSelectedRhetoric(null); // Clear rhetoric selection when fallacy is selected
+    setSelectedRhetoric(null);
+    setSelectedStructuralMarkup(null);
   }, []);
 
   const handleRhetoricSelect = useCallback((rhetoric: Rhetoric | null) => {
     setSelectedRhetoric(rhetoric);
-    setSelectedFallacy(null); // Clear fallacy selection when rhetoric is selected
+    setSelectedFallacy(null);
+    setSelectedStructuralMarkup(null);
+  }, []);
+
+  const handleStructuralSelect = useCallback((markup: StructuralMarkup | null) => {
+    setSelectedStructuralMarkup(markup);
+    setSelectedFallacy(null);
+    setSelectedRhetoric(null);
   }, []);
 
   const handleLeftSidebarToggle = useCallback(() => {
@@ -488,6 +536,43 @@ export const EditorPage: React.FC = () => {
         : [...prev, speakerId]
     );
   }, []);
+
+  const handleApplyStructuralMarkup = useCallback((markup: StructuralMarkup, citation?: SourceCitation) => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor) return;
+    // Convert citation to metadata format if provided
+    const metadata = citation ? {
+      sourceUrl: citation.url,
+      sourceAuthor: citation.author,
+      sourceDate: citation.date,
+      sourcePublication: citation.publication,
+      verificationStatus: citation.verificationStatus,
+    } : undefined;
+    applyStructuralMark(editor, markup.id, markup.color, metadata);
+  }, []);
+
+  // Keyboard shortcuts for structural markup (Alt + key)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle Alt + key combinations when not in input fields
+      if (!e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      const editor = editorRef.current?.getEditor();
+      if (!editor || !hasTextSelection) return;
+      
+      const key = e.key.toUpperCase();
+      const markup = STRUCTURAL_MARKUPS.find(m => m.shortcut === key);
+      
+      if (markup) {
+        e.preventDefault();
+        applyStructuralMark(editor, markup.id, markup.color);
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [hasTextSelection]);
 
   const handleSelectionChange = useCallback(() => {
     const editor = editorRef.current?.getEditor();
@@ -678,6 +763,16 @@ export const EditorPage: React.FC = () => {
           onRhetoricSelect={handleRhetoricSelect}
           onRhetoricApply={handleRhetoricApply}
           selectedRhetoricId={selectedRhetoric?.id}
+          onStructuralSelect={handleStructuralSelect}
+          onStructuralApply={handleApplyStructuralMarkup}
+          selectedStructuralId={selectedStructuralMarkup?.id}
+          selectedStructuralMetadata={selectedStructuralMetadata ? {
+            url: selectedStructuralMetadata.sourceUrl,
+            author: selectedStructuralMetadata.sourceAuthor,
+            date: selectedStructuralMetadata.sourceDate,
+            publication: selectedStructuralMetadata.sourcePublication,
+            verificationStatus: selectedStructuralMetadata.verificationStatus,
+          } : undefined}
           activeTab={annotationTab}
           onTabChange={setAnnotationTab}
         />
@@ -831,6 +926,8 @@ export const EditorPage: React.FC = () => {
               if (fallacy) {
                 setAnnotationTab('fallacies');
                 setSelectedFallacy(fallacy);
+                setSelectedRhetoric(null);
+                setSelectedStructuralMarkup(null);
               }
             }}
             onRhetoricClick={(rhetoricId) => {
@@ -838,6 +935,19 @@ export const EditorPage: React.FC = () => {
               if (rhetoric) {
                 setAnnotationTab('rhetoric');
                 setSelectedRhetoric(rhetoric);
+                setSelectedFallacy(null);
+                setSelectedStructuralMarkup(null);
+              }
+            }}
+            onStructuralClick={(markupId, metadata) => {
+              const markup = STRUCTURAL_MARKUPS.find(m => m.id === markupId);
+              if (markup) {
+                setAnnotationTab('structural');
+                setSelectedStructuralMarkup(markup);
+                setSelectedFallacy(null);
+                setSelectedRhetoric(null);
+                // Store metadata for citation form pre-population
+                setSelectedStructuralMetadata(metadata);
               }
             }}
             placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
@@ -920,6 +1030,7 @@ export const EditorPage: React.FC = () => {
           </div>
         </aside>
       </>
+
 
       {/* Share popup */}
       {sharePopup && (

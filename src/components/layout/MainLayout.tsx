@@ -136,18 +136,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {/* Right Sidebar - Fallacy Reference Panel */}
       {effectiveShowRightSidebar && effectiveRightSidebar && (
         <>
-          {/* Backdrop - closes sidebar when clicked */}
+          {/* Backdrop - only visible and clickable on mobile (lg:hidden) */}
           <div 
-            className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
+            className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 lg:hidden ${
               rightSidebarExpanded ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
             }`}
             onClick={onRightSidebarToggle}
           />
-                    {/* Sidebar - slides in from right on both mobile and desktop */}
+          {/* Sidebar - slides in from right on both mobile and desktop */}
           <aside 
             ref={rightSidebarRef}
-            className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
-              rightSidebarExpanded ? 'translate-x-0' : 'translate-x-full'
+            className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out lg:relative lg:z-auto ${
+              rightSidebarExpanded ? 'translate-x-0' : 'translate-x-full lg:hidden'
             }`}
             role="complementary"
             aria-label="Annotation reference panel"

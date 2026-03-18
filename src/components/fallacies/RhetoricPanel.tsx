@@ -94,10 +94,10 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
           if (categoryRhetoric.length === 0 && searchQuery) return null;
 
           return (
-            <div key={category} className="border-b border-gray-100">
+            <div key={category} className="border-b border-gray-200">
               <button
                 onClick={() => toggleCategory(category)}
-                className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50"
+                className="w-full px-3 py-2 flex items-center justify-between text-left bg-gray-50 hover:bg-gray-100"
                 aria-expanded={expandedCategories.has(category)}
                 aria-controls={`rhetoric-category-${category}`}
               >
@@ -122,12 +122,12 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
               </button>
 
               {expandedCategories.has(category) && (
-                <div id={`rhetoric-category-${category}`} className="pb-2" role="group" aria-label={`${RHETORIC_CATEGORY_NAMES[category]} rhetoric`}>
+                <div id={`rhetoric-category-${category}`} className="pb-2 bg-white border-l-2 border-gray-200 ml-2" role="group" aria-label={`${RHETORIC_CATEGORY_NAMES[category]} rhetoric`}>
                   {categoryRhetoric.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => onRhetoricSelect?.(item)}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 ${
+                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 ${
                         selectedRhetoricId === item.id ? 'bg-blue-50' : ''
                       }`}
                     >
