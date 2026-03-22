@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Fallacy, FALLACY_CATEGORY_NAMES } from '../../models';
 import { Rhetoric, RHETORIC_CATEGORY_NAMES } from '../../models';
 import { FallacyPanel } from './FallacyPanel';
@@ -38,6 +38,7 @@ interface AnnotationPanelProps {
   onStructuralApply?: (markup: StructuralMarkup, citation?: SourceCitation) => void;
   selectedStructuralId?: string;
   selectedStructuralMetadata?: SourceCitation;
+  structuralClickNonce?: number;
   activeTab?: AnnotationTabType;
   onTabChange?: (tab: AnnotationTabType) => void;
 }
@@ -55,6 +56,7 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
   onStructuralApply,
   selectedStructuralId,
   selectedStructuralMetadata,
+  structuralClickNonce = 0,
   activeTab: controlledTab,
   onTabChange,
 }) => {
@@ -67,24 +69,95 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
   const [showHint, setShowHint] = useState(!(preferences.annotationHintDismissed ?? false));
   const [showCitationForm, setShowCitationForm] = useState(false);
   const [citation, setCitation] = useState<SourceCitation>({});
+  const [lastPopulatedKey, setLastPopulatedKey] = useState<string | null>(null);
+  const isInitializing = useRef(false);
+  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const isFormFocused = useRef(false);
+  const hasUserEdited = useRef(false);
   
-  // Pre-populate citation form when metadata is provided (clicking on existing annotation)
+  // Create a unique key for the current annotation using the click nonce
+  const getAnnotationKey = (id: string | undefined) => {
+    if (!id) return null;
+    return `${id}:${structuralClickNonce}`;
+  };
+  
+  // Pre-populate citation form when a DIFFERENT annotation is selected
   useEffect(() => {
-    if (selectedStructuralMetadata) {
-      setCitation({
-        url: selectedStructuralMetadata.url,
-        author: selectedStructuralMetadata.author,
-        date: selectedStructuralMetadata.date,
-        publication: selectedStructuralMetadata.publication,
-        verificationStatus: selectedStructuralMetadata.verificationStatus,
-      });
-    } else {
-      setCitation({});
+    const currentKey = getAnnotationKey(selectedStructuralId);
+    if (currentKey !== lastPopulatedKey) {
+      // Cancel any pending auto-save from previous annotation
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+      isFormFocused.current = false;
+      isInitializing.current = true;
+      setLastPopulatedKey(currentKey);
+      if (selectedStructuralMetadata) {
+        const hasData = Object.values(selectedStructuralMetadata).some(v => v);
+        setCitation({
+          url: selectedStructuralMetadata.url,
+          author: selectedStructuralMetadata.author,
+          date: selectedStructuralMetadata.date,
+          publication: selectedStructuralMetadata.publication,
+          verificationStatus: selectedStructuralMetadata.verificationStatus,
+        });
+        // Auto-expand the citation form if there's existing data
+        if (hasData) {
+          setShowCitationForm(true);
+        }
+      } else {
+        setCitation({});
+      }
+      // Reset initializing flag after a tick and clear user edit flag
+      hasUserEdited.current = false;
+      setTimeout(() => { isInitializing.current = false; }, 0);
     }
-  }, [selectedStructuralMetadata]);
+  }, [selectedStructuralId, selectedStructuralMetadata, structuralClickNonce, lastPopulatedKey]);
+  
+  // Auto-save citation changes with debounce - only when user has edited
+  useEffect(() => {
+    // Skip auto-save if user hasn't edited, during initialization, or if no markup selected
+    if (!hasUserEdited.current || isInitializing.current || !selectedStructuralId) return;
+    
+    const selectedStructural = getStructuralMarkupById(selectedStructuralId);
+    if (!selectedStructural) return;
+    
+    // Clear existing timer
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
+    
+    // Debounce auto-save by 500ms
+    autoSaveTimer.current = setTimeout(() => {
+      const hasCitation = Object.values(citation).some(v => v);
+      if (hasCitation) {
+        // Save citation data
+        onStructuralApply?.(selectedStructural, citation);
+      } else {
+        // User cleared all fields - save empty to remove citation
+        onStructuralApply?.(selectedStructural, { url: '', author: '', date: '', publication: '', verificationStatus: undefined });
+      }
+    }, 500);
+    
+    return () => {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+    };
+  }, [citation, selectedStructuralId, onStructuralApply]);
   
   // Markup types that can have citations
   const citableMarkups = ['evidence', 'statistic', 'quote'];
+  
+  // Clear citation form when metadata is absent (clicked away or selected non-sourced markup)
+  useEffect(() => {
+    if (!selectedStructuralMetadata || !Object.values(selectedStructuralMetadata).some(v => v)) {
+      if (!hasUserEdited.current) {
+        setCitation({});
+        setShowCitationForm(false);
+      }
+    }
+  }, [selectedStructuralMetadata]);
   
   // Persist dropdown states to preferences
   const handleFallaciesToggle = useCallback(() => {
@@ -401,12 +474,6 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
             {/* Citation form for evidence types */}
             {isCitable && (
               <div className="mb-3">
-                <div className="text-xs text-purple-600 mb-2 flex items-center gap-1">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Add a source to strengthen this {selectedStructural.name.toLowerCase()}</span>
-                </div>
                 <button
                   onClick={() => setShowCitationForm(!showCitationForm)}
                   className="w-full text-xs text-left px-2 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded flex items-center gap-2 mb-2"
@@ -426,28 +493,36 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                       type="url"
                       placeholder="Source URL"
                       value={citation.url || ''}
-                      onChange={(e) => setCitation(prev => ({ ...prev, url: e.target.value }))}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, url: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
                       className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                     <input
                       type="text"
                       placeholder="Author"
                       value={citation.author || ''}
-                      onChange={(e) => setCitation(prev => ({ ...prev, author: e.target.value }))}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, author: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
                       className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                     <input
                       type="text"
                       placeholder="Publication"
                       value={citation.publication || ''}
-                      onChange={(e) => setCitation(prev => ({ ...prev, publication: e.target.value }))}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, publication: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
                       className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                     <input
                       type="text"
                       placeholder="Date (e.g., 2024-03-15)"
                       value={citation.date || ''}
-                      onChange={(e) => setCitation(prev => ({ ...prev, date: e.target.value }))}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, date: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
                       className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
                     />
                     <div className="flex items-center gap-1 pt-1">
@@ -456,7 +531,7 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                         <button
                           key={status}
                           type="button"
-                          onClick={() => setCitation(prev => ({ ...prev, verificationStatus: status }))}
+                          onClick={() => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, verificationStatus: status })); }}
                           className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
                             citation.verificationStatus === status
                               ? status === 'verified'
@@ -471,10 +546,6 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                         </button>
                       ))}
                     </div>
-                    {/* Helper text */}
-                    <p className="text-xs text-gray-500 italic pt-1">
-                      Click the button below to apply with source info
-                    </p>
                   </div>
                 )}
               </div>
@@ -482,17 +553,12 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
             
             <button
               onClick={() => {
-                const hasCitation = Object.values(citation).some(v => v);
-                onStructuralApply?.(selectedStructural, hasCitation ? citation : undefined);
-                setCitation({});
-                setShowCitationForm(false);
+                onStructuralApply?.(selectedStructural);
               }}
               className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
               style={{ backgroundColor: selectedStructural.color }}
             >
-              {showCitationForm && Object.values(citation).some(v => v) 
-                ? `Apply ${selectedStructural.name} with Source`
-                : 'Apply/Remove from Selected Text'}
+              Apply/Remove {selectedStructural.name}
             </button>
           </div>
         );

@@ -3,7 +3,6 @@
 export type StructuralMarkupType = 
   | 'claim'
   | 'evidence'
-  | 'source-needed'
   | 'unsupported'
   | 'statistic'
   | 'quote'
@@ -38,16 +37,8 @@ export const STRUCTURAL_MARKUPS: StructuralMarkup[] = [
     shortcut: 'E',
   },
   {
-    id: 'source-needed',
-    name: 'Source Needed',
-    description: 'Flag for claims or statistics that lack proper citation.',
-    color: '#F59E0B', // amber
-    icon: 'source-needed',
-    shortcut: 'S',
-  },
-  {
     id: 'unsupported',
-    name: 'Unsupported Assertion',
+    name: 'Unsupported Claim',
     description: 'Opinion or claim stated as fact without any backing evidence.',
     color: '#EF4444', // red
     icon: 'unsupported',
@@ -90,14 +81,12 @@ export const getStructuralMarkupsByIds = (ids: string[]): StructuralMarkup[] =>
 export const STRUCTURAL_MARKUP_CATEGORIES = {
   assertions: ['claim', 'unsupported'],
   support: ['evidence', 'statistic', 'quote', 'anecdote'],
-  flags: ['source-needed'],
 };
 
 export const getCategoryLabel = (category: keyof typeof STRUCTURAL_MARKUP_CATEGORIES): string => {
   const labels: Record<string, string> = {
     assertions: 'Assertions',
     support: 'Supporting Evidence',
-    flags: 'Flags & Warnings',
   };
   return labels[category] || category;
 };

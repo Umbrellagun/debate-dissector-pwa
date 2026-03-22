@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Descendant, Editor, Range } from 'slate';
+import { Descendant, Editor, Range, Transforms } from 'slate';
 import { MainLayout, Header } from '../components/layout';
 import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, applyStructuralMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
@@ -144,6 +144,8 @@ export const EditorPage: React.FC = () => {
     sourcePublication?: string;
     verificationStatus?: 'unverified' | 'verified' | 'disputed';
   } | undefined>(undefined);
+  const [storedSelection, setStoredSelection] = useState<Range | null>(null);
+  const [structuralClickNonce, setStructuralClickNonce] = useState(0);
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   
@@ -411,6 +413,7 @@ export const EditorPage: React.FC = () => {
 
   const handleStructuralSelect = useCallback((markup: StructuralMarkup | null) => {
     setSelectedStructuralMarkup(markup);
+    setSelectedStructuralMetadata(undefined);
     setSelectedFallacy(null);
     setSelectedRhetoric(null);
   }, []);
@@ -540,6 +543,12 @@ export const EditorPage: React.FC = () => {
   const handleApplyStructuralMarkup = useCallback((markup: StructuralMarkup, citation?: SourceCitation) => {
     const editor = editorRef.current?.getEditor();
     if (!editor) return;
+    
+    // Restore stored selection if current selection is collapsed
+    if (storedSelection && (!editor.selection || Range.isCollapsed(editor.selection))) {
+      Transforms.select(editor, storedSelection);
+    }
+    
     // Convert citation to metadata format if provided
     const metadata = citation ? {
       sourceUrl: citation.url,
@@ -549,7 +558,13 @@ export const EditorPage: React.FC = () => {
       verificationStatus: citation.verificationStatus,
     } : undefined;
     applyStructuralMark(editor, markup.id, markup.color, metadata);
-  }, []);
+    
+    // Only clear stored selection if removing the annotation (no citation provided)
+    // Keep it for metadata updates so auto-save continues to work
+    if (!citation) {
+      setStoredSelection(null);
+    }
+  }, [storedSelection]);
 
   // Keyboard shortcuts for structural markup (Alt + key)
   useEffect(() => {
@@ -593,10 +608,24 @@ export const EditorPage: React.FC = () => {
       const leaf = node as { 
         text?: string;
         fallacyMarks?: { fallacyId: string; appliedAt?: number }[]; 
-        rhetoricMarks?: { rhetoricId: string; appliedAt?: number }[] 
+        rhetoricMarks?: { rhetoricId: string; appliedAt?: number }[];
+        structuralMarks?: { markupId: string; metadata?: any }[];
       };
       
       if (!leaf || typeof leaf.text !== 'string') return;
+      
+      // If a structural markup is selected, check if cursor text has matching metadata
+      // Clear metadata if it doesn't, but don't switch tabs
+      if (selectedStructuralMarkup) {
+        const structuralMarks = leaf.structuralMarks || [];
+        const matchingMark = structuralMarks.find(m => m.markupId === selectedStructuralMarkup.id);
+        if (!matchingMark || !matchingMark.metadata) {
+          setSelectedStructuralMetadata(undefined);
+        } else {
+          setSelectedStructuralMetadata(matchingMark.metadata);
+        }
+        return;
+      }
       
       const fallacyMarks = leaf.fallacyMarks || [];
       const rhetoricMarks = leaf.rhetoricMarks || [];
@@ -641,7 +670,7 @@ export const EditorPage: React.FC = () => {
     } catch {
       // Selection might be at an invalid point, ignore
     }
-  }, []);
+  }, [selectedStructuralMarkup]);
 
   const handleContentChange = useCallback((value: Descendant[]) => {
     setCurrentDoc((prev) => {
@@ -773,6 +802,7 @@ export const EditorPage: React.FC = () => {
             publication: selectedStructuralMetadata.sourcePublication,
             verificationStatus: selectedStructuralMetadata.verificationStatus,
           } : undefined}
+          structuralClickNonce={structuralClickNonce}
           activeTab={annotationTab}
           onTabChange={setAnnotationTab}
         />
@@ -942,18 +972,25 @@ export const EditorPage: React.FC = () => {
             onStructuralClick={(markupId, metadata) => {
               const markup = STRUCTURAL_MARKUPS.find(m => m.id === markupId);
               if (markup) {
+                // Store the current selection before it gets lost
+                const editor = editorRef.current?.getEditor();
+                if (editor?.selection && !Range.isCollapsed(editor.selection)) {
+                  setStoredSelection(editor.selection);
+                }
                 setAnnotationTab('structural');
                 setSelectedStructuralMarkup(markup);
                 setSelectedFallacy(null);
                 setSelectedRhetoric(null);
                 // Store metadata for citation form pre-population
                 setSelectedStructuralMetadata(metadata);
+                setStructuralClickNonce(n => n + 1);
               }
             }}
             placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
             selectedAnnotation={
               selectedFallacy ? { name: selectedFallacy.name, color: selectedFallacy.color } :
               selectedRhetoric ? { name: selectedRhetoric.name, color: selectedRhetoric.color } :
+              selectedStructuralMarkup ? { name: selectedStructuralMarkup.name, color: selectedStructuralMarkup.color } :
               null
             }
             hasTextSelection={hasTextSelection}
@@ -962,6 +999,8 @@ export const EditorPage: React.FC = () => {
                 handleFallacyApply(selectedFallacy);
               } else if (selectedRhetoric) {
                 handleRhetoricApply(selectedRhetoric);
+              } else if (selectedStructuralMarkup) {
+                handleApplyStructuralMarkup(selectedStructuralMarkup);
               }
             }}
             pinnedAnnotations={pinnedAnnotations}

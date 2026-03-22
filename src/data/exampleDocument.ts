@@ -56,18 +56,18 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
       {
         text: "So you want to destroy the entire oil industry and put millions of people out of work?",
         fallacyId: 'straw-man',
-        fallacyColor: '#FF6B6B',
+        fallacyColor: '#EF4444',
         fallacyMarks: [{
           id: 'mark_example_1',
           fallacyId: 'straw-man',
-          color: '#FF6B6B',
+          color: '#EF4444',
           appliedAt: Date.now(),
         }],
         // Overlapping: This is also an emotional appeal (rhetoric)
         rhetoricMarks: [{
           id: 'mark_rhetoric_1',
           rhetoricId: 'appeal-to-fear',
-          color: '#3B82F6',
+          color: '#C084FC',
           appliedAt: Date.now() + 1,
         }],
       },
@@ -75,11 +75,11 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
       {
         text: "Besides, you drive a car yourself, so you're being hypocritical.",
         fallacyId: 'tu-quoque',
-        fallacyColor: '#38D9A9',
+        fallacyColor: '#EA580C',
         fallacyMarks: [{
           id: 'mark_example_2',
           fallacyId: 'tu-quoque',
-          color: '#38D9A9',
+          color: '#EA580C',
           appliedAt: Date.now(),
         }],
       },
@@ -98,6 +98,13 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
           markupId: 'evidence',
           color: '#10b981',
           appliedAt: Date.now(),
+          metadata: {
+            sourceUrl: 'https://www.iea.org/reports/world-energy-outlook-2020',
+            sourceAuthor: 'International Energy Agency',
+            sourceDate: '2020',
+            sourcePublication: 'World Energy Outlook 2020',
+            verificationStatus: 'verified' as const,
+          },
         }],
       },
       { text: '"' },
@@ -111,11 +118,11 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
       {
         text: "Either we keep using fossil fuels or the economy collapses.",
         fallacyId: 'false-dilemma',
-        fallacyColor: '#FFA94D',
+        fallacyColor: '#FB923C',
         fallacyMarks: [{
           id: 'mark_example_3',
           fallacyId: 'false-dilemma',
-          color: '#FFA94D',
+          color: '#FB923C',
           appliedAt: Date.now(),
         }],
       },
@@ -125,7 +132,7 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
         rhetoricMarks: [{
           id: 'mark_rhetoric_2',
           rhetoricId: 'emotional-appeal',
-          color: '#8B5CF6',
+          color: '#7C3AED',
           appliedAt: Date.now(),
         }],
       },
@@ -138,7 +145,7 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
     children: [
       { text: '"' },
       {
-        text: "The transition will take decades and create new opportunities.",
+        text: "The transition will take decades and create new opportunities,",
         structuralMarks: [{
           id: 'mark_claim_2',
           markupId: 'claim',
@@ -146,16 +153,7 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
           appliedAt: Date.now(),
         }],
       },
-      { text: ' ' },
-      {
-        text: "Germany has already shown this works – they've created 300,000 green jobs.",
-        structuralMarks: [{
-          id: 'mark_evidence_2',
-          markupId: 'evidence',
-          color: '#10b981',
-          appliedAt: Date.now(),
-        }],
-      },
+      { text: " but we can't just ignore the risks of fossil fuel." },
       { text: '"' },
     ],
   },

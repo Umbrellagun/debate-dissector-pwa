@@ -48,6 +48,17 @@ const getStructuralMarkupColor = (markupId: string): string | undefined => {
   return markup?.color;
 };
 
+// Helper to determine if a hex color is dark (for text contrast)
+const isColorDark = (hex: string): boolean => {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  // W3C relative luminance formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance < 0.5;
+};
+
 // Tooltip component for showing multiple annotations (fallacies, rhetoric, and structural)
 interface AnnotationTooltipProps {
   fallacyMarks: FallacyMark[];
@@ -58,10 +69,19 @@ interface AnnotationTooltipProps {
   tooltipRef?: React.RefObject<HTMLDivElement | null>;
   onFallacyClick?: (fallacyId: string) => void;
   onRhetoricClick?: (rhetoricId: string) => void;
-  onStructuralClick?: (markupId: string) => void;
+  onStructuralClick?: (markupId: string, metadata?: StructuralMark['metadata']) => void;
+  selectLeafText?: (element: HTMLElement) => void;
+  leafElement?: HTMLElement | null;
 }
 
-const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, structuralMarks = [], onClose, anchorRect, tooltipRef, onFallacyClick, onRhetoricClick, onStructuralClick }) => {
+const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, structuralMarks = [], onClose, anchorRect, tooltipRef, onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText, leafElement }) => {
+  // Helper to check if a structural mark has a source citation
+  const hasSourceCitation = (mark: StructuralMark) => {
+    return mark.metadata && (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication);
+  };
+  
+  // Citable markup types that should show citation indicator
+  const citableMarkupTypes = ['evidence', 'statistic', 'quote'];
   if (!anchorRect) return null;
 
   const totalItems = fallacyMarks.length + rhetoricMarks.length + structuralMarks.length;
@@ -197,39 +217,70 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
           <div style={{ fontWeight: 'bold', marginBottom: '4px', marginTop: (fallacyMarks.length > 0 || rhetoricMarks.length > 0) ? '8px' : 0, borderBottom: '1px solid #374151', paddingBottom: '4px', color: '#a78bfa' }}>
             Claims & Evidence:
           </div>
-          {structuralMarks.map((mark, idx) => (
-            <button
-              key={mark.id}
-              onClick={() => onStructuralClick?.(mark.markupId)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginTop: idx > 0 ? '4px' : 0,
-                background: 'none',
-                border: 'none',
-                color: 'inherit',
-                cursor: 'pointer',
-                padding: '2px 4px',
-                borderRadius: '4px',
-                width: '100%',
-                textAlign: 'left',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              <span
-                style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: getStructuralMarkupColor(mark.markupId) || mark.color,
-                  flexShrink: 0,
+          {structuralMarks.map((mark, idx) => {
+            const isCitable = citableMarkupTypes.includes(mark.markupId);
+            const hasCitation = hasSourceCitation(mark);
+            return (
+              <button
+                key={mark.id}
+                onClick={() => {
+                  // Select the text first so citation can be updated
+                  if (leafElement && selectLeafText) {
+                    selectLeafText(leafElement);
+                  }
+                  onStructuralClick?.(mark.markupId, mark.metadata);
                 }}
-              />
-              <span>{getStructuralMarkupName(mark.markupId)}</span>
-            </button>
-          ))}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginTop: idx > 0 ? '4px' : 0,
+                  background: 'none',
+                  border: 'none',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                  borderRadius: '4px',
+                  width: '100%',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: getStructuralMarkupColor(mark.markupId) || mark.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ flex: 1 }}>{getStructuralMarkupName(mark.markupId)}</span>
+                {isCitable && (
+                  <span
+                    title={hasCitation ? 'Has source citation' : 'Missing source citation'}
+                    style={{
+                      display: 'inline-flex',
+                      marginLeft: '4px',
+                    }}
+                  >
+                    {hasCitation ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
+                        <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                        <path d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                    ) : (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4M12 16h.01" />
+                      </svg>
+                    )}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </>
       )}
       <div
@@ -357,11 +408,14 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
       style.backgroundColor = displayColor;
       style.padding = '2px 0';
       style.borderRadius = '2px';
+      // Auto-switch text to white if background is dark
+      if (isColorDark(displayColor)) {
+        style.color = '#ffffff';
+      }
     }
   }
 
-  // Handle structural marks - use dashed underline to differentiate from fallacy/rhetoric
-  // Check if any structural mark has source citation
+  // Handle structural marks - dotted underline to differentiate from fallacy/rhetoric
   const hasSourceCitation = structuralMarks.some(mark => 
     mark.metadata && (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication)
   );
@@ -372,17 +426,9 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
     const lastStructural = structuralMarks[structuralCount - 1];
     const structuralColor = getStructuralMarkupColor(lastStructural.markupId) || lastStructural.color;
     
-    // Use solid underline if has source, dashed if missing source on citable types
-    const underlineStyle = hasSourceCitation ? 'solid' : 'dashed';
-    style.borderBottom = `2px ${underlineStyle} ${structuralColor}`;
+    style.borderBottom = `2px dotted ${structuralColor}`;
     style.paddingBottom = '1px';
-    
-    // If no fallacy/rhetoric color, add a subtle background
-    if (!hasFallacy && !hasRhetoric) {
-      style.backgroundColor = `${structuralColor}15`; // 15% opacity
-      style.padding = '2px 0';
-      style.borderRadius = '2px';
-    }
+    // No background highlight - only underlines for structural marks
   }
 
   if (customLeaf.bold) {
@@ -472,6 +518,8 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
               onFallacyClick={onFallacyClick}
               onRhetoricClick={onRhetoricClick}
               onStructuralClick={onStructuralClick}
+              selectLeafText={selectLeafText}
+              leafElement={spanRef.current}
             />
           )}
         </span>

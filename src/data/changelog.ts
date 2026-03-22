@@ -7,6 +7,25 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.4.0',
+    date: 'March 21, 2026',
+    title: 'Source Citations & Annotation Improvements',
+    changes: [
+      'Auto-save source citations as you type (no save button needed)',
+      'Source citation fields for evidence, statistics, and quotes (URL, author, date, publication)',
+      'Verification status indicators for sources (verified, disputed, unverified)',
+      'Dark highlight text automatically switches to white for readability',
+      'Editor toolbar button for applying/removing structural markup (claims & evidence)',
+      'Claim and Unsupported Claim are now mutually exclusive on the same text',
+      'Consistent dotted underline for all structural marks; link icon indicates source presence',
+      'Aligned source citation icons between inline editor and annotation tooltip',
+      'Citation form clears when clicking away from sourced highlights',
+      'Renamed "Unsupported Assertion" to "Unsupported Claim" for consistency',
+      'Removed redundant "Source Needed" markup type',
+      'Simplified example debate with clearer source citation demo',
+    ],
+  },
+  {
     version: '1.3.0',
     date: 'March 12, 2026',
     title: 'Speaker Feature & UX Improvements',

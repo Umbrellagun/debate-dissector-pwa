@@ -215,12 +215,14 @@ export function applyStructuralMark(
   const alreadyApplied = existingMarkIndex !== -1;
   
   if (alreadyApplied) {
-    // If metadata is provided, UPDATE the existing mark with new metadata
-    if (metadata && Object.values(metadata).some(v => v)) {
+    // Check if metadata is provided (could be with values, or empty to clear)
+    if (metadata !== undefined) {
+      const hasValues = Object.values(metadata).some(v => v);
       const updatedMarks = [...existingStructuralMarks];
       updatedMarks[existingMarkIndex] = {
         ...updatedMarks[existingMarkIndex],
-        metadata,
+        // If metadata has values, use it; otherwise clear metadata by setting undefined
+        metadata: hasValues ? metadata : undefined,
         appliedAt: Date.now(), // Update timestamp
       };
       Editor.addMark(editor, 'structuralMarks', updatedMarks);
@@ -230,7 +232,7 @@ export function applyStructuralMark(
       };
     }
     
-    // No metadata provided - toggle OFF (remove) the markup
+    // No metadata provided (undefined) - toggle OFF (remove) the markup
     const updatedMarks = existingStructuralMarks.filter(m => m.markupId !== markupId);
     if (updatedMarks.length === 0) {
       Editor.removeMark(editor, 'structuralMarks');
@@ -238,6 +240,19 @@ export function applyStructuralMark(
       Editor.addMark(editor, 'structuralMarks', updatedMarks);
     }
     return null;
+  }
+
+  // Mutually exclusive markup pairs - applying one removes the other
+  const mutuallyExclusive: Record<string, string> = {
+    'claim': 'unsupported',
+    'unsupported': 'claim',
+  };
+  
+  // Remove conflicting markup if present
+  let filteredMarks = existingStructuralMarks;
+  const conflicting = mutuallyExclusive[markupId];
+  if (conflicting) {
+    filteredMarks = existingStructuralMarks.filter(m => m.markupId !== conflicting);
   }
 
   // Create new structural mark
@@ -250,7 +265,7 @@ export function applyStructuralMark(
   };
 
   // Add to the array of structural marks
-  const updatedMarks = [...existingStructuralMarks, newMark];
+  const updatedMarks = [...filteredMarks, newMark];
   Editor.addMark(editor, 'structuralMarks', updatedMarks);
 
   return {

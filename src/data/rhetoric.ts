@@ -7,7 +7,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Appeal to Authority',
     description: 'Citing experts or authorities to support a claim.',
     category: 'ethos',
-    color: '#4C6EF5',
+    color: '#3B82F6',
     examples: [
       'According to Dr. Smith, a leading expert in climate science...',
     ],
@@ -17,7 +17,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Establishing Credibility',
     description: 'Demonstrating expertise, experience, or trustworthiness.',
     category: 'ethos',
-    color: '#5C7CFA',
+    color: '#6366F1',
     examples: [
       'As someone who has worked in this field for 20 years...',
     ],
@@ -27,7 +27,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Shared Values',
     description: 'Connecting with the audience through common beliefs or principles.',
     category: 'ethos',
-    color: '#748FFC',
+    color: '#8B5CF6',
     examples: [
       'Like you, I believe in the importance of family and community.',
     ],
@@ -37,7 +37,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Testimonial',
     description: 'Using endorsements from respected individuals or groups.',
     category: 'ethos',
-    color: '#91A7FF',
+    color: '#A78BFA',
     examples: [
       'This product is recommended by 9 out of 10 dentists.',
     ],
@@ -49,7 +49,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Emotional Appeal',
     description: 'Evoking feelings such as fear, hope, anger, or sympathy.',
     category: 'pathos',
-    color: '#F03E3E',
+    color: '#7C3AED',
     examples: [
       'Think of the children who will suffer if we don\'t act now.',
     ],
@@ -59,7 +59,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Storytelling',
     description: 'Using narratives to create emotional connection and engagement.',
     category: 'pathos',
-    color: '#FA5252',
+    color: '#9333EA',
     examples: [
       'Let me tell you about Maria, a single mother who...',
     ],
@@ -69,7 +69,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Vivid Imagery',
     description: 'Using descriptive language to paint pictures and evoke emotions.',
     category: 'pathos',
-    color: '#FF6B6B',
+    color: '#A855F7',
     examples: [
       'Imagine waking up to the sound of birds singing, the smell of fresh coffee...',
     ],
@@ -79,7 +79,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Appeal to Fear',
     description: 'Warning of negative consequences to motivate action.',
     category: 'pathos',
-    color: '#FF8787',
+    color: '#C084FC',
     examples: [
       'If we don\'t address this issue now, the consequences could be catastrophic.',
     ],
@@ -89,7 +89,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Appeal to Hope',
     description: 'Inspiring optimism about positive outcomes.',
     category: 'pathos',
-    color: '#FFA8A8',
+    color: '#D8B4FE',
     examples: [
       'Together, we can build a brighter future for the next generation.',
     ],
@@ -101,7 +101,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Statistical Evidence',
     description: 'Using data and statistics to support claims.',
     category: 'logos',
-    color: '#12B886',
+    color: '#10B981',
     examples: [
       'Studies show that 78% of participants experienced improvement.',
     ],
@@ -111,7 +111,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Logical Reasoning',
     description: 'Using deductive or inductive reasoning to reach conclusions.',
     category: 'logos',
-    color: '#20C997',
+    color: '#14B8A6',
     examples: [
       'If A leads to B, and B leads to C, then A must lead to C.',
     ],
@@ -121,7 +121,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Factual Evidence',
     description: 'Presenting verifiable facts to support arguments.',
     category: 'logos',
-    color: '#38D9A9',
+    color: '#22C55E',
     examples: [
       'The Earth orbits the Sun at approximately 67,000 miles per hour.',
     ],
@@ -131,7 +131,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Analogy',
     description: 'Comparing similar situations to illustrate a point.',
     category: 'logos',
-    color: '#63E6BE',
+    color: '#34D399',
     examples: [
       'Just as a ship needs a captain, an organization needs strong leadership.',
     ],
@@ -141,7 +141,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Cause and Effect',
     description: 'Demonstrating how one event leads to another.',
     category: 'logos',
-    color: '#96F2D7',
+    color: '#4ADE80',
     examples: [
       'Reducing carbon emissions will lead to cleaner air and improved public health.',
     ],
@@ -153,7 +153,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Urgency',
     description: 'Emphasizing the need for immediate action.',
     category: 'kairos',
-    color: '#F59F00',
+    color: '#0EA5E9',
     examples: [
       'Act now - this offer expires at midnight!',
     ],
@@ -163,7 +163,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Timeliness',
     description: 'Connecting arguments to current events or trends.',
     category: 'kairos',
-    color: '#FAB005',
+    color: '#06B6D4',
     examples: [
       'In light of recent developments, it\'s more important than ever to...',
     ],
@@ -173,7 +173,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Historical Moment',
     description: 'Framing the situation as a pivotal point in history.',
     category: 'kairos',
-    color: '#FCC419',
+    color: '#38BDF8',
     examples: [
       'We stand at a crossroads that will define our generation.',
     ],
@@ -183,7 +183,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Seasonal/Contextual Appeal',
     description: 'Leveraging specific times, seasons, or contexts.',
     category: 'kairos',
-    color: '#FFD43B',
+    color: '#67E8F9',
     examples: [
       'As we enter the holiday season, let\'s remember those less fortunate.',
     ],
