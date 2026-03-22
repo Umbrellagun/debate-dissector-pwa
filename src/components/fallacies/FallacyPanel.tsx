@@ -94,10 +94,10 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
           if (categoryFallacies.length === 0 && searchQuery) return null;
 
           return (
-            <div key={category} className="border-b border-gray-100">
+            <div key={category} className="border-b border-gray-200">
               <button
                 onClick={() => toggleCategory(category)}
-                className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-50"
+                className="w-full px-3 py-2 flex items-center justify-between text-left bg-gray-50 hover:bg-gray-100"
                 aria-expanded={expandedCategories.has(category)}
                 aria-controls={`fallacy-category-${category}`}
               >
@@ -122,12 +122,12 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
               </button>
 
               {expandedCategories.has(category) && (
-                <div id={`fallacy-category-${category}`} className="pb-2" role="group" aria-label={`${FALLACY_CATEGORY_NAMES[category]} fallacies`}>
+                <div id={`fallacy-category-${category}`} className="pb-2 bg-white border-l-2 border-gray-200 ml-2" role="group" aria-label={`${FALLACY_CATEGORY_NAMES[category]} fallacies`}>
                   {categoryFallacies.map((fallacy) => (
                     <button
                       key={fallacy.id}
                       onClick={() => onFallacySelect?.(fallacy)}
-                      className={`w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 ${
+                      className={`w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 ${
                         selectedFallacyId === fallacy.id ? 'bg-blue-50' : ''
                       }`}
                     >

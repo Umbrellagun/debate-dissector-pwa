@@ -1,14 +1,15 @@
 import React, { useCallback, useMemo, useImperativeHandle, forwardRef, useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { createEditor, Descendant } from 'slate';
-import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps } from 'slate-react';
+import { createEditor, Descendant, Editor, Transforms } from 'slate';
+import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
-import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark, ParagraphElement, BlockQuoteElement } from './types';
+import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark, StructuralMark, ParagraphElement, BlockQuoteElement } from './types';
 import { Speaker } from '../../models';
 import { EditorToolbar, PinnedAnnotation, PinnedSpeaker } from './EditorToolbar';
 import { toggleMark } from './utils';
 import { MarkType } from './types';
 import { FALLACIES } from '../../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../../data/rhetoric';
+import { STRUCTURAL_MARKUPS, getStructuralMarkupById } from '../../data/structuralMarkup';
 import './types'; // Import type augmentation
 
 // Helper to get fallacy name from ID
@@ -35,21 +36,55 @@ const getRhetoricColor = (rhetoricId: string): string | undefined => {
   return rhetoric?.color;
 };
 
-// Tooltip component for showing multiple annotations (fallacies and rhetoric)
+// Helper to get structural markup name from ID
+const getStructuralMarkupName = (markupId: string): string => {
+  const markup = getStructuralMarkupById(markupId);
+  return markup?.name || markupId;
+};
+
+// Helper to get structural markup color from ID (dynamic lookup)
+const getStructuralMarkupColor = (markupId: string): string | undefined => {
+  const markup = getStructuralMarkupById(markupId);
+  return markup?.color;
+};
+
+// Helper to determine if a hex color is dark (for text contrast)
+const isColorDark = (hex: string): boolean => {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  // W3C relative luminance formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance < 0.5;
+};
+
+// Tooltip component for showing multiple annotations (fallacies, rhetoric, and structural)
 interface AnnotationTooltipProps {
   fallacyMarks: FallacyMark[];
   rhetoricMarks: RhetoricMark[];
+  structuralMarks?: StructuralMark[];
   onClose: () => void;
   anchorRect: DOMRect | null;
   tooltipRef?: React.RefObject<HTMLDivElement | null>;
   onFallacyClick?: (fallacyId: string) => void;
   onRhetoricClick?: (rhetoricId: string) => void;
+  onStructuralClick?: (markupId: string, metadata?: StructuralMark['metadata']) => void;
+  selectLeafText?: (element: HTMLElement) => void;
+  leafElement?: HTMLElement | null;
 }
 
-const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, onClose, anchorRect, tooltipRef, onFallacyClick, onRhetoricClick }) => {
+const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, structuralMarks = [], onClose, anchorRect, tooltipRef, onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText, leafElement }) => {
+  // Helper to check if a structural mark has a source citation
+  const hasSourceCitation = (mark: StructuralMark) => {
+    return mark.metadata && (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication);
+  };
+  
+  // Citable markup types that should show citation indicator
+  const citableMarkupTypes = ['evidence', 'statistic', 'quote'];
   if (!anchorRect) return null;
 
-  const totalItems = fallacyMarks.length + rhetoricMarks.length;
+  const totalItems = fallacyMarks.length + rhetoricMarks.length + structuralMarks.length;
   const estimatedHeight = totalItems * 24 + (fallacyMarks.length > 0 && rhetoricMarks.length > 0 ? 80 : 50);
   const viewportHeight = window.innerHeight;
   const spaceAbove = anchorRect.top;
@@ -177,6 +212,77 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
           ))}
         </>
       )}
+      {structuralMarks.length > 0 && (
+        <>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', marginTop: (fallacyMarks.length > 0 || rhetoricMarks.length > 0) ? '8px' : 0, borderBottom: '1px solid #374151', paddingBottom: '4px', color: '#a78bfa' }}>
+            Claims & Evidence:
+          </div>
+          {structuralMarks.map((mark, idx) => {
+            const isCitable = citableMarkupTypes.includes(mark.markupId);
+            const hasCitation = hasSourceCitation(mark);
+            return (
+              <button
+                key={mark.id}
+                onClick={() => {
+                  // Select the text first so citation can be updated
+                  if (leafElement && selectLeafText) {
+                    selectLeafText(leafElement);
+                  }
+                  onStructuralClick?.(mark.markupId, mark.metadata);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginTop: idx > 0 ? '4px' : 0,
+                  background: 'none',
+                  border: 'none',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                  borderRadius: '4px',
+                  width: '100%',
+                  textAlign: 'left',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: getStructuralMarkupColor(mark.markupId) || mark.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ flex: 1 }}>{getStructuralMarkupName(mark.markupId)}</span>
+                {isCitable && (
+                  <span
+                    title={hasCitation ? 'Has source citation' : 'Missing source citation'}
+                    style={{
+                      display: 'inline-flex',
+                      marginLeft: '4px',
+                    }}
+                  >
+                    {hasCitation ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
+                        <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                        <path d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                    ) : (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4M12 16h.01" />
+                      </svg>
+                    )}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </>
+      )}
       <div
         style={{
           position: 'absolute',
@@ -201,6 +307,7 @@ interface DebateEditorProps {
   onSelectionChange?: () => void;
   onFallacyClick?: (fallacyId: string) => void;
   onRhetoricClick?: (rhetoricId: string) => void;
+  onStructuralClick?: (markupId: string, metadata?: StructuralMark['metadata']) => void;
   placeholder?: string;
   readOnly?: boolean;
   selectedAnnotation?: { name: string; color: string } | null;
@@ -218,6 +325,8 @@ interface DebateEditorProps {
 interface AnnotationClickContextType {
   onFallacyClick?: (fallacyId: string) => void;
   onRhetoricClick?: (rhetoricId: string) => void;
+  onStructuralClick?: (markupId: string, metadata?: StructuralMark['metadata']) => void;
+  selectLeafText?: (element: HTMLElement) => void;
 }
 const AnnotationClickContext = React.createContext<AnnotationClickContextType>({});
 
@@ -234,7 +343,8 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const { onFallacyClick, onRhetoricClick } = React.useContext(AnnotationClickContext);
+  const { onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText } = React.useContext(AnnotationClickContext);
+  const spanRef = useRef<HTMLSpanElement>(null);
   let style: React.CSSProperties = {};
   let className = '';
   
@@ -261,11 +371,14 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   // Check for annotations
   const fallacyMarks = customLeaf.fallacyMarks || [];
   const rhetoricMarks = customLeaf.rhetoricMarks || [];
+  const structuralMarks = customLeaf.structuralMarks || [];
   const fallacyCount = fallacyMarks.length;
   const rhetoricCount = rhetoricMarks.length;
-  const totalAnnotations = fallacyCount + rhetoricCount;
+  const structuralCount = structuralMarks.length;
+  const totalAnnotations = fallacyCount + rhetoricCount + structuralCount;
   const hasFallacy = fallacyCount > 0 || customLeaf.fallacyColor;
   const hasRhetoric = rhetoricCount > 0;
+  const hasStructural = structuralCount > 0;
 
   // Determine background color - use dynamic lookup from fallacy/rhetoric ID
   if (hasFallacy || hasRhetoric) {
@@ -295,7 +408,27 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
       style.backgroundColor = displayColor;
       style.padding = '2px 0';
       style.borderRadius = '2px';
+      // Auto-switch text to white if background is dark
+      if (isColorDark(displayColor)) {
+        style.color = '#ffffff';
+      }
     }
+  }
+
+  // Handle structural marks - dotted underline to differentiate from fallacy/rhetoric
+  const hasSourceCitation = structuralMarks.some(mark => 
+    mark.metadata && (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication)
+  );
+  const citableMarkupTypes = ['evidence', 'statistic', 'quote'];
+  const isCitableMarkup = structuralMarks.some(mark => citableMarkupTypes.includes(mark.markupId));
+  
+  if (hasStructural) {
+    const lastStructural = structuralMarks[structuralCount - 1];
+    const structuralColor = getStructuralMarkupColor(lastStructural.markupId) || lastStructural.color;
+    
+    style.borderBottom = `2px dotted ${structuralColor}`;
+    style.paddingBottom = '1px';
+    // No background highlight - only underlines for structural marks
   }
 
   if (customLeaf.bold) {
@@ -344,6 +477,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
     }
   };
 
+
   // Show badge with tooltip if multiple annotations
   if (totalAnnotations > 1) {
     return (
@@ -376,15 +510,86 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
           {showTooltip && (
             <AnnotationTooltip 
               fallacyMarks={fallacyMarks} 
-              rhetoricMarks={rhetoricMarks} 
+              rhetoricMarks={rhetoricMarks}
+              structuralMarks={structuralMarks}
               onClose={handleHideTooltip} 
               anchorRect={anchorRect}
               tooltipRef={tooltipRef}
               onFallacyClick={onFallacyClick}
               onRhetoricClick={onRhetoricClick}
+              onStructuralClick={onStructuralClick}
+              selectLeafText={selectLeafText}
+              leafElement={spanRef.current}
             />
           )}
         </span>
+      </span>
+    );
+  }
+
+  // Handle click on annotated text - select first annotation in sidebar
+  const handleAnnotationClick = (e: React.MouseEvent) => {
+    // Only trigger if it's a simple click (no text selection)
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) return;
+    
+    // Select this leaf's text so it can be edited
+    if (spanRef.current && selectLeafText) {
+      selectLeafText(spanRef.current);
+    }
+    
+    // Find the first annotation and trigger its click handler
+    if (fallacyMarks[0] && onFallacyClick) {
+      onFallacyClick(fallacyMarks[0].fallacyId);
+    } else if (rhetoricMarks[0] && onRhetoricClick) {
+      onRhetoricClick(rhetoricMarks[0].rhetoricId);
+    } else if (structuralMarks[0] && onStructuralClick) {
+      // Pass metadata so citation form can be pre-populated
+      onStructuralClick(structuralMarks[0].markupId, structuralMarks[0].metadata);
+    }
+  };
+
+  // Any annotated text is clickable
+  if (totalAnnotations > 0) {
+    // Show source indicator for citable structural markup
+    const showSourceIndicator = hasStructural && isCitableMarkup;
+    
+    return (
+      <span 
+        {...attributes} 
+        ref={spanRef}
+        style={{ ...style, cursor: 'pointer', position: 'relative' }} 
+        className={className.trim() || undefined}
+        onClick={handleAnnotationClick}
+      >
+        {children}
+        {showSourceIndicator && (
+          <span
+            contentEditable={false}
+            suppressContentEditableWarning
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              marginLeft: '2px',
+              verticalAlign: 'super',
+              fontSize: '10px',
+              userSelect: 'none',
+            }}
+            title={hasSourceCitation ? 'Has source citation' : 'Missing source citation'}
+          >
+            {hasSourceCitation ? (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
+                <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+                <path d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            ) : (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
+            )}
+          </span>
+        )}
       </span>
     );
   }
@@ -463,6 +668,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       onSelectionChange,
       onFallacyClick,
       onRhetoricClick,
+      onStructuralClick,
       placeholder = 'Start typing or paste debate text here...',
       readOnly = false,
       selectedAnnotation,
@@ -479,16 +685,29 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
   ) => {
     const editor = useMemo(() => withHistory(withReact(createEditor())), []);
     
+    // Function to select the text of a leaf element in the editor
+    const selectLeafText = useCallback((element: HTMLElement) => {
+      const slateNode = ReactEditor.toSlateNode(editor, element);
+      const path = ReactEditor.findPath(editor, slateNode);
+      const range = Editor.range(editor, path);
+      Transforms.select(editor, range);
+      ReactEditor.focus(editor);
+    }, [editor]);
+    
     const annotationClickContextValue = useMemo(() => ({
       onFallacyClick,
       onRhetoricClick,
-    }), [onFallacyClick, onRhetoricClick]);
+      onStructuralClick,
+      selectLeafText,
+    }), [onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText]);
 
     useImperativeHandle(ref, () => ({
       getEditor: () => editor,
     }));
 
-    const renderLeaf = useCallback((props: RenderLeafProps) => <Leaf {...props} />, []);
+    const renderLeaf = useCallback((props: RenderLeafProps) => (
+      <Leaf {...props} />
+    ), [onFallacyClick, onRhetoricClick, onStructuralClick]);
     const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, []);
 
     const handleChange = useCallback(

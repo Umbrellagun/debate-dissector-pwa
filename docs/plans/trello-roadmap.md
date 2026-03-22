@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** March 8, 2026
+**Last Updated:** March 22, 2026
 
 ### Phase 1: Foundation
 Core app setup and infrastructure.
@@ -46,11 +46,11 @@ Enhanced editing capabilities.
 - [ ] Argument flow visualization
 
 #### 3.3 Claim & Evidence Markup
-- [ ] Mark claims, evidence, and unsupported assertions
-- [ ] Flag text needing source citations
-- [ ] Visual indicators for claim types (statistics, quotes, anecdotes)
+- [x] Mark claims, evidence, and unsupported assertions
+- [x] Flag text needing source citations
+- [x] Visual indicators for claim types (statistics, quotes, anecdotes)
 - [ ] Evidence linking (connect sources to claims)
-- [ ] Verification status tracking
+- [x] Verification status tracking
 - [ ] Evidence report generation
 
 #### 3.4 Comments System
@@ -76,6 +76,11 @@ Polish and usability improvements.
 - [x] Responsive design
 - [x] Touch interactions
 - [ ] Cross-device testing
+
+#### 4.4 Customization
+- [ ] Custom colors for fallacy annotations
+- [ ] Custom colors for rhetoric annotations
+- [ ] Custom colors for claim & evidence markup
 
 ### Phase 5: Sharing & Collaboration
 Share debates with others.

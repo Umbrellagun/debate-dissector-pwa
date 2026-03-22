@@ -107,24 +107,24 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Add keyboard shortcuts for quick point marking and linking
 
 #### 3.6 Claim & Evidence Markup
-- [ ] Define structural markup data model (id, text range, type, metadata)
-- [ ] Implement markup types:
-  - [ ] **Claim** - A statement or assertion being made
-  - [ ] **Evidence** - Supporting data, facts, or citations provided
-  - [ ] **Source Needed** - Flag for claims lacking supporting evidence
-  - [ ] **Unsupported Assertion** - Opinion stated as fact without backing
-  - [ ] **Statistic** - Numerical data that should be verifiable
-  - [ ] **Quote** - Direct quotation from a source
-  - [ ] **Anecdote** - Personal story used as evidence
-- [ ] Create markup toolbar/panel UI for applying structural tags
-- [ ] Add visual indicators for each markup type (icons, colors, underlines)
-- [ ] Implement "Source Needed" counter/summary
+- [x] Define structural markup data model (id, text range, type, metadata)
+- [x] Implement markup types:
+  - [x] **Claim** - A statement or assertion being made
+  - [x] **Evidence** - Supporting data, facts, or citations provided
+  - [x] **Source Needed** - Flag for claims lacking supporting evidence
+  - [x] **Unsupported Assertion** - Opinion stated as fact without backing
+  - [x] **Statistic** - Numerical data that should be verifiable
+  - [x] **Quote** - Direct quotation from a source
+  - [x] **Anecdote** - Personal story used as evidence
+- [x] Create markup toolbar/panel UI for applying structural tags
+- [x] Add visual indicators for each markup type (icons, colors, underlines)
+- [x] Implement "Source Needed" counter/summary
 - [ ] Build evidence linking (connect evidence to the claim it supports)
-- [ ] Add source citation input (URL, author, date, publication)
-- [ ] Create verification status indicators (verified, disputed, unverified)
+- [x] Add source citation input (URL, author, date, publication)
+- [x] Create verification status indicators (verified, disputed, unverified)
 - [ ] Generate "Evidence Report" summary of claims and their support
 - [ ] Integrate with Argument Mapping for claim-rebuttal connections
-- [ ] Add keyboard shortcuts for quick markup application
+- [x] Add keyboard shortcuts for quick markup application
 
 #### 3.7 Comments System
 - [ ] Design comment data model (linked to text ranges, author, timestamp)
@@ -146,6 +146,13 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Create settings/preferences page
 - [x] Add app version display (in settings or footer)
 - [x] Refine title editor and hamburger menu positioning (moved to header)
+
+#### 4.1.1 User Customization
+- [ ] Add color picker for fallacy annotations (per-fallacy or per-category)
+- [ ] Add color picker for rhetoric annotations (per-technique or per-category)
+- [ ] Add color picker for claim & evidence markup types
+- [ ] Persist custom colors in user preferences
+- [ ] Add "Reset to defaults" option for colors
 
 #### 4.2 Annotation Statistics & Visualization
 - [ ] Calculate text coverage percentage per fallacy/rhetoric type

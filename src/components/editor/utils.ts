@@ -1,5 +1,5 @@
 import { Editor, Transforms, Element as SlateElement, Range, Text, Node, Path } from 'slate';
-import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, CustomText, ParagraphElement, BlockQuoteElement } from './types';
+import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, StructuralMark, CustomText, ParagraphElement, BlockQuoteElement } from './types';
 
 /**
  * Check if a mark is active at the current selection
@@ -187,13 +187,119 @@ export function removeRhetoricMark(editor: CustomEditor): void {
 }
 
 /**
- * Clear all annotations (fallacies and rhetoric) from the current selection
+ * Apply a structural markup annotation to the current selection
+ * Supports multiple structural marks on the same text range
+ */
+export function applyStructuralMark(
+  editor: CustomEditor,
+  markupId: string,
+  markupColor: string,
+  metadata?: StructuralMark['metadata']
+): { start: number; end: number } | null {
+  const { selection } = editor;
+  if (!selection || Range.isCollapsed(selection)) {
+    return null;
+  }
+
+  // Get the absolute offsets for the annotation
+  const [start, end] = Range.edges(selection);
+  const startOffset = Editor.point(editor, start, { edge: 'start' });
+  const endOffset = Editor.point(editor, end, { edge: 'end' });
+
+  // Get existing marks to preserve multiple structural marks
+  const marks = Editor.marks(editor);
+  const existingStructuralMarks: StructuralMark[] = marks?.structuralMarks || [];
+  
+  // Check if this markup is already applied
+  const existingMarkIndex = existingStructuralMarks.findIndex(m => m.markupId === markupId);
+  const alreadyApplied = existingMarkIndex !== -1;
+  
+  if (alreadyApplied) {
+    // Check if metadata is provided (could be with values, or empty to clear)
+    if (metadata !== undefined) {
+      const hasValues = Object.values(metadata).some(v => v);
+      const updatedMarks = [...existingStructuralMarks];
+      updatedMarks[existingMarkIndex] = {
+        ...updatedMarks[existingMarkIndex],
+        // If metadata has values, use it; otherwise clear metadata by setting undefined
+        metadata: hasValues ? metadata : undefined,
+        appliedAt: Date.now(), // Update timestamp
+      };
+      Editor.addMark(editor, 'structuralMarks', updatedMarks);
+      return {
+        start: startOffset.offset,
+        end: endOffset.offset,
+      };
+    }
+    
+    // No metadata provided (undefined) - toggle OFF (remove) the markup
+    const updatedMarks = existingStructuralMarks.filter(m => m.markupId !== markupId);
+    if (updatedMarks.length === 0) {
+      Editor.removeMark(editor, 'structuralMarks');
+    } else {
+      Editor.addMark(editor, 'structuralMarks', updatedMarks);
+    }
+    return null;
+  }
+
+  // Mutually exclusive markup pairs - applying one removes the other
+  const mutuallyExclusive: Record<string, string> = {
+    'claim': 'unsupported',
+    'unsupported': 'claim',
+  };
+  
+  // Remove conflicting markup if present
+  let filteredMarks = existingStructuralMarks;
+  const conflicting = mutuallyExclusive[markupId];
+  if (conflicting) {
+    filteredMarks = existingStructuralMarks.filter(m => m.markupId !== conflicting);
+  }
+
+  // Create new structural mark
+  const newMark: StructuralMark = {
+    id: `struct_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    markupId,
+    color: markupColor,
+    appliedAt: Date.now(),
+    metadata,
+  };
+
+  // Add to the array of structural marks
+  const updatedMarks = [...filteredMarks, newMark];
+  Editor.addMark(editor, 'structuralMarks', updatedMarks);
+
+  return {
+    start: startOffset.offset,
+    end: endOffset.offset,
+  };
+}
+
+/**
+ * Remove structural markup annotation from the current selection
+ */
+export function removeStructuralMark(editor: CustomEditor): void {
+  Editor.removeMark(editor, 'structuralMarks');
+}
+
+/**
+ * Get structural marks at current cursor position
+ */
+export function getStructuralMarksAtSelection(
+  editor: CustomEditor
+): StructuralMark[] {
+  const marks = Editor.marks(editor);
+  return marks?.structuralMarks || [];
+}
+
+/**
+ * Clear all annotations (fallacies, rhetoric, and structural) from the current selection
  */
 export function clearAllAnnotations(editor: CustomEditor): void {
   Editor.removeMark(editor, 'fallacyMarks');
   Editor.removeMark(editor, 'fallacyId');
   Editor.removeMark(editor, 'fallacyColor');
   Editor.removeMark(editor, 'rhetoricMarks');
+  Editor.removeMark(editor, 'structuralMarks');
 }
 
 /**

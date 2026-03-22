@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Fallacy, FALLACY_CATEGORY_NAMES } from '../../models';
 import { Rhetoric, RHETORIC_CATEGORY_NAMES } from '../../models';
 import { FallacyPanel } from './FallacyPanel';
 import { RhetoricPanel } from './RhetoricPanel';
+import { StructuralPanel } from './StructuralPanel';
+import { StructuralMarkup, getStructuralMarkupById } from '../../data/structuralMarkup';
+import { SourceCitation } from '../structural';
 import { useApp } from '../../context';
 
-export type AnnotationTabType = 'fallacies' | 'rhetoric';
+export type AnnotationTabType = 'fallacies' | 'rhetoric' | 'structural';
 
 // Chevron icon for dropdown
 const ChevronIcon: React.FC<{ expanded: boolean; className?: string }> = ({ expanded, className }) => (
@@ -31,6 +34,11 @@ interface AnnotationPanelProps {
   onRhetoricSelect?: (rhetoric: Rhetoric) => void;
   onRhetoricApply?: (rhetoric: Rhetoric) => void;
   selectedRhetoricId?: string;
+  onStructuralSelect?: (markup: StructuralMarkup) => void;
+  onStructuralApply?: (markup: StructuralMarkup, citation?: SourceCitation) => void;
+  selectedStructuralId?: string;
+  selectedStructuralMetadata?: SourceCitation;
+  structuralClickNonce?: number;
   activeTab?: AnnotationTabType;
   onTabChange?: (tab: AnnotationTabType) => void;
 }
@@ -44,6 +52,11 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
   onRhetoricSelect,
   onRhetoricApply,
   selectedRhetoricId,
+  onStructuralSelect,
+  onStructuralApply,
+  selectedStructuralId,
+  selectedStructuralMetadata,
+  structuralClickNonce = 0,
   activeTab: controlledTab,
   onTabChange,
 }) => {
@@ -52,7 +65,99 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [fallaciesExpanded, setFallaciesExpanded] = useState(preferences.fallaciesExpanded ?? true);
   const [rhetoricExpanded, setRhetoricExpanded] = useState(preferences.rhetoricExpanded ?? true);
+  const [structuralExpanded, setStructuralExpanded] = useState(preferences.structuralExpanded ?? true);
   const [showHint, setShowHint] = useState(!(preferences.annotationHintDismissed ?? false));
+  const [showCitationForm, setShowCitationForm] = useState(false);
+  const [citation, setCitation] = useState<SourceCitation>({});
+  const [lastPopulatedKey, setLastPopulatedKey] = useState<string | null>(null);
+  const isInitializing = useRef(false);
+  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const isFormFocused = useRef(false);
+  const hasUserEdited = useRef(false);
+  
+  // Create a unique key for the current annotation using the click nonce
+  const getAnnotationKey = (id: string | undefined) => {
+    if (!id) return null;
+    return `${id}:${structuralClickNonce}`;
+  };
+  
+  // Pre-populate citation form when a DIFFERENT annotation is selected
+  useEffect(() => {
+    const currentKey = getAnnotationKey(selectedStructuralId);
+    if (currentKey !== lastPopulatedKey) {
+      // Cancel any pending auto-save from previous annotation
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+      isFormFocused.current = false;
+      isInitializing.current = true;
+      setLastPopulatedKey(currentKey);
+      if (selectedStructuralMetadata) {
+        const hasData = Object.values(selectedStructuralMetadata).some(v => v);
+        setCitation({
+          url: selectedStructuralMetadata.url,
+          author: selectedStructuralMetadata.author,
+          date: selectedStructuralMetadata.date,
+          publication: selectedStructuralMetadata.publication,
+          verificationStatus: selectedStructuralMetadata.verificationStatus,
+        });
+        // Auto-expand the citation form if there's existing data
+        if (hasData) {
+          setShowCitationForm(true);
+        }
+      } else {
+        setCitation({});
+      }
+      // Reset initializing flag after a tick and clear user edit flag
+      hasUserEdited.current = false;
+      setTimeout(() => { isInitializing.current = false; }, 0);
+    }
+  }, [selectedStructuralId, selectedStructuralMetadata, structuralClickNonce, lastPopulatedKey]);
+  
+  // Auto-save citation changes with debounce - only when user has edited
+  useEffect(() => {
+    // Skip auto-save if user hasn't edited, during initialization, or if no markup selected
+    if (!hasUserEdited.current || isInitializing.current || !selectedStructuralId) return;
+    
+    const selectedStructural = getStructuralMarkupById(selectedStructuralId);
+    if (!selectedStructural) return;
+    
+    // Clear existing timer
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
+    
+    // Debounce auto-save by 500ms
+    autoSaveTimer.current = setTimeout(() => {
+      const hasCitation = Object.values(citation).some(v => v);
+      if (hasCitation) {
+        // Save citation data
+        onStructuralApply?.(selectedStructural, citation);
+      } else {
+        // User cleared all fields - save empty to remove citation
+        onStructuralApply?.(selectedStructural, { url: '', author: '', date: '', publication: '', verificationStatus: undefined });
+      }
+    }, 500);
+    
+    return () => {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+    };
+  }, [citation, selectedStructuralId, onStructuralApply]);
+  
+  // Markup types that can have citations
+  const citableMarkups = ['evidence', 'statistic', 'quote'];
+  
+  // Clear citation form when metadata is absent (clicked away or selected non-sourced markup)
+  useEffect(() => {
+    if (!selectedStructuralMetadata || !Object.values(selectedStructuralMetadata).some(v => v)) {
+      if (!hasUserEdited.current) {
+        setCitation({});
+        setShowCitationForm(false);
+      }
+    }
+  }, [selectedStructuralMetadata]);
   
   // Persist dropdown states to preferences
   const handleFallaciesToggle = useCallback(() => {
@@ -67,6 +172,12 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
     updatePreferences({ rhetoricExpanded: newValue });
   }, [rhetoricExpanded, updatePreferences]);
   
+  const handleStructuralToggle = useCallback(() => {
+    const newValue = !structuralExpanded;
+    setStructuralExpanded(newValue);
+    updatePreferences({ structuralExpanded: newValue });
+  }, [structuralExpanded, updatePreferences]);
+  
   const handleDismissHint = useCallback(() => {
     setShowHint(false);
     updatePreferences({ annotationHintDismissed: true });
@@ -78,8 +189,14 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
       setFallaciesExpanded(true);
     } else if (controlledTab === 'rhetoric' && selectedRhetoricId) {
       setRhetoricExpanded(true);
+    } else if (controlledTab === 'structural' && selectedStructuralId) {
+      setStructuralExpanded(true);
+      // Auto-expand citation form for citable markups when clicked from editor
+      if (citableMarkups.includes(selectedStructuralId)) {
+        setShowCitationForm(true);
+      }
     }
-  }, [controlledTab, selectedFallacyId, selectedRhetoricId]);
+  }, [controlledTab, selectedFallacyId, selectedRhetoricId, selectedStructuralId]);
 
   return (
     <div className="h-full flex flex-col">
@@ -87,11 +204,11 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
       <div className="h-14 px-4 border-b border-gray-200 flex items-center shrink-0">
         <input
           type="text"
-          placeholder="Search fallacies & rhetoric..."
+          placeholder="Search annotations..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          aria-label="Search fallacies and rhetoric"
+          aria-label="Search annotations"
           role="searchbox"
         />
       </div>
@@ -101,7 +218,7 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
         {/* Dismissible Hint */}
         {showHint && (
           <div className="mx-3 mt-3 mb-2 p-3 bg-gray-100 rounded-lg flex items-start justify-between">
-            <p className="text-sm text-gray-600">Select fallacies or rhetoric to see its details</p>
+            <p className="text-sm text-gray-600">Select an annotation type to see details</p>
             <button
               onClick={handleDismissHint}
               className="p-1 hover:bg-gray-200 rounded transition-colors ml-2 flex-shrink-0"
@@ -156,6 +273,29 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 onRhetoricSelect={onRhetoricSelect}
                 onRhetoricApply={onRhetoricApply}
                 selectedRhetoricId={selectedRhetoricId}
+                searchQuery={searchQuery}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Claims & Evidence Dropdown */}
+        <div>
+          <button
+            onClick={handleStructuralToggle}
+            className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 transition-colors border-b border-purple-200 sticky top-[104px] z-10"
+            aria-expanded={structuralExpanded}
+            aria-controls="structural-panel"
+          >
+            <span className="font-medium text-purple-700">Claims & Evidence</span>
+            <ChevronIcon expanded={structuralExpanded} className="w-5 h-5 text-purple-600" />
+          </button>
+          {structuralExpanded && (
+            <div id="structural-panel" className="border-b border-gray-200" role="region" aria-label="Claims and evidence list">
+              <StructuralPanel
+                onStructuralSelect={onStructuralSelect}
+                onStructuralApply={onStructuralApply}
+                selectedStructuralId={selectedStructuralId}
                 searchQuery={searchQuery}
               />
             </div>
@@ -295,6 +435,130 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
               style={{ backgroundColor: selectedRhetoric.color }}
             >
               Apply/Remove from Selected Text
+            </button>
+          </div>
+        );
+      })()}
+
+      {selectedStructuralId && !selectedFallacyId && !selectedRhetoricId && (() => {
+        const selectedStructural = getStructuralMarkupById(selectedStructuralId);
+        if (!selectedStructural) return null;
+        const isCitable = citableMarkups.includes(selectedStructural.id);
+        return (
+          <div className="border-t border-gray-200 bg-purple-50 p-4 flex-shrink-0">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span
+                  className="w-4 h-4 rounded-full shrink-0"
+                  style={{ backgroundColor: selectedStructural.color }}
+                />
+                <h3 className="font-semibold text-gray-900">{selectedStructural.name}</h3>
+              </div>
+              <button
+                onClick={() => onStructuralSelect?.(null as unknown as StructuralMarkup)}
+                className="p-1 hover:bg-gray-200 rounded transition-colors"
+                aria-label="Close details"
+              >
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-sm text-gray-700 mb-3">{selectedStructural.description}</p>
+            {selectedStructural.shortcut && (
+              <p className="text-xs text-gray-500 mb-3">
+                Keyboard shortcut: <span className="font-mono bg-gray-100 px-1 rounded">Alt+{selectedStructural.shortcut}</span>
+              </p>
+            )}
+            
+            {/* Citation form for evidence types */}
+            {isCitable && (
+              <div className="mb-3">
+                <button
+                  onClick={() => setShowCitationForm(!showCitationForm)}
+                  className="w-full text-xs text-left px-2 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded flex items-center gap-2 mb-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  <span className="flex-1">{showCitationForm ? 'Hide source citation' : 'Add source citation (optional)'}</span>
+                  <svg className={`w-3 h-3 transition-transform ${showCitationForm ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {showCitationForm && (
+                  <div className="space-y-2 p-2 bg-white rounded border border-gray-200">
+                    <input
+                      type="url"
+                      placeholder="Source URL"
+                      value={citation.url || ''}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, url: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Author"
+                      value={citation.author || ''}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, author: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Publication"
+                      value={citation.publication || ''}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, publication: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Date (e.g., 2024-03-15)"
+                      value={citation.date || ''}
+                      onChange={(e) => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, date: e.target.value })); }}
+                      onFocus={() => { isFormFocused.current = true; }}
+                      onBlur={() => { isFormFocused.current = false; }}
+                      className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    />
+                    <div className="flex items-center gap-1 pt-1">
+                      <span className="text-xs text-gray-500 mr-1">Status:</span>
+                      {(['unverified', 'verified', 'disputed'] as const).map(status => (
+                        <button
+                          key={status}
+                          type="button"
+                          onClick={() => { hasUserEdited.current = true; setCitation(prev => ({ ...prev, verificationStatus: status })); }}
+                          className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                            citation.verificationStatus === status
+                              ? status === 'verified'
+                                ? 'bg-green-100 text-green-700 ring-1 ring-green-500'
+                                : status === 'disputed'
+                                  ? 'bg-red-100 text-red-700 ring-1 ring-red-500'
+                                  : 'bg-gray-200 text-gray-700 ring-1 ring-gray-400'
+                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          }`}
+                        >
+                          {status}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <button
+              onClick={() => {
+                onStructuralApply?.(selectedStructural);
+              }}
+              className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
+              style={{ backgroundColor: selectedStructural.color }}
+            >
+              Apply/Remove {selectedStructural.name}
             </button>
           </div>
         );

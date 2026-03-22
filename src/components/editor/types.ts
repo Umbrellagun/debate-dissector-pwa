@@ -19,10 +19,26 @@ export type RhetoricMark = {
   appliedAt: number;
 };
 
+export type StructuralMark = {
+  id: string;
+  markupId: string; // e.g., 'claim', 'evidence', 'source-needed'
+  color: string;
+  appliedAt: number;
+  metadata?: {
+    sourceUrl?: string;
+    sourceAuthor?: string;
+    sourceDate?: string;
+    sourcePublication?: string;
+    verificationStatus?: 'unverified' | 'verified' | 'disputed';
+    linkedClaimId?: string; // For linking evidence to claims
+  };
+};
+
 // Union type for any annotation mark (fallacy or rhetoric)
 export type AnnotationMark = 
   | (FallacyMark & { type: 'fallacy' })
-  | (RhetoricMark & { type: 'rhetoric' });
+  | (RhetoricMark & { type: 'rhetoric' })
+  | (StructuralMark & { type: 'structural' });
 
 export type CustomText = {
   text: string;
@@ -34,6 +50,7 @@ export type CustomText = {
   fallacyColor?: string;
   fallacyMarks?: FallacyMark[];
   rhetoricMarks?: RhetoricMark[];
+  structuralMarks?: StructuralMark[];
 };
 
 export type ParagraphElement = {

@@ -49,7 +49,7 @@ describe('AnnotationPanel', () => {
 
   it('renders search input', () => {
     render(<AnnotationPanel {...defaultProps} />);
-    expect(screen.getByPlaceholderText('Search fallacies & rhetoric...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search annotations...')).toBeInTheDocument();
   });
 
   it('renders Fallacies and Rhetoric dropdown headers', () => {
@@ -100,7 +100,7 @@ describe('AnnotationPanel', () => {
 
   it('filters fallacies based on search query', () => {
     render(<AnnotationPanel {...defaultProps} />);
-    const searchInput = screen.getByPlaceholderText('Search fallacies & rhetoric...');
+    const searchInput = screen.getByPlaceholderText('Search annotations...');
     
     fireEvent.change(searchInput, { target: { value: 'Straw' } });
     
@@ -110,7 +110,7 @@ describe('AnnotationPanel', () => {
 
   it('filters rhetoric based on search query', () => {
     render(<AnnotationPanel {...defaultProps} />);
-    const searchInput = screen.getByPlaceholderText('Search fallacies & rhetoric...');
+    const searchInput = screen.getByPlaceholderText('Search annotations...');
     
     fireEvent.change(searchInput, { target: { value: 'emotion' } });
     

@@ -7,7 +7,7 @@ export const FALLACIES: Fallacy[] = [
     name: 'Straw Man',
     description: 'Misrepresenting someone\'s argument to make it easier to attack.',
     category: 'informal',
-    color: '#FF6B6B',
+    color: '#EF4444',
     examples: [
       'Person A: We should have stricter environmental regulations. Person B: Person A wants to destroy all businesses and jobs.',
     ],
@@ -17,7 +17,7 @@ export const FALLACIES: Fallacy[] = [
     name: 'Ad Hominem',
     description: 'Attacking the person making the argument rather than the argument itself.',
     category: 'informal',
-    color: '#FF8E72',
+    color: '#F87171',
     examples: [
       'You can\'t trust John\'s opinion on climate change - he\'s not even a scientist.',
     ],
@@ -27,7 +27,7 @@ export const FALLACIES: Fallacy[] = [
     name: 'False Dilemma',
     description: 'Presenting only two options when more exist.',
     category: 'informal',
-    color: '#FFA94D',
+    color: '#FB923C',
     examples: [
       'You\'re either with us or against us.',
       'Either we ban all cars or the planet will be destroyed.',
@@ -38,14 +38,14 @@ export const FALLACIES: Fallacy[] = [
     name: 'Slippery Slope',
     description: 'Arguing that one event will lead to a chain of negative events without evidence.',
     category: 'informal',
-    color: '#FFD43B',
+    color: '#FBBF24',
   },
   {
     id: 'appeal-to-authority',
     name: 'Appeal to Authority',
     description: 'Using an authority figure\'s opinion as evidence when they lack relevant expertise.',
     category: 'informal',
-    color: '#A9E34B',
+    color: '#FCD34D',
   },
 
   // Red Herring Fallacies
@@ -54,21 +54,21 @@ export const FALLACIES: Fallacy[] = [
     name: 'Red Herring',
     description: 'Introducing an irrelevant topic to divert attention from the original issue.',
     category: 'red-herring',
-    color: '#C92A2A',
+    color: '#DC2626',
   },
   {
     id: 'tu-quoque',
     name: 'Tu Quoque',
     description: 'Deflecting criticism by pointing out the critic\'s similar behavior.',
     category: 'red-herring',
-    color: '#D9480F',
+    color: '#EA580C',
   },
   {
     id: 'appeal-to-emotion',
     name: 'Appeal to Emotion',
     description: 'Using emotions rather than logic to persuade.',
     category: 'red-herring',
-    color: '#A61E4D',
+    color: '#F97316',
   },
 
   // Formal Fallacies
@@ -77,14 +77,14 @@ export const FALLACIES: Fallacy[] = [
     name: 'Affirming the Consequent',
     description: 'Assuming that if A implies B, then B implies A.',
     category: 'formal',
-    color: '#4DABF7',
+    color: '#F59E0B',
   },
   {
     id: 'denying-antecedent',
     name: 'Denying the Antecedent',
     description: 'Assuming that if A implies B, then not-A implies not-B.',
     category: 'formal',
-    color: '#748FFC',
+    color: '#EAB308',
   },
 
   // Faulty Generalizations
@@ -93,14 +93,14 @@ export const FALLACIES: Fallacy[] = [
     name: 'Hasty Generalization',
     description: 'Drawing a broad conclusion from a small or unrepresentative sample.',
     category: 'faulty-generalization',
-    color: '#9775FA',
+    color: '#FACC15',
   },
   {
     id: 'cherry-picking',
     name: 'Cherry Picking',
     description: 'Selecting only evidence that supports your conclusion while ignoring contradicting evidence.',
     category: 'faulty-generalization',
-    color: '#DA77F2',
+    color: '#FDE047',
   },
 
   // Propositional Fallacies
@@ -109,7 +109,7 @@ export const FALLACIES: Fallacy[] = [
     name: 'False Equivalence',
     description: 'Treating two different things as if they are the same.',
     category: 'propositional',
-    color: '#F783AC',
+    color: '#FEF08A',
   },
 
   // Quantification Fallacies
@@ -118,14 +118,14 @@ export const FALLACIES: Fallacy[] = [
     name: 'Composition',
     description: 'Assuming what is true of the parts is true of the whole.',
     category: 'quantification',
-    color: '#F76707',
+    color: '#FB7185',
   },
   {
     id: 'division',
     name: 'Division',
     description: 'Assuming what is true of the whole is true of the parts.',
     category: 'quantification',
-    color: '#E8590C',
+    color: '#FDA4AF',
   },
 
   // Syllogistic Fallacies
@@ -134,7 +134,7 @@ export const FALLACIES: Fallacy[] = [
     name: 'Undistributed Middle',
     description: 'The middle term in a syllogism is not distributed in at least one premise.',
     category: 'syllogistic',
-    color: '#69DB7C',
+    color: '#FDBA74',
   },
 
   // Conditional Fallacies
@@ -143,13 +143,13 @@ export const FALLACIES: Fallacy[] = [
     name: 'Begging the Question',
     description: 'The conclusion is assumed in one of the premises.',
     category: 'conditional',
-    color: '#38D9A9',
+    color: '#FED7AA',
   },
   {
     id: 'circular-reasoning',
     name: 'Circular Reasoning',
     description: 'The argument\'s conclusion is used as one of its premises.',
     category: 'conditional',
-    color: '#3BC9DB',
+    color: '#FECACA',
   },
 ];

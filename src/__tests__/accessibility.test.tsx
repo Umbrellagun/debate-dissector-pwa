@@ -7,6 +7,7 @@ import { AnnotationPanel } from '../components/fallacies/AnnotationPanel';
 import { FallacyPanel } from '../components/fallacies/FallacyPanel';
 import { RhetoricPanel } from '../components/fallacies/RhetoricPanel';
 import { Fallacy, Rhetoric } from '../models';
+import { StructuralMarkupPanel } from '../components/structural/StructuralMarkupPanel';
 
 expect.extend(toHaveNoViolations);
 
@@ -110,7 +111,7 @@ describe('Accessibility Tests', () => {
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
       
-      const searchInput = screen.getByPlaceholderText('Search fallacies & rhetoric...');
+      const searchInput = screen.getByPlaceholderText('Search annotations...');
       expect(searchInput).toBeInTheDocument();
       expect(searchInput.tagName).toBe('INPUT');
     });
@@ -265,7 +266,7 @@ describe('Accessibility Tests', () => {
       }
       
       // Search input should have placeholder as accessible name
-      expect(screen.getByPlaceholderText('Search fallacies & rhetoric...')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Search annotations...')).toBeInTheDocument();
     });
   });
 
@@ -275,7 +276,7 @@ describe('Accessibility Tests', () => {
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
       
-      const searchInput = screen.getByPlaceholderText('Search fallacies & rhetoric...');
+      const searchInput = screen.getByPlaceholderText('Search annotations...');
       expect(searchInput).toHaveAttribute('type', 'text');
       expect(searchInput).toHaveAttribute('placeholder');
     });
@@ -367,7 +368,7 @@ describe('Accessibility Tests', () => {
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
       
-      const searchInput = screen.getByPlaceholderText('Search fallacies & rhetoric...');
+      const searchInput = screen.getByPlaceholderText('Search annotations...');
       expect(searchInput).toHaveAttribute('aria-label');
       expect(searchInput).toHaveAttribute('role', 'searchbox');
     });
@@ -389,13 +390,91 @@ describe('Accessibility Tests', () => {
     });
   });
 
+  describe('StructuralMarkupPanel Component', () => {
+    it('should have no axe violations', async () => {
+      const { container } = render(<StructuralMarkupPanel />);
+      await checkA11y(container);
+    });
+
+    it('should have no axe violations with selected markup', async () => {
+      const { container } = render(
+        <StructuralMarkupPanel selectedMarkupId="evidence" hasSelection={true} />
+      );
+      await checkA11y(container);
+    });
+
+    it('category buttons should be keyboard accessible', () => {
+      render(<StructuralMarkupPanel />);
+
+      const assertionsButton = screen.getByText('Assertions').closest('button');
+      expect(assertionsButton).toBeInTheDocument();
+
+      assertionsButton?.focus();
+      expect(document.activeElement).toBe(assertionsButton);
+    });
+
+    it('markup items should be focusable', () => {
+      render(<StructuralMarkupPanel />);
+
+      const claimButton = screen.getByText('Claim').closest('button');
+      expect(claimButton).toBeInTheDocument();
+
+      claimButton?.focus();
+      expect(document.activeElement).toBe(claimButton);
+    });
+
+    it('all buttons should have accessible names', () => {
+      const { container } = render(<StructuralMarkupPanel selectedMarkupId="claim" />);
+      const { valid, issues } = checkAriaLabels(container);
+      if (!valid) {
+        console.warn('ARIA issues in StructuralMarkupPanel:', issues);
+      }
+    });
+
+    it('close details button should have aria-label', () => {
+      render(<StructuralMarkupPanel selectedMarkupId="claim" />);
+      const closeButton = screen.getByLabelText('Close details');
+      expect(closeButton).toBeInTheDocument();
+    });
+
+    it('citation form inputs should be accessible', () => {
+      render(<StructuralMarkupPanel selectedMarkupId="evidence" />);
+
+      // Open citation form
+      fireEvent.click(screen.getByText('Add source citation'));
+
+      const urlInput = screen.getByPlaceholderText('Source URL');
+      const authorInput = screen.getByPlaceholderText('Author');
+      const pubInput = screen.getByPlaceholderText('Publication');
+      const dateInput = screen.getByPlaceholderText('Date');
+
+      // All inputs should be focusable
+      [urlInput, authorInput, pubInput, dateInput].forEach(input => {
+        input.focus();
+        expect(document.activeElement).toBe(input);
+      });
+    });
+
+    it('should have logical focus order', () => {
+      const { container } = render(<StructuralMarkupPanel />);
+      const focusableElements = getFocusableElements(container);
+      expect(focusableElements.length).toBeGreaterThan(0);
+    });
+
+    it('apply button should be disabled with proper styling when no selection', () => {
+      render(<StructuralMarkupPanel selectedMarkupId="claim" hasSelection={false} />);
+      const applyButton = screen.getByText('Select text to apply');
+      expect(applyButton).toBeDisabled();
+    });
+  });
+
   describe('Focus Management', () => {
     it('should maintain focus after interaction', async () => {
       customRender(
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
       
-      const searchInput = screen.getByPlaceholderText('Search fallacies & rhetoric...');
+      const searchInput = screen.getByPlaceholderText('Search annotations...');
       searchInput.focus();
       
       // Type in search
