@@ -162,15 +162,16 @@ describe('extractUsedAnnotations', () => {
       {
         type: 'paragraph',
         children: [
-          {
-            type: 'paragraph',
-            children: [
-              { 
-                text: 'Nested fallacy', 
-                fallacyMarks: [{ fallacyId: 'false-dilemma' }] 
-              } as unknown as { text: string },
-            ],
-          } as unknown as Descendant,
+          { text: 'Normal text' },
+        ],
+      },
+      {
+        type: 'block-quote',
+        children: [
+          { 
+            text: 'Nested fallacy', 
+            fallacyMarks: [{ fallacyId: 'false-dilemma' }] 
+          } as unknown as { text: string },
         ],
       },
     ];

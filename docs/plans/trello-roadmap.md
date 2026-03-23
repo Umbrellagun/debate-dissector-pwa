@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** March 22, 2026
+**Last Updated:** March 23, 2026
 
 ### Phase 1: Foundation
 Core app setup and infrastructure.
@@ -62,22 +62,29 @@ Enhanced editing capabilities.
 Polish and usability improvements.
 
 #### 4.1 Statistics & Visualization
-- [ ] Annotation distribution charts
-- [ ] Text coverage percentages
-- [ ] Export annotation reports
+- [x] Annotation distribution charts
+- [x] Text coverage percentages
+- [x] ~~Export annotation reports~~ (removed)
+- [x] Per-speaker annotation statistics and coverage
 
-#### 4.2 Accessibility
+#### 4.2 Annotation Visibility Controls
+- [ ] Toggle visibility of individual fallacy annotations in the editor
+- [ ] Toggle visibility of individual rhetoric annotations in the editor
+- [ ] Toggle visibility of individual claim & evidence markup types
+- [ ] Bulk show/hide all fallacies or all rhetoric
+
+#### 4.3 Accessibility
 - [x] Keyboard navigation
 - [x] Screen reader support
 - [x] ARIA labels and announcements
 - [ ] Manual accessibility testing
 
-#### 4.3 Mobile Experience
+#### 4.4 Mobile Experience
 - [x] Responsive design
 - [x] Touch interactions
 - [ ] Cross-device testing
 
-#### 4.4 Customization
+#### 4.5 Customization
 - [ ] Custom colors for fallacy annotations
 - [ ] Custom colors for rhetoric annotations
 - [ ] Custom colors for claim & evidence markup

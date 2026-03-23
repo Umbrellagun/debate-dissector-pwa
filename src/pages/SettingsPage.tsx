@@ -32,71 +32,12 @@ export const SettingsPage: React.FC = () => {
   return (
     <MainLayout>
       <Header
-        title="Settings"
+        title="Settings & Info"
         onBackClick={() => navigate('/')}
       />
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto p-4 space-y-6">
-          <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-200">
-              <h2 className="text-sm font-semibold text-gray-900">Appearance</h2>
-            </div>
-            <div className="p-4 space-y-4">
-              <div className="opacity-60">
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Theme
-                  </label>
-                  <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
-                    Coming Soon
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {(['light', 'dark', 'system'] as const).map((theme) => (
-                    <button
-                      key={theme}
-                      disabled
-                      className={`px-4 py-2 text-sm rounded-lg border cursor-not-allowed ${
-                        preferences.theme === theme
-                          ? 'bg-gray-100 border-gray-300 text-gray-500'
-                          : 'bg-white border-gray-200 text-gray-400'
-                      }`}
-                    >
-                      {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="opacity-60">
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Font Size
-                  </label>
-                  <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
-                    Coming Soon
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {(['small', 'medium', 'large'] as const).map((size) => (
-                    <button
-                      key={size}
-                      disabled
-                      className={`px-4 py-2 text-sm rounded-lg border cursor-not-allowed ${
-                        preferences.fontSize === size
-                          ? 'bg-gray-100 border-gray-300 text-gray-500'
-                          : 'bg-white border-gray-200 text-gray-400'
-                      }`}
-                    >
-                      {size.charAt(0).toUpperCase() + size.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
           <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200">
               <h2 className="text-sm font-semibold text-gray-900">About</h2>
@@ -253,6 +194,92 @@ export const SettingsPage: React.FC = () => {
                   </svg>
                   Venmo
                 </a>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h2 className="text-sm font-semibold text-gray-900">Appearance</h2>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="opacity-60">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Theme
+                  </label>
+                  <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
+                    Coming Soon
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {(['light', 'dark', 'system'] as const).map((theme) => (
+                    <button
+                      key={theme}
+                      disabled
+                      className={`px-4 py-2 text-sm rounded-lg border cursor-not-allowed ${
+                        preferences.theme === theme
+                          ? 'bg-gray-100 border-gray-300 text-gray-500'
+                          : 'bg-white border-gray-200 text-gray-400'
+                      }`}
+                    >
+                      {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="opacity-60">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Font Size
+                  </label>
+                  <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
+                    Coming Soon
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {(['small', 'medium', 'large'] as const).map((size) => (
+                    <button
+                      key={size}
+                      disabled
+                      className={`px-4 py-2 text-sm rounded-lg border cursor-not-allowed ${
+                        preferences.fontSize === size
+                          ? 'bg-gray-100 border-gray-300 text-gray-500'
+                          : 'bg-white border-gray-200 text-gray-400'
+                      }`}
+                    >
+                      {size.charAt(0).toUpperCase() + size.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="opacity-60">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Markup & Speaker Colors
+                      </label>
+                      <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
+                        Coming Soon
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Customize the colors used for fallacies, rhetoric, structural markups, and speakers.
+                    </p>
+                  </div>
+                  <button
+                    disabled
+                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed"
+                  >
+                    Customize
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </section>

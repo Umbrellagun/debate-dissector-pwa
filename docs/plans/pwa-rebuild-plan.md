@@ -155,11 +155,20 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Add "Reset to defaults" option for colors
 
 #### 4.2 Annotation Statistics & Visualization
-- [ ] Calculate text coverage percentage per fallacy/rhetoric type
-- [ ] Create visual breakdown chart (pie/bar chart of annotation distribution)
-- [ ] Show total annotated vs unannotated text percentage
-- [ ] Display annotation stats in document summary or sidebar
-- [ ] Add export/share capability for annotation reports
+- [x] Calculate text coverage percentage per fallacy/rhetoric type
+- [x] Create visual breakdown chart (pie/bar chart of annotation distribution)
+- [x] Show total annotated vs unannotated text percentage
+- [x] Display annotation stats in document summary or sidebar
+- [x] Add export/share capability for annotation reports
+
+#### 4.2.1 Annotation Visibility Controls
+- [ ] Toggle visibility of individual fallacy annotations in the editor
+- [ ] Toggle visibility of individual rhetoric annotations in the editor
+- [ ] Toggle visibility of individual claim & evidence markup types
+- [ ] Bulk show/hide all fallacies at once
+- [ ] Bulk show/hide all rhetoric at once
+- [ ] Bulk show/hide all claims & evidence at once
+- [ ] Persist visibility preferences per document or globally
 
 #### 4.3 Navigation and State Management
 - [x] Set up React Router for navigation

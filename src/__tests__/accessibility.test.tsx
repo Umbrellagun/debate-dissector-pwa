@@ -8,6 +8,8 @@ import { FallacyPanel } from '../components/fallacies/FallacyPanel';
 import { RhetoricPanel } from '../components/fallacies/RhetoricPanel';
 import { Fallacy, Rhetoric } from '../models';
 import { StructuralMarkupPanel } from '../components/structural/StructuralMarkupPanel';
+import { AnnotationStatsPanel } from '../components/stats/AnnotationStatsPanel';
+import { AnnotationStats } from '../utils/annotationStats';
 
 expect.extend(toHaveNoViolations);
 
@@ -499,6 +501,193 @@ describe('Accessibility Tests', () => {
       // New content should be focusable
       rhetoricHeader?.focus();
       expect(document.activeElement).toBe(rhetoricHeader);
+    });
+  });
+});
+
+// --- AnnotationStatsPanel Accessibility Tests ---
+
+const mockStatsPopulated: AnnotationStats = {
+  totalCharacters: 500,
+  annotatedCharacters: 200,
+  unannotatedCharacters: 300,
+  coveragePercent: 40,
+  fallacyCoverage: 20,
+  rhetoricCoverage: 15,
+  structuralCoverage: 5,
+  fallacyCount: 2,
+  rhetoricCount: 1,
+  structuralCount: 1,
+  totalAnnotations: 4,
+  breakdown: [
+    { id: 'straw-man', name: 'Straw Man', color: '#EF4444', count: 2, charCount: 100, category: 'informal', type: 'fallacy' },
+    { id: 'appeal-to-authority', name: 'Appeal to Authority', color: '#3B82F6', count: 1, charCount: 75, category: 'ethos', type: 'rhetoric' },
+    { id: 'claim', name: 'Claim', color: '#8B5CF6', count: 1, charCount: 25, category: 'structural', type: 'structural' },
+  ],
+  speakerStats: [],
+};
+
+const mockStatsEmpty: AnnotationStats = {
+  totalCharacters: 0,
+  annotatedCharacters: 0,
+  unannotatedCharacters: 0,
+  coveragePercent: 0,
+  fallacyCoverage: 0,
+  rhetoricCoverage: 0,
+  structuralCoverage: 0,
+  fallacyCount: 0,
+  rhetoricCount: 0,
+  structuralCount: 0,
+  totalAnnotations: 0,
+  breakdown: [],
+  speakerStats: [],
+};
+
+describe('AnnotationStatsPanel Accessibility', () => {
+  describe('Automated a11y checks', () => {
+    it('should have no axe violations with populated stats', async () => {
+      const { container } = render(
+        <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />
+      );
+      await checkA11y(container);
+    });
+
+    it('should have no axe violations with empty stats', async () => {
+      const { container } = render(
+        <AnnotationStatsPanel stats={mockStatsEmpty} documentTitle="Test" />
+      );
+      await checkA11y(container);
+    });
+
+    it('should have no axe violations on breakdown tab', async () => {
+      const { container } = render(
+        <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />
+      );
+      fireEvent.click(screen.getByText('Breakdown'));
+      await checkA11y(container);
+    });
+
+    it('should have no axe violations with clickable breakdown items', async () => {
+      const { container } = render(
+        <AnnotationStatsPanel
+          stats={mockStatsPopulated}
+          documentTitle="Test"
+          onAnnotationClick={jest.fn()}
+        />
+      );
+      fireEvent.click(screen.getByText('Breakdown'));
+      await checkA11y(container);
+    });
+  });
+
+  describe('Interactive elements', () => {
+    it('close button should be keyboard accessible', () => {
+      const onClose = jest.fn();
+      render(
+        <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" onClose={onClose} />
+      );
+
+      const closeBtn = screen.getByLabelText('Close statistics');
+      closeBtn.focus();
+      expect(document.activeElement).toBe(closeBtn);
+
+      fireEvent.keyDown(closeBtn, { key: 'Enter' });
+      fireEvent.click(closeBtn);
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('tab buttons should be focusable', () => {
+      render(
+        <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />
+      );
+
+      const overviewTab = screen.getByText('Overview');
+      const breakdownTab = screen.getByText('Breakdown');
+
+      overviewTab.focus();
+      expect(document.activeElement).toBe(overviewTab);
+
+      breakdownTab.focus();
+      expect(document.activeElement).toBe(breakdownTab);
+    });
+
+    it('breakdown items should be focusable buttons', () => {
+      render(
+        <AnnotationStatsPanel
+          stats={mockStatsPopulated}
+          documentTitle="Test"
+          onAnnotationClick={jest.fn()}
+        />
+      );
+      fireEvent.click(screen.getByText('Breakdown'));
+
+      const strawManBtn = screen.getByText('Straw Man').closest('button');
+      expect(strawManBtn).toBeInTheDocument();
+      strawManBtn!.focus();
+      expect(document.activeElement).toBe(strawManBtn);
+    });
+
+    it('breakdown items should have descriptive titles', () => {
+      render(
+        <AnnotationStatsPanel
+          stats={mockStatsPopulated}
+          documentTitle="Test"
+          onAnnotationClick={jest.fn()}
+        />
+      );
+      fireEvent.click(screen.getByText('Breakdown'));
+
+      const strawManBtn = screen.getByTitle('View Straw Man in annotation panel');
+      expect(strawManBtn).toBeInTheDocument();
+    });
+
+    it('speaker stat rows should be rendered accessibly', () => {
+      const statsWithSpeakers = {
+        ...mockStatsPopulated,
+        speakerStats: [
+          { id: 's1', name: 'Speaker A', color: '#3B82F6', charCount: 300, annotatedCharacters: 100, coveragePercent: 33, paragraphCount: 3, annotationCount: 2, annotationBreakdown: [
+            { id: 'straw-man', name: 'Straw Man', color: '#EF4444', type: 'fallacy' as const, count: 2 },
+          ] },
+        ],
+      };
+      render(
+        <AnnotationStatsPanel stats={statsWithSpeakers} documentTitle="Test" />
+      );
+
+      expect(screen.getByText('Speaker A')).toBeInTheDocument();
+      expect(screen.getByText('By Speaker')).toBeInTheDocument();
+    });
+  });
+
+  describe('Keyboard Navigation', () => {
+    it('all interactive elements should be keyboard-reachable', () => {
+      const { container } = render(
+        <AnnotationStatsPanel
+          stats={mockStatsPopulated}
+          documentTitle="Test"
+          onClose={jest.fn()}
+          onAnnotationClick={jest.fn()}
+        />
+      );
+
+      const focusable = getFocusableElements(container);
+      // Should have: close button, overview tab, breakdown tab
+      expect(focusable.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('breakdown tab interactive elements should be keyboard-reachable', () => {
+      const { container } = render(
+        <AnnotationStatsPanel
+          stats={mockStatsPopulated}
+          documentTitle="Test"
+          onAnnotationClick={jest.fn()}
+        />
+      );
+      fireEvent.click(screen.getByText('Breakdown'));
+
+      const focusable = getFocusableElements(container);
+      // Should include: overview tab, breakdown tab, 3 breakdown items
+      expect(focusable.length).toBeGreaterThanOrEqual(5);
     });
   });
 });
