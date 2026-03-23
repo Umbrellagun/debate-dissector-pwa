@@ -16,6 +16,8 @@ import { EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT, EXAMPLE_SPEAKERS, DEF
 import { useApp } from '../context';
 import { saveDocument as saveDoc, createVersion } from '../services/storage';
 import { SharedDebate } from '../services/sharing';
+import { AnnotationStatsPanel } from '../components/stats';
+import { calculateAnnotationStats } from '../utils/annotationStats';
 
 export interface SharedDocumentState {
   sharedDebate: SharedDebate;
@@ -136,6 +138,7 @@ export const EditorPage: React.FC = () => {
   const [hasTextSelection, setHasTextSelection] = useState(false);
   const [sharePopup, setSharePopup] = useState<{ url: string; copied: boolean } | null>(null);
   const [showSpeakerPanel, setShowSpeakerPanel] = useState(false);
+  const [showStatsPanel, setShowStatsPanel] = useState(false);
   const [selectedStructuralMarkup, setSelectedStructuralMarkup] = useState<StructuralMarkup | null>(null);
   const [selectedStructuralMetadata, setSelectedStructuralMetadata] = useState<{
     sourceUrl?: string;
@@ -202,6 +205,12 @@ export const EditorPage: React.FC = () => {
     if (!currentDoc?.content) return {};
     return extractStructuralMarkupStats(currentDoc.content);
   }, [currentDoc?.content]);
+
+  // Calculate annotation statistics for the stats panel
+  const annotationStats = useMemo(() => {
+    if (!currentDoc?.content) return calculateAnnotationStats([]);
+    return calculateAnnotationStats(currentDoc.content, currentDoc.speakers);
+  }, [currentDoc?.content, currentDoc?.speakers]);
 
   // Extract used speaker IDs from document content
   const usedSpeakerIds = useMemo(() => {
@@ -417,6 +426,41 @@ export const EditorPage: React.FC = () => {
     setSelectedFallacy(null);
     setSelectedRhetoric(null);
   }, []);
+
+  const handleStatsAnnotationClick = useCallback((id: string, type: 'fallacy' | 'rhetoric' | 'structural') => {
+    // Close stats panel
+    setShowStatsPanel(false);
+    // Open annotation sidebar
+    setRightSidebarExpanded(true);
+    updatePreferences({ rightSidebarOpen: true });
+
+    if (type === 'fallacy') {
+      const fallacy = FALLACIES.find(f => f.id === id);
+      if (fallacy) {
+        setAnnotationTab('fallacies');
+        setSelectedFallacy(fallacy);
+        setSelectedRhetoric(null);
+        setSelectedStructuralMarkup(null);
+      }
+    } else if (type === 'rhetoric') {
+      const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === id);
+      if (rhetoric) {
+        setAnnotationTab('rhetoric');
+        setSelectedRhetoric(rhetoric);
+        setSelectedFallacy(null);
+        setSelectedStructuralMarkup(null);
+      }
+    } else if (type === 'structural') {
+      const markup = STRUCTURAL_MARKUPS.find(m => m.id === id);
+      if (markup) {
+        setAnnotationTab('structural');
+        setSelectedStructuralMarkup(markup);
+        setSelectedStructuralMetadata(undefined);
+        setSelectedFallacy(null);
+        setSelectedRhetoric(null);
+      }
+    }
+  }, [updatePreferences]);
 
   const handleLeftSidebarToggle = useCallback(() => {
     const newValue = !showLeftSidebar;
@@ -929,6 +973,20 @@ export const EditorPage: React.FC = () => {
                 </svg>
               </button>
             )}
+            {/* Stats panel toggle */}
+            {!isViewingShared && (
+              <button
+                onClick={() => setShowStatsPanel(!showStatsPanel)}
+                className={`p-2 rounded-lg transition-colors touch-manipulation ${
+                  showStatsPanel ? 'bg-indigo-100 hover:bg-indigo-200' : 'hover:bg-gray-100'
+                }`}
+                title="Statistics"
+              >
+                <svg className={`w-5 h-5 ${showStatsPanel ? 'text-indigo-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h2v8H3zm6-4h2v12H9zm6-6h2v18h-2zm6 10h2v8h-2z" />
+                </svg>
+              </button>
+            )}
             {/* Annotation panel toggle */}
             <button
               onClick={handleRightSidebarToggle}
@@ -1070,6 +1128,32 @@ export const EditorPage: React.FC = () => {
         </aside>
       </>
 
+      {/* Stats Panel - Slide-over from right */}
+      <>
+        {/* Backdrop */}
+        <div 
+          className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
+            showStatsPanel ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setShowStatsPanel(false)}
+        />
+        {/* Panel */}
+        <aside 
+          className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
+            showStatsPanel ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          role="complementary"
+          aria-label="Statistics panel"
+          aria-hidden={!showStatsPanel}
+        >
+          <AnnotationStatsPanel
+            stats={annotationStats}
+            documentTitle={currentDoc.title}
+            onClose={() => setShowStatsPanel(false)}
+            onAnnotationClick={handleStatsAnnotationClick}
+          />
+        </aside>
+      </>
 
       {/* Share popup */}
       {sharePopup && (

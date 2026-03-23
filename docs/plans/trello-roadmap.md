@@ -62,9 +62,9 @@ Enhanced editing capabilities.
 Polish and usability improvements.
 
 #### 4.1 Statistics & Visualization
-- [ ] Annotation distribution charts
-- [ ] Text coverage percentages
-- [ ] Export annotation reports
+- [x] Annotation distribution charts
+- [x] Text coverage percentages
+- [x] Export annotation reports
 
 #### 4.2 Accessibility
 - [x] Keyboard navigation

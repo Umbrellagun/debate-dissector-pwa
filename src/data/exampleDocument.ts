@@ -184,10 +184,6 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
   },
   {
     type: 'paragraph',
-    children: [{ text: '' }],
-  },
-  {
-    type: 'paragraph',
     children: [
       { text: 'Notice the "+1" badge on overlapping annotations – click it to see all annotations on that text!', italic: true },
     ],
