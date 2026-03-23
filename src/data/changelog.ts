@@ -7,6 +7,17 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.5.0',
+    date: 'March 23, 2026',
+    title: 'Annotation Statistics & Speaker Insights',
+    changes: [
+      'New annotation statistics panel',
+      'Per-speaker statistics showing text coverage, annotation counts, and detailed breakdowns',
+      'Settings page reorganized and renamed to "Settings & Info"',
+      'Added placeholder for upcoming markup & speaker color customization',
+    ],
+  },
+  {
     version: '1.4.0',
     date: 'March 21, 2026',
     title: 'Claims and Evidence Feature',
