@@ -18,6 +18,7 @@ import { saveDocument as saveDoc, createVersion } from '../services/storage';
 import { SharedDebate } from '../services/sharing';
 import { AnnotationStatsPanel } from '../components/stats';
 import { calculateAnnotationStats } from '../utils/annotationStats';
+import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 
 export interface SharedDocumentState {
   sharedDebate: SharedDebate;
@@ -365,6 +366,7 @@ export const EditorPage: React.FC = () => {
 
     // Navigate to the new document (clears shared state)
     navigate(`/editor/${newDoc.id}`, { replace: true });
+    if (sharedDebate) trackAnalyticsEvent('shared_doc_imported', { shareId: sharedDebate.id });
   }, [sharedDebate, currentDoc, createDocument, saveDocument, navigate]);
 
   // One-click share: upload to PocketBase and copy link (with caching)
@@ -389,6 +391,7 @@ export const EditorPage: React.FC = () => {
       // Cache the URL
       shareUrlCache.current[currentDoc.id] = result.shareUrl;
       setSharePopup({ url: result.shareUrl, copied: false });
+      trackAnalyticsEvent('share_link_created', { documentId: currentDoc.id });
     } catch (error) {
       console.error('Failed to share:', error);
       setSharePopup(null);
@@ -428,6 +431,7 @@ export const EditorPage: React.FC = () => {
   }, []);
 
   const handleStatsAnnotationClick = useCallback((id: string, type: 'fallacy' | 'rhetoric' | 'structural') => {
+    trackAnalyticsEvent('stats_breakdown_clicked', { type, id, name: id });
     // Close stats panel
     setShowStatsPanel(false);
     // Open annotation sidebar
@@ -497,6 +501,7 @@ export const EditorPage: React.FC = () => {
           annotations: { ...prev.annotations, [annotationId]: newAnnotation },
         };
       });
+      trackAnalyticsEvent('annotation_applied', { type: 'fallacy', id: fallacy.id, name: fallacy.name });
     }
   }, [currentDoc]);
 
@@ -506,7 +511,7 @@ export const EditorPage: React.FC = () => {
 
     const result = applyRhetoricMark(editor, rhetoric.id, rhetoric.color);
     if (result) {
-      // Rhetoric marks are stored in the editor content, no separate annotation needed
+      trackAnalyticsEvent('annotation_applied', { type: 'rhetoric', id: rhetoric.id, name: rhetoric.name });
     }
   }, [currentDoc]);
 
@@ -539,6 +544,7 @@ export const EditorPage: React.FC = () => {
     if (!currentDoc) return;
     const updatedSpeakers = [...(currentDoc.speakers || []), speaker];
     setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+    trackAnalyticsEvent('speaker_created', { speakerName: speaker.name });
   }, [currentDoc]);
 
   const handleSpeakerUpdate = useCallback((speaker: Speaker) => {
@@ -547,19 +553,25 @@ export const EditorPage: React.FC = () => {
       s.id === speaker.id ? speaker : s
     );
     setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+    trackAnalyticsEvent('speaker_edited', { speakerId: speaker.id, speakerName: speaker.name });
   }, [currentDoc]);
 
   const handleSpeakerDelete = useCallback((speakerId: string) => {
     if (!currentDoc) return;
     const updatedSpeakers = (currentDoc.speakers || []).filter(s => s.id !== speakerId);
     setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+    trackAnalyticsEvent('speaker_deleted', { speakerId });
   }, [currentDoc]);
 
   const handleAssignSpeaker = useCallback((speakerId: string | null) => {
     const editor = editorRef.current?.getEditor();
     if (!editor) return;
     assignSpeakerToSelection(editor, speakerId);
-  }, []);
+    if (speakerId && currentDoc) {
+      const speaker = (currentDoc.speakers || []).find(s => s.id === speakerId);
+      if (speaker) trackAnalyticsEvent('speaker_assigned', { speakerId, speakerName: speaker.name });
+    }
+  }, [currentDoc]);
 
   // Toggle version for pinned speaker buttons - removes speaker if already assigned
   const handleToggleAssignSpeaker = useCallback((speakerId: string) => {
@@ -602,6 +614,7 @@ export const EditorPage: React.FC = () => {
       verificationStatus: citation.verificationStatus,
     } : undefined;
     applyStructuralMark(editor, markup.id, markup.color, metadata);
+    trackAnalyticsEvent('annotation_applied', { type: 'structural', id: markup.id, name: markup.name });
     
     // Only clear stored selection if removing the annotation (no citation provided)
     // Keep it for metadata updates so auto-save continues to work
@@ -976,7 +989,11 @@ export const EditorPage: React.FC = () => {
             {/* Stats panel toggle */}
             {!isViewingShared && (
               <button
-                onClick={() => setShowStatsPanel(!showStatsPanel)}
+                onClick={() => {
+                  const next = !showStatsPanel;
+                  setShowStatsPanel(next);
+                  if (next) trackAnalyticsEvent('stats_panel_opened');
+                }}
                 className={`p-2 rounded-lg transition-colors touch-manipulation ${
                   showStatsPanel ? 'bg-indigo-100 hover:bg-indigo-200' : 'hover:bg-gray-100'
                 }`}

@@ -28,21 +28,33 @@ export type AnalyticsEvent =
   | 'annotation_removed'
   | 'fallacy_selected'
   | 'rhetoric_selected'
+  | 'structural_selected'
   | 'pwa_installed'
   | 'pwa_prompt_shown'
   | 'pwa_prompt_dismissed'
   | 'version_created'
   | 'version_restored'
   | 'settings_changed'
-  | 'search_used';
+  | 'search_used'
+  | 'stats_panel_opened'
+  | 'stats_tab_switched'
+  | 'stats_breakdown_clicked'
+  | 'speaker_assigned'
+  | 'speaker_created'
+  | 'speaker_edited'
+  | 'speaker_deleted'
+  | 'share_link_created'
+  | 'shared_doc_viewed'
+  | 'shared_doc_imported';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
   document_deleted: { documentId: string };
-  annotation_applied: { type: 'fallacy' | 'rhetoric'; id: string; name: string };
-  annotation_removed: { type: 'fallacy' | 'rhetoric'; id: string };
+  annotation_applied: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; name: string };
+  annotation_removed: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string };
   fallacy_selected: { id: string; name: string; category: string };
   rhetoric_selected: { id: string; name: string; category: string };
+  structural_selected: { id: string; name: string; category: string };
   pwa_installed: Record<string, never>;
   pwa_prompt_shown: Record<string, never>;
   pwa_prompt_dismissed: Record<string, never>;
@@ -50,6 +62,16 @@ export interface AnalyticsEventData {
   version_restored: { documentId: string; versionId: string };
   settings_changed: { setting: string; value: string };
   search_used: { query: string; resultCount: number };
+  stats_panel_opened: Record<string, never>;
+  stats_tab_switched: { tab: string };
+  stats_breakdown_clicked: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; name: string };
+  speaker_assigned: { speakerId: string; speakerName: string };
+  speaker_created: { speakerName: string };
+  speaker_edited: { speakerId: string; speakerName: string };
+  speaker_deleted: { speakerId: string };
+  share_link_created: { documentId: string };
+  shared_doc_viewed: { shareId: string };
+  shared_doc_imported: { shareId: string };
 }
 
 /**
