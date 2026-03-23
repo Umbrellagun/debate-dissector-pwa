@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnnotationStats, AnnotationCount, SpeakerStat, SpeakerAnnotationDetail } from '../../utils/annotationStats';
+import { trackAnalyticsEvent } from '../../hooks/useAnalytics';
 
 interface AnnotationStatsPanelProps {
   stats: AnnotationStats;
@@ -138,6 +139,11 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'breakdown'>('overview');
 
+  const handleTabSwitch = (tab: 'overview' | 'breakdown') => {
+    setActiveTab(tab);
+    trackAnalyticsEvent('stats_tab_switched', { tab });
+  };
+
   // Build pie slices
   const pieSlices: PieSlice[] = [];
   if (stats.fallacyCoverage > 0) {
@@ -188,7 +194,7 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
       {/* Tab bar */}
       <div className="flex border-b border-gray-200 px-4 shrink-0">
         <button
-          onClick={() => setActiveTab('overview')}
+          onClick={() => handleTabSwitch('overview')}
           className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'overview'
               ? 'border-indigo-500 text-indigo-600'
@@ -198,7 +204,7 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
           Overview
         </button>
         <button
-          onClick={() => setActiveTab('breakdown')}
+          onClick={() => handleTabSwitch('breakdown')}
           className={`px-3 py-2.5 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'breakdown'
               ? 'border-indigo-500 text-indigo-600'

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getShare, SharedDebate } from '../services/sharing';
 import { SharedDocumentState } from './EditorPage';
+import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 
 type PageState = 'loading' | 'ready' | 'error' | 'not_found';
 
@@ -30,6 +31,7 @@ export const SharedDebatePage: React.FC = () => {
 
         setSharedDebate(share);
         setPageState('ready');
+        trackAnalyticsEvent('shared_doc_viewed', { shareId: id });
       } catch (err: any) {
         setError(err.message || 'Failed to load shared document');
         setPageState('error');
