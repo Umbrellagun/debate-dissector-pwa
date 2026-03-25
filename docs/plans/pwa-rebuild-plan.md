@@ -166,13 +166,14 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add export/share capability for annotation reports
 
 #### 4.2.1 Annotation Visibility Controls
-- [ ] Toggle visibility of individual fallacy annotations in the editor
-- [ ] Toggle visibility of individual rhetoric annotations in the editor
-- [ ] Toggle visibility of individual claim & evidence markup types
-- [ ] Bulk show/hide all fallacies at once
-- [ ] Bulk show/hide all rhetoric at once
-- [ ] Bulk show/hide all claims & evidence at once
-- [ ] Persist visibility preferences per document or globally
+- [x] Toggle visibility of individual fallacy annotations in the editor
+- [x] Toggle visibility of individual rhetoric annotations in the editor
+- [x] Toggle visibility of individual claim & evidence markup types
+- [x] Bulk show/hide all fallacies at once
+- [x] Bulk show/hide all rhetoric at once
+- [x] Bulk show/hide all claims & evidence at once
+- [x] Bulk show/hide by subcategory (e.g., all "Red Herring Fallacies", all "Ethos" rhetoric)
+- [x] Persist visibility preferences per document or globally
 
 #### 4.3 Navigation and State Management
 - [x] Set up React Router for navigation

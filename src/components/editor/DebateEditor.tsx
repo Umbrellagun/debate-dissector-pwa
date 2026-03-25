@@ -4,6 +4,7 @@ import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, ReactE
 import { withHistory } from 'slate-history';
 import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark, StructuralMark, ParagraphElement, BlockQuoteElement } from './types';
 import { Speaker, Comment } from '../../models';
+import { HiddenAnnotationIds } from './VisibilityControls';
 import { EditorToolbar, PinnedAnnotation, PinnedSpeaker } from './EditorToolbar';
 import { toggleMark } from './utils';
 import { MarkType } from './types';
@@ -320,6 +321,7 @@ interface DebateEditorProps {
   pinnedSpeakers?: PinnedSpeaker[];
   onAssignPinnedSpeaker?: (speakerId: string) => void;
   comments?: Record<string, Comment>;
+  hiddenAnnotationIds?: HiddenAnnotationIds;
 }
 
 // Context for annotation click handlers
@@ -339,6 +341,13 @@ const HiddenSpeakersContext = React.createContext<string[]>([]);
 
 // Context for comments (to check resolved status in Leaf)
 const CommentsContext = React.createContext<Record<string, Comment>>({});
+
+// Context for hidden annotation IDs (visibility controls)
+const HiddenAnnotationsContext = React.createContext<HiddenAnnotationIds>({
+  fallacyIds: [],
+  rhetoricIds: [],
+  structuralIds: [],
+});
 
 const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const customLeaf = leaf as CustomText;
@@ -372,12 +381,19 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isPinned]);
 
-  // Check for annotations
-  const fallacyMarks = customLeaf.fallacyMarks || [];
-  const rhetoricMarks = customLeaf.rhetoricMarks || [];
-  const structuralMarks = customLeaf.structuralMarks || [];
+  // Check for annotations — filter out hidden ones
+  const hiddenIds = React.useContext(HiddenAnnotationsContext);
+  const allFallacyMarks = customLeaf.fallacyMarks || [];
+  const allRhetoricMarks = customLeaf.rhetoricMarks || [];
+  const allStructuralMarks = customLeaf.structuralMarks || [];
   const commentMarks = customLeaf.commentMarks || [];
   const commentsRecord = React.useContext(CommentsContext);
+
+  // Filter marks based on visibility settings
+  const fallacyMarks = allFallacyMarks.filter(m => !hiddenIds.fallacyIds.includes(m.fallacyId));
+  const rhetoricMarks = allRhetoricMarks.filter(m => !hiddenIds.rhetoricIds.includes(m.rhetoricId));
+  const structuralMarks = allStructuralMarks.filter(m => !hiddenIds.structuralIds.includes(m.markupId));
+
   const fallacyCount = fallacyMarks.length;
   const rhetoricCount = rhetoricMarks.length;
   const structuralCount = structuralMarks.length;
@@ -388,7 +404,8 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   });
   const commentCount = unresolvedCommentMarks.length;
   const totalAnnotations = fallacyCount + rhetoricCount + structuralCount;
-  const hasFallacy = fallacyCount > 0 || customLeaf.fallacyColor;
+  // Check hasFallacy considering hidden IDs for legacy fallacyColor too
+  const hasFallacy = fallacyCount > 0 || (customLeaf.fallacyColor && customLeaf.fallacyId && !hiddenIds.fallacyIds.includes(customLeaf.fallacyId));
   const hasRhetoric = rhetoricCount > 0;
   const hasStructural = structuralCount > 0;
   const hasComments = commentCount > 0;
@@ -705,6 +722,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       pinnedSpeakers = [],
       onAssignPinnedSpeaker,
       comments = {},
+      hiddenAnnotationIds = { fallacyIds: [], rhetoricIds: [], structuralIds: [] },
     },
     ref
   ) => {
@@ -773,6 +791,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
         <SpeakersContext.Provider value={speakers}>
           <HiddenSpeakersContext.Provider value={hiddenSpeakerIds}>
           <CommentsContext.Provider value={comments}>
+          <HiddenAnnotationsContext.Provider value={hiddenAnnotationIds}>
             <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
               <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
                 {!readOnly && (
@@ -798,6 +817,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
                 />
               </Slate>
             </div>
+          </HiddenAnnotationsContext.Provider>
           </CommentsContext.Provider>
           </HiddenSpeakersContext.Provider>
         </SpeakersContext.Provider>

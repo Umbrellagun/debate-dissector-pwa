@@ -74,10 +74,12 @@ Polish and usability improvements.
 - [x] Per-speaker annotation statistics and coverage
 
 #### 4.2 Annotation Visibility Controls
-- [ ] Toggle visibility of individual fallacy annotations in the editor
-- [ ] Toggle visibility of individual rhetoric annotations in the editor
-- [ ] Toggle visibility of individual claim & evidence markup types
-- [ ] Bulk show/hide all fallacies or all rhetoric
+- [x] Toggle visibility of individual fallacy annotations in the editor
+- [x] Toggle visibility of individual rhetoric annotations in the editor
+- [x] Toggle visibility of individual claim & evidence markup types
+- [x] Bulk show/hide all fallacies, rhetoric, or claims & evidence
+- [x] Bulk show/hide by subcategory
+- [x] Persist visibility preferences per document
 
 #### 4.3 Accessibility
 - [x] Keyboard navigation

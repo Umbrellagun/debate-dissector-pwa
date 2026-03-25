@@ -7,6 +7,18 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.7.0',
+    date: 'March 25, 2026',
+    title: 'Annotation Visibility Controls',
+    changes: [
+      'Toggle visibility of individual fallacy, rhetoric, and structural annotations in the editor',
+      'Bulk show/hide all annotations per section (Fallacies, Rhetoric, Claims & Evidence)',
+      'Bulk show/hide by subcategory (e.g., all Red Herring Fallacies, all Ethos rhetoric)',
+      'Visibility state persisted per document',
+      'Eye icon toggles on individual items, subcategory headers, and section headers',
+    ],
+  },
+  {
     version: '1.6.0',
     date: 'March 25, 2026',
     title: 'Comments System & UX Improvements',

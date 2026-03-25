@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Descendant, Editor, Range, Transforms } from 'slate';
 import { MainLayout, Header } from '../components/layout';
-import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, applyStructuralMark, applyCommentMark, removeCommentMark, getSelectionText, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
+import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, applyStructuralMark, applyCommentMark, removeCommentMark, getSelectionText, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection, HiddenAnnotationIds } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { SpeakerPanel } from '../components/speakers';
 import { CommentPanel } from '../components/comments';
@@ -34,20 +34,24 @@ const HistoryIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-// Extract unique fallacy and rhetoric IDs from document content
-const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; rhetoricIds: string[] } => {
+// Extract unique fallacy, rhetoric, and structural IDs from document content
+const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; rhetoricIds: string[]; structuralIds: string[] } => {
   const fallacyIds = new Set<string>();
   const rhetoricIds = new Set<string>();
+  const structuralIds = new Set<string>();
   
   const traverse = (nodes: Descendant[]) => {
     for (const node of nodes) {
       if ('text' in node) {
-        const textNode = node as { fallacyMarks?: { fallacyId: string }[]; rhetoricMarks?: { rhetoricId: string }[] };
+        const textNode = node as { fallacyMarks?: { fallacyId: string }[]; rhetoricMarks?: { rhetoricId: string }[]; structuralMarks?: { markupId: string }[] };
         if (textNode.fallacyMarks) {
           textNode.fallacyMarks.forEach(m => fallacyIds.add(m.fallacyId));
         }
         if (textNode.rhetoricMarks) {
           textNode.rhetoricMarks.forEach(m => rhetoricIds.add(m.rhetoricId));
+        }
+        if (textNode.structuralMarks) {
+          textNode.structuralMarks.forEach(m => structuralIds.add(m.markupId));
         }
       }
       if ('children' in node && Array.isArray((node as { children: Descendant[] }).children)) {
@@ -57,7 +61,7 @@ const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; 
   };
   
   traverse(content);
-  return { fallacyIds: Array.from(fallacyIds), rhetoricIds: Array.from(rhetoricIds) };
+  return { fallacyIds: Array.from(fallacyIds), rhetoricIds: Array.from(rhetoricIds), structuralIds: Array.from(structuralIds) };
 };
 
 // Extract structural markup statistics from document content
@@ -155,6 +159,11 @@ export const EditorPage: React.FC = () => {
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
+  const [hiddenAnnotationIds, setHiddenAnnotationIds] = useState<HiddenAnnotationIds>({
+    fallacyIds: [],
+    rhetoricIds: [],
+    structuralIds: [],
+  });
   
   // Cache share URLs per document to avoid creating duplicates
   const shareUrlCache = useRef<Record<string, string>>({});
@@ -189,19 +198,48 @@ export const EditorPage: React.FC = () => {
     }
   }, [currentDoc?.id, currentDoc?.speakers]);
 
-  // Extract used annotations from current document content
-  const { usedFallacies, usedRhetoric } = useMemo(() => {
-    if (!currentDoc?.content) {
-      return { usedFallacies: [], usedRhetoric: [] };
+  // Restore hidden annotation IDs from document when document changes
+  useEffect(() => {
+    if (currentDoc?.hiddenAnnotationIds) {
+      setHiddenAnnotationIds(currentDoc.hiddenAnnotationIds);
+    } else {
+      setHiddenAnnotationIds({ fallacyIds: [], rhetoricIds: [], structuralIds: [] });
     }
-    const { fallacyIds, rhetoricIds } = extractUsedAnnotations(currentDoc.content);
+  }, [currentDoc?.id]);
+
+  // Persist hidden annotation IDs back to document when they change
+  useEffect(() => {
+    if (!currentDoc || !isInitialized) return;
+    const hasHidden = hiddenAnnotationIds.fallacyIds.length > 0 ||
+      hiddenAnnotationIds.rhetoricIds.length > 0 ||
+      hiddenAnnotationIds.structuralIds.length > 0;
+    const docHas = !!currentDoc.hiddenAnnotationIds;
+    // Only update if there's a meaningful change
+    if (hasHidden || docHas) {
+      setCurrentDoc(prev => {
+        if (!prev) return prev;
+        return { ...prev, hiddenAnnotationIds: hasHidden ? hiddenAnnotationIds : undefined };
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hiddenAnnotationIds]);
+
+  // Extract used annotations from current document content
+  const { usedFallacies, usedRhetoric, usedStructural } = useMemo(() => {
+    if (!currentDoc?.content) {
+      return { usedFallacies: [], usedRhetoric: [], usedStructural: [] };
+    }
+    const { fallacyIds, rhetoricIds, structuralIds } = extractUsedAnnotations(currentDoc.content);
     const usedFallacies = fallacyIds
       .map(id => FALLACIES.find(f => f.id === id))
       .filter((f): f is Fallacy => f !== undefined);
     const usedRhetoric = rhetoricIds
       .map(id => RHETORIC_TECHNIQUES.find(r => r.id === id))
       .filter((r): r is Rhetoric => r !== undefined);
-    return { usedFallacies, usedRhetoric };
+    const usedStructural = structuralIds
+      .map(id => STRUCTURAL_MARKUPS.find(s => s.id === id))
+      .filter((s): s is StructuralMarkup => s !== undefined);
+    return { usedFallacies, usedRhetoric, usedStructural };
   }, [currentDoc?.content]);
 
   // Extract structural markup statistics from current document content
@@ -717,6 +755,86 @@ export const EditorPage: React.FC = () => {
     setActiveCommentId(commentId === activeCommentId ? null : commentId);
   }, [activeCommentId]);
 
+  // Annotation visibility toggle handlers
+  const handleToggleFallacyVisibility = useCallback((id: string) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      fallacyIds: prev.fallacyIds.includes(id)
+        ? prev.fallacyIds.filter(x => x !== id)
+        : [...prev.fallacyIds, id],
+    }));
+  }, []);
+
+  const handleToggleRhetoricVisibility = useCallback((id: string) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      rhetoricIds: prev.rhetoricIds.includes(id)
+        ? prev.rhetoricIds.filter(x => x !== id)
+        : [...prev.rhetoricIds, id],
+    }));
+  }, []);
+
+  const handleToggleStructuralVisibility = useCallback((id: string) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      structuralIds: prev.structuralIds.includes(id)
+        ? prev.structuralIds.filter(x => x !== id)
+        : [...prev.structuralIds, id],
+    }));
+  }, []);
+
+  const handleBulkToggleFallacies = useCallback((hide: boolean) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      fallacyIds: hide ? FALLACIES.map(f => f.id) : [],
+    }));
+  }, []);
+
+  const handleBulkToggleRhetoric = useCallback((hide: boolean) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      rhetoricIds: hide ? RHETORIC_TECHNIQUES.map(r => r.id) : [],
+    }));
+  }, []);
+
+  const handleBulkToggleStructural = useCallback((hide: boolean) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      structuralIds: hide ? STRUCTURAL_MARKUPS.map(s => s.id) : [],
+    }));
+  }, []);
+
+  const handleBulkToggleFallacyIds = useCallback((ids: string[], hide: boolean) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      fallacyIds: hide
+        ? Array.from(new Set([...prev.fallacyIds, ...ids]))
+        : prev.fallacyIds.filter(x => !ids.includes(x)),
+    }));
+  }, []);
+
+  const handleBulkToggleRhetoricIds = useCallback((ids: string[], hide: boolean) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      rhetoricIds: hide
+        ? Array.from(new Set([...prev.rhetoricIds, ...ids]))
+        : prev.rhetoricIds.filter(x => !ids.includes(x)),
+    }));
+  }, []);
+
+  const handleBulkToggleStructuralIds = useCallback((ids: string[], hide: boolean) => {
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      structuralIds: hide
+        ? Array.from(new Set([...prev.structuralIds, ...ids]))
+        : prev.structuralIds.filter(x => !ids.includes(x)),
+    }));
+  }, []);
+
+  const handleShowAllAnnotations = useCallback(() => {
+    setHiddenAnnotationIds({ fallacyIds: [], rhetoricIds: [], structuralIds: [] });
+  }, []);
+
   // Get selected text for comment creation
   const currentSelectedText = useMemo(() => {
     const editor = editorRef.current?.getEditor();
@@ -991,6 +1109,17 @@ export const EditorPage: React.FC = () => {
           structuralClickNonce={structuralClickNonce}
           activeTab={annotationTab}
           onTabChange={setAnnotationTab}
+          hiddenAnnotationIds={hiddenAnnotationIds}
+          onToggleFallacyVisibility={handleToggleFallacyVisibility}
+          onToggleRhetoricVisibility={handleToggleRhetoricVisibility}
+          onToggleStructuralVisibility={handleToggleStructuralVisibility}
+          onBulkToggleFallacies={handleBulkToggleFallacies}
+          onBulkToggleRhetoric={handleBulkToggleRhetoric}
+          onBulkToggleStructural={handleBulkToggleStructural}
+          onShowAllAnnotations={handleShowAllAnnotations}
+          onBulkToggleFallacyIds={handleBulkToggleFallacyIds}
+          onBulkToggleRhetoricIds={handleBulkToggleRhetoricIds}
+          onBulkToggleStructuralIds={handleBulkToggleStructuralIds}
         />
       }
       rightSidebarExpanded={rightSidebarExpanded}
@@ -1233,6 +1362,7 @@ export const EditorPage: React.FC = () => {
             pinnedSpeakers={pinnedSpeakers}
             onAssignPinnedSpeaker={handleToggleAssignSpeaker}
             comments={currentDoc.comments || {}}
+            hiddenAnnotationIds={hiddenAnnotationIds}
           />
         </div>
       </div>

@@ -29,6 +29,7 @@ export interface DebateDocument {
   annotations: Record<string, Annotation>;
   comments?: Record<string, Comment>; // Comments linked to text ranges
   speakers?: Speaker[]; // List of speakers in this document
+  hiddenAnnotationIds?: { fallacyIds: string[]; rhetoricIds: string[]; structuralIds: string[] };
   createdAt: number;
   updatedAt: number;
   tags?: string[];

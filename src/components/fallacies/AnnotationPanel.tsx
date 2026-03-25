@@ -7,6 +7,7 @@ import { StructuralPanel } from './StructuralPanel';
 import { StructuralMarkup, getStructuralMarkupById } from '../../data/structuralMarkup';
 import { SourceCitation } from '../structural';
 import { useApp } from '../../context';
+import { HiddenAnnotationIds } from '../editor/VisibilityControls';
 
 export type AnnotationTabType = 'fallacies' | 'rhetoric' | 'structural';
 
@@ -41,6 +42,17 @@ interface AnnotationPanelProps {
   structuralClickNonce?: number;
   activeTab?: AnnotationTabType;
   onTabChange?: (tab: AnnotationTabType) => void;
+  hiddenAnnotationIds?: HiddenAnnotationIds;
+  onToggleFallacyVisibility?: (id: string) => void;
+  onToggleRhetoricVisibility?: (id: string) => void;
+  onToggleStructuralVisibility?: (id: string) => void;
+  onBulkToggleFallacies?: (hide: boolean) => void;
+  onBulkToggleRhetoric?: (hide: boolean) => void;
+  onBulkToggleStructural?: (hide: boolean) => void;
+  onShowAllAnnotations?: () => void;
+  onBulkToggleFallacyIds?: (ids: string[], hide: boolean) => void;
+  onBulkToggleRhetoricIds?: (ids: string[], hide: boolean) => void;
+  onBulkToggleStructuralIds?: (ids: string[], hide: boolean) => void;
 }
 
 export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
@@ -59,6 +71,17 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
   structuralClickNonce = 0,
   activeTab: controlledTab,
   onTabChange,
+  hiddenAnnotationIds = { fallacyIds: [], rhetoricIds: [], structuralIds: [] },
+  onToggleFallacyVisibility,
+  onToggleRhetoricVisibility,
+  onToggleStructuralVisibility,
+  onBulkToggleFallacies,
+  onBulkToggleRhetoric,
+  onBulkToggleStructural,
+  onShowAllAnnotations,
+  onBulkToggleFallacyIds,
+  onBulkToggleRhetoricIds,
+  onBulkToggleStructuralIds,
 }) => {
   const { state: { preferences }, updatePreferences } = useApp();
   
@@ -240,7 +263,36 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
             aria-controls="fallacies-panel"
           >
             <span className="font-medium text-red-700">Fallacies</span>
-            <ChevronIcon expanded={fallaciesExpanded} className="w-5 h-5 text-red-600" />
+            <div className="flex items-center gap-1">
+              {onBulkToggleFallacies && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBulkToggleFallacies(hiddenAnnotationIds.fallacyIds.length === 0);
+                  }}
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    hiddenAnnotationIds.fallacyIds.length > 0
+                      ? 'bg-orange-100 hover:bg-orange-200'
+                      : 'hover:bg-red-200'
+                  }`}
+                  title={hiddenAnnotationIds.fallacyIds.length > 0 ? `Show all (${hiddenAnnotationIds.fallacyIds.length} hidden)` : 'Hide all fallacies'}
+                  role="button"
+                  aria-label={hiddenAnnotationIds.fallacyIds.length > 0 ? 'Show all fallacies' : 'Hide all fallacies'}
+                >
+                  {hiddenAnnotationIds.fallacyIds.length > 0 ? (
+                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </span>
+              )}
+              <ChevronIcon expanded={fallaciesExpanded} className="w-5 h-5 text-red-600" />
+            </div>
           </button>
           {fallaciesExpanded && (
             <div id="fallacies-panel" className="border-b border-gray-200" role="region" aria-label="Fallacies list">
@@ -250,6 +302,9 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 onFallacyApply={onFallacyApply}
                 selectedFallacyId={selectedFallacyId}
                 searchQuery={searchQuery}
+                hiddenIds={hiddenAnnotationIds.fallacyIds}
+                onToggleVisibility={onToggleFallacyVisibility}
+                onBulkToggle={onBulkToggleFallacyIds}
               />
             </div>
           )}
@@ -264,7 +319,36 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
             aria-controls="rhetoric-panel"
           >
             <span className="font-medium text-blue-700">Rhetoric</span>
-            <ChevronIcon expanded={rhetoricExpanded} className="w-5 h-5 text-blue-600" />
+            <div className="flex items-center gap-1">
+              {onBulkToggleRhetoric && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBulkToggleRhetoric(hiddenAnnotationIds.rhetoricIds.length === 0);
+                  }}
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    hiddenAnnotationIds.rhetoricIds.length > 0
+                      ? 'bg-orange-100 hover:bg-orange-200'
+                      : 'hover:bg-blue-200'
+                  }`}
+                  title={hiddenAnnotationIds.rhetoricIds.length > 0 ? `Show all (${hiddenAnnotationIds.rhetoricIds.length} hidden)` : 'Hide all rhetoric'}
+                  role="button"
+                  aria-label={hiddenAnnotationIds.rhetoricIds.length > 0 ? 'Show all rhetoric' : 'Hide all rhetoric'}
+                >
+                  {hiddenAnnotationIds.rhetoricIds.length > 0 ? (
+                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </span>
+              )}
+              <ChevronIcon expanded={rhetoricExpanded} className="w-5 h-5 text-blue-600" />
+            </div>
           </button>
           {rhetoricExpanded && (
             <div id="rhetoric-panel" className="border-b border-gray-200" role="region" aria-label="Rhetoric list">
@@ -274,6 +358,9 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 onRhetoricApply={onRhetoricApply}
                 selectedRhetoricId={selectedRhetoricId}
                 searchQuery={searchQuery}
+                hiddenIds={hiddenAnnotationIds.rhetoricIds}
+                onToggleVisibility={onToggleRhetoricVisibility}
+                onBulkToggle={onBulkToggleRhetoricIds}
               />
             </div>
           )}
@@ -288,7 +375,36 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
             aria-controls="structural-panel"
           >
             <span className="font-medium text-purple-700">Claims & Evidence</span>
-            <ChevronIcon expanded={structuralExpanded} className="w-5 h-5 text-purple-600" />
+            <div className="flex items-center gap-1">
+              {onBulkToggleStructural && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onBulkToggleStructural(hiddenAnnotationIds.structuralIds.length === 0);
+                  }}
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    hiddenAnnotationIds.structuralIds.length > 0
+                      ? 'bg-orange-100 hover:bg-orange-200'
+                      : 'hover:bg-purple-200'
+                  }`}
+                  title={hiddenAnnotationIds.structuralIds.length > 0 ? `Show all (${hiddenAnnotationIds.structuralIds.length} hidden)` : 'Hide all structural'}
+                  role="button"
+                  aria-label={hiddenAnnotationIds.structuralIds.length > 0 ? 'Show all structural' : 'Hide all structural'}
+                >
+                  {hiddenAnnotationIds.structuralIds.length > 0 ? (
+                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </span>
+              )}
+              <ChevronIcon expanded={structuralExpanded} className="w-5 h-5 text-purple-600" />
+            </div>
           </button>
           {structuralExpanded && (
             <div id="structural-panel" className="border-b border-gray-200" role="region" aria-label="Claims and evidence list">
@@ -297,6 +413,9 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 onStructuralApply={onStructuralApply}
                 selectedStructuralId={selectedStructuralId}
                 searchQuery={searchQuery}
+                hiddenIds={hiddenAnnotationIds.structuralIds}
+                onToggleVisibility={onToggleStructuralVisibility}
+                onBulkToggle={onBulkToggleStructuralIds}
               />
             </div>
           )}
