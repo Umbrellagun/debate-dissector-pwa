@@ -34,11 +34,18 @@ export type StructuralMark = {
   };
 };
 
+export type CommentMark = {
+  id: string;
+  commentId: string;
+  appliedAt: number;
+};
+
 // Union type for any annotation mark (fallacy or rhetoric)
 export type AnnotationMark = 
   | (FallacyMark & { type: 'fallacy' })
   | (RhetoricMark & { type: 'rhetoric' })
-  | (StructuralMark & { type: 'structural' });
+  | (StructuralMark & { type: 'structural' })
+  | (CommentMark & { type: 'comment' });
 
 export type CustomText = {
   text: string;
@@ -51,6 +58,7 @@ export type CustomText = {
   fallacyMarks?: FallacyMark[];
   rhetoricMarks?: RhetoricMark[];
   structuralMarks?: StructuralMark[];
+  commentMarks?: CommentMark[];
 };
 
 export type ParagraphElement = {

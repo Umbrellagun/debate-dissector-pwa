@@ -1,5 +1,6 @@
 import { Descendant } from 'slate';
 import { Annotation } from './annotation';
+import { Comment } from './comment';
 
 // Speaker/Participant data model
 export interface Speaker {
@@ -26,6 +27,7 @@ export interface DebateDocument {
   title: string;
   content: Descendant[];
   annotations: Record<string, Annotation>;
+  comments?: Record<string, Comment>; // Comments linked to text ranges
   speakers?: Speaker[]; // List of speakers in this document
   createdAt: number;
   updatedAt: number;

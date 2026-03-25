@@ -127,14 +127,18 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add keyboard shortcuts for quick markup application
 
 #### 3.7 Comments System
-- [ ] Design comment data model (linked to text ranges, author, timestamp)
-- [ ] Implement text selection for adding comments
-- [ ] Create comment annotation marks in Slate editor
-- [ ] Build comment sidebar/panel UI to display all comments
-- [ ] Add inline comment indicators (highlight or icon)
-- [ ] Implement comment threading (replies to comments)
-- [ ] Add comment resolution/dismissal functionality
-- [ ] Support comment editing and deletion
+- [x] Design comment data model (linked to text ranges, author, timestamp)
+- [x] Implement text selection for adding comments
+- [x] Create comment annotation marks in Slate editor
+- [x] Build comment sidebar/panel UI to display all comments
+- [x] Add inline comment indicators (highlight or icon)
+- [x] Implement comment threading (replies to comments)
+- [x] Add comment resolution/dismissal functionality
+- [x] Support comment editing and deletion
+- [x] Unify reply comment options with parent comments (edit, resolve, reply, delete)
+- [x] Resolved comments shown dimmed (not hidden) to differentiate from delete
+- [x] Resolved comments no longer highlight text in editor
+- [x] Add close buttons to Stats and Comments sidebars
 - [ ] **LEGAL:** If comments include user identity, update Privacy Policy
 
 ### Phase 4: User Interface & Experience
@@ -181,6 +185,14 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Implement touch interactions for mobile devices
 - [x] Optimize editor experience for different screen sizes
 - [ ] Test and refine across device types
+
+#### 4.4.1 Floating Selection Toolbar
+- [ ] Show floating action bar near text selection (desktop + mobile)
+- [ ] Include quick actions: Add Comment, Apply Fallacy, Apply Rhetoric, Apply Structural
+- [ ] Include formatting actions: Bold, Italic, Underline
+- [ ] Auto-dismiss when selection is cleared
+- [ ] Position above/below selection based on available space
+- [ ] Works alongside native OS context menus (not replacing them)
 
 #### 4.5 About & Legal Pages
 - [x] Create About page with app description and mission (in Settings)

@@ -1,5 +1,5 @@
 import { Editor, Transforms, Element as SlateElement, Range, Text, Node, Path } from 'slate';
-import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, StructuralMark, CustomText, ParagraphElement, BlockQuoteElement } from './types';
+import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, StructuralMark, CommentMark, CustomText, ParagraphElement, BlockQuoteElement } from './types';
 
 /**
  * Check if a mark is active at the current selection
@@ -289,6 +289,73 @@ export function getStructuralMarksAtSelection(
 ): StructuralMark[] {
   const marks = Editor.marks(editor);
   return marks?.structuralMarks || [];
+}
+
+/**
+ * Apply a comment mark to the current selection
+ */
+export function applyCommentMark(
+  editor: CustomEditor,
+  commentId: string
+): { start: number; end: number } | null {
+  const { selection } = editor;
+  if (!selection || Range.isCollapsed(selection)) {
+    return null;
+  }
+
+  const [start, end] = Range.edges(selection);
+  const startOffset = Editor.point(editor, start, { edge: 'start' });
+  const endOffset = Editor.point(editor, end, { edge: 'end' });
+
+  const marks = Editor.marks(editor);
+  const existingCommentMarks: CommentMark[] = marks?.commentMarks || [];
+
+  // Don't add duplicate comment marks
+  if (existingCommentMarks.some(m => m.commentId === commentId)) {
+    return null;
+  }
+
+  const newMark: CommentMark = {
+    id: `comment_mark_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    commentId,
+    appliedAt: Date.now(),
+  };
+
+  const updatedMarks = [...existingCommentMarks, newMark];
+  Editor.addMark(editor, 'commentMarks', updatedMarks);
+
+  return {
+    start: startOffset.offset,
+    end: endOffset.offset,
+  };
+}
+
+/**
+ * Remove a specific comment mark from the entire document
+ */
+export function removeCommentMark(editor: CustomEditor, commentId: string): void {
+  const textNodes = Array.from(Node.texts(editor));
+  for (const [node, path] of textNodes) {
+    const textNode = node as CustomText;
+    if (textNode.commentMarks?.some(m => m.commentId === commentId)) {
+      const updatedMarks = textNode.commentMarks.filter(m => m.commentId !== commentId);
+      if (updatedMarks.length === 0) {
+        Transforms.unsetNodes(editor, 'commentMarks', { at: path });
+      } else {
+        Transforms.setNodes(editor, { commentMarks: updatedMarks } as Partial<CustomText>, { at: path });
+      }
+    }
+  }
+}
+
+/**
+ * Get comment marks at current cursor position
+ */
+export function getCommentMarksAtSelection(
+  editor: CustomEditor
+): CommentMark[] {
+  const marks = Editor.marks(editor);
+  return marks?.commentMarks || [];
 }
 
 /**

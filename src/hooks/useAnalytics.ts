@@ -45,7 +45,12 @@ export type AnalyticsEvent =
   | 'speaker_deleted'
   | 'share_link_created'
   | 'shared_doc_viewed'
-  | 'shared_doc_imported';
+  | 'shared_doc_imported'
+  | 'comment_created'
+  | 'comment_edited'
+  | 'comment_deleted'
+  | 'comment_resolved'
+  | 'comment_replied';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -72,6 +77,11 @@ export interface AnalyticsEventData {
   share_link_created: { documentId: string };
   shared_doc_viewed: { shareId: string };
   shared_doc_imported: { shareId: string };
+  comment_created: { commentId: string };
+  comment_edited: { commentId: string };
+  comment_deleted: { commentId: string };
+  comment_resolved: { commentId: string };
+  comment_replied: { commentId: string; parentId: string };
 }
 
 /**

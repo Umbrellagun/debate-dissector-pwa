@@ -2,14 +2,15 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Descendant, Editor, Range, Transforms } from 'slate';
 import { MainLayout, Header } from '../components/layout';
-import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, applyStructuralMark, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
+import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, applyStructuralMark, applyCommentMark, removeCommentMark, getSelectionText, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { SpeakerPanel } from '../components/speakers';
+import { CommentPanel } from '../components/comments';
 import { SourceCitation } from '../components/structural';
 import { STRUCTURAL_MARKUPS, StructuralMarkup } from '../data/structuralMarkup';
 import { VersionHistoryPanel } from '../components/version';
 import { createShare } from '../services/sharing';
-import { Fallacy, Rhetoric, Annotation, DebateDocument, DocumentListItem, DocumentVersion, Speaker, DEFAULT_SPEAKER_COLORS } from '../models';
+import { Fallacy, Rhetoric, Annotation, Comment, DebateDocument, DocumentListItem, DocumentVersion, Speaker, DEFAULT_SPEAKER_COLORS } from '../models';
 import { FALLACIES } from '../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../data/rhetoric';
 import { EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT, EXAMPLE_SPEAKERS, DEFAULT_SPEAKERS } from '../data/exampleDocument';
@@ -152,6 +153,8 @@ export const EditorPage: React.FC = () => {
   const [structuralClickNonce, setStructuralClickNonce] = useState(0);
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
+  const [showCommentPanel, setShowCommentPanel] = useState(false);
+  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   
   // Cache share URLs per document to avoid creating duplicates
   const shareUrlCache = useRef<Record<string, string>>({});
@@ -596,6 +599,132 @@ export const EditorPage: React.FC = () => {
     );
   }, []);
 
+  // Comment handlers
+  const handleAddComment = useCallback((text: string, selectedText: string) => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor || !currentDoc) return;
+
+    const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = Date.now();
+    const newComment: Comment = {
+      id: commentId,
+      text,
+      selectedText,
+      resolved: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Apply comment mark to selected text
+    applyCommentMark(editor, commentId);
+
+    // Add comment to document
+    setCurrentDoc(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        comments: { ...(prev.comments || {}), [commentId]: newComment },
+      };
+    });
+    setActiveCommentId(commentId);
+    trackAnalyticsEvent('comment_created', { commentId });
+  }, [currentDoc]);
+
+  const handleEditComment = useCallback((commentId: string, text: string) => {
+    if (!currentDoc) return;
+    setCurrentDoc(prev => {
+      if (!prev || !prev.comments?.[commentId]) return prev;
+      return {
+        ...prev,
+        comments: {
+          ...prev.comments,
+          [commentId]: { ...prev.comments[commentId], text, updatedAt: Date.now() },
+        },
+      };
+    });
+    trackAnalyticsEvent('comment_edited', { commentId });
+  }, [currentDoc]);
+
+  const handleDeleteComment = useCallback((commentId: string) => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor || !currentDoc) return;
+
+    // Remove comment mark from editor content
+    removeCommentMark(editor, commentId);
+
+    // Also delete any replies to this comment
+    const replies = Object.values(currentDoc.comments || {}).filter(c => c.parentId === commentId);
+
+    // Remove comment from document
+    setCurrentDoc(prev => {
+      if (!prev) return prev;
+      const updatedComments = { ...(prev.comments || {}) };
+      delete updatedComments[commentId];
+      // Delete replies too
+      for (const reply of replies) {
+        delete updatedComments[reply.id];
+      }
+      return { ...prev, comments: updatedComments };
+    });
+
+    if (activeCommentId === commentId) {
+      setActiveCommentId(null);
+    }
+    trackAnalyticsEvent('comment_deleted', { commentId });
+  }, [currentDoc, activeCommentId]);
+
+  const handleResolveComment = useCallback((commentId: string) => {
+    if (!currentDoc) return;
+    setCurrentDoc(prev => {
+      if (!prev || !prev.comments?.[commentId]) return prev;
+      const comment = prev.comments[commentId];
+      return {
+        ...prev,
+        comments: {
+          ...prev.comments,
+          [commentId]: { ...comment, resolved: !comment.resolved, updatedAt: Date.now() },
+        },
+      };
+    });
+    trackAnalyticsEvent('comment_resolved', { commentId });
+  }, [currentDoc]);
+
+  const handleReplyComment = useCallback((parentId: string, text: string, selectedText: string) => {
+    if (!currentDoc) return;
+    const replyId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = Date.now();
+    const reply: Comment = {
+      id: replyId,
+      text,
+      selectedText,
+      parentId,
+      resolved: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setCurrentDoc(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        comments: { ...(prev.comments || {}), [replyId]: reply },
+      };
+    });
+    trackAnalyticsEvent('comment_replied', { commentId: replyId, parentId });
+  }, [currentDoc]);
+
+  const handleCommentClick = useCallback((commentId: string) => {
+    setActiveCommentId(commentId === activeCommentId ? null : commentId);
+  }, [activeCommentId]);
+
+  // Get selected text for comment creation
+  const currentSelectedText = useMemo(() => {
+    const editor = editorRef.current?.getEditor();
+    if (!editor || !hasTextSelection) return '';
+    return getSelectionText(editor);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasTextSelection]);
+
   const handleApplyStructuralMarkup = useCallback((markup: StructuralMarkup, citation?: SourceCitation) => {
     const editor = editorRef.current?.getEditor();
     if (!editor) return;
@@ -1004,6 +1133,25 @@ export const EditorPage: React.FC = () => {
                 </svg>
               </button>
             )}
+            {/* Comment panel toggle */}
+            {!isViewingShared && (
+              <button
+                onClick={() => setShowCommentPanel(!showCommentPanel)}
+                className={`relative p-2 rounded-lg transition-colors touch-manipulation ${
+                  showCommentPanel ? 'bg-amber-100 hover:bg-amber-200' : 'hover:bg-gray-100'
+                }`}
+                title="Comments"
+              >
+                <svg className={`w-5 h-5 ${showCommentPanel ? 'text-amber-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-3 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                {Object.values(currentDoc.comments || {}).filter(c => !c.parentId && !c.resolved).length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {Object.values(currentDoc.comments || {}).filter(c => !c.parentId && !c.resolved).length}
+                  </span>
+                )}
+              </button>
+            )}
             {/* Annotation panel toggle */}
             <button
               onClick={handleRightSidebarToggle}
@@ -1084,6 +1232,7 @@ export const EditorPage: React.FC = () => {
             hiddenSpeakerIds={hiddenSpeakerIds}
             pinnedSpeakers={pinnedSpeakers}
             onAssignPinnedSpeaker={handleToggleAssignSpeaker}
+            comments={currentDoc.comments || {}}
           />
         </div>
       </div>
@@ -1163,12 +1312,77 @@ export const EditorPage: React.FC = () => {
           aria-label="Statistics panel"
           aria-hidden={!showStatsPanel}
         >
-          <AnnotationStatsPanel
-            stats={annotationStats}
-            documentTitle={currentDoc.title}
-            onClose={() => setShowStatsPanel(false)}
-            onAnnotationClick={handleStatsAnnotationClick}
-          />
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <AnnotationStatsPanel
+                stats={annotationStats}
+                documentTitle={currentDoc.title}
+                onClose={() => setShowStatsPanel(false)}
+                onAnnotationClick={handleStatsAnnotationClick}
+              />
+            </div>
+            <div className="border-t border-gray-200 p-2 flex justify-center">
+              <button
+                onClick={() => setShowStatsPanel(false)}
+                className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
+                title="Close panel"
+                aria-label="Close statistics panel"
+              >
+                <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </aside>
+      </>
+
+      {/* Comment Panel - Slide-over from right */}
+      <>
+        {/* Backdrop */}
+        <div 
+          className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
+            showCommentPanel ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
+          }`}
+          onClick={() => setShowCommentPanel(false)}
+        />
+        {/* Panel */}
+        <aside 
+          className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
+            showCommentPanel ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          role="complementary"
+          aria-label="Comment panel"
+          aria-hidden={!showCommentPanel}
+        >
+          <div className="h-full flex flex-col">
+            <div className="flex-1 overflow-y-auto">
+              <CommentPanel
+                comments={currentDoc.comments || {}}
+                activeCommentId={activeCommentId}
+                onAddComment={handleAddComment}
+                onEditComment={handleEditComment}
+                onDeleteComment={handleDeleteComment}
+                onResolveComment={handleResolveComment}
+                onReplyComment={handleReplyComment}
+                onCommentClick={handleCommentClick}
+                hasTextSelection={hasTextSelection}
+                selectedText={currentSelectedText}
+              />
+            </div>
+            <div className="border-t border-gray-200 p-2 flex justify-center">
+              <button
+                onClick={() => setShowCommentPanel(false)}
+                className="p-3 bg-violet-100 hover:bg-violet-200 rounded-lg touch-manipulation"
+                title="Close panel"
+                aria-label="Close comment panel"
+              >
+                <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </aside>
       </>
 
