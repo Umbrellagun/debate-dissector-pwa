@@ -757,33 +757,40 @@ export const EditorPage: React.FC = () => {
 
   // Annotation visibility toggle handlers
   const handleToggleFallacyVisibility = useCallback((id: string) => {
-    setHiddenAnnotationIds(prev => ({
-      ...prev,
-      fallacyIds: prev.fallacyIds.includes(id)
-        ? prev.fallacyIds.filter(x => x !== id)
-        : [...prev.fallacyIds, id],
-    }));
+    setHiddenAnnotationIds(prev => {
+      const hiding = !prev.fallacyIds.includes(id);
+      trackAnalyticsEvent('annotation_visibility_toggled', { type: 'fallacy', id, action: hiding ? 'hide' : 'show' });
+      return {
+        ...prev,
+        fallacyIds: hiding ? [...prev.fallacyIds, id] : prev.fallacyIds.filter(x => x !== id),
+      };
+    });
   }, []);
 
   const handleToggleRhetoricVisibility = useCallback((id: string) => {
-    setHiddenAnnotationIds(prev => ({
-      ...prev,
-      rhetoricIds: prev.rhetoricIds.includes(id)
-        ? prev.rhetoricIds.filter(x => x !== id)
-        : [...prev.rhetoricIds, id],
-    }));
+    setHiddenAnnotationIds(prev => {
+      const hiding = !prev.rhetoricIds.includes(id);
+      trackAnalyticsEvent('annotation_visibility_toggled', { type: 'rhetoric', id, action: hiding ? 'hide' : 'show' });
+      return {
+        ...prev,
+        rhetoricIds: hiding ? [...prev.rhetoricIds, id] : prev.rhetoricIds.filter(x => x !== id),
+      };
+    });
   }, []);
 
   const handleToggleStructuralVisibility = useCallback((id: string) => {
-    setHiddenAnnotationIds(prev => ({
-      ...prev,
-      structuralIds: prev.structuralIds.includes(id)
-        ? prev.structuralIds.filter(x => x !== id)
-        : [...prev.structuralIds, id],
-    }));
+    setHiddenAnnotationIds(prev => {
+      const hiding = !prev.structuralIds.includes(id);
+      trackAnalyticsEvent('annotation_visibility_toggled', { type: 'structural', id, action: hiding ? 'hide' : 'show' });
+      return {
+        ...prev,
+        structuralIds: hiding ? [...prev.structuralIds, id] : prev.structuralIds.filter(x => x !== id),
+      };
+    });
   }, []);
 
   const handleBulkToggleFallacies = useCallback((hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', { type: 'fallacy', scope: 'section', action: hide ? 'hide' : 'show', count: FALLACIES.length });
     setHiddenAnnotationIds(prev => ({
       ...prev,
       fallacyIds: hide ? FALLACIES.map(f => f.id) : [],
@@ -791,6 +798,7 @@ export const EditorPage: React.FC = () => {
   }, []);
 
   const handleBulkToggleRhetoric = useCallback((hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', { type: 'rhetoric', scope: 'section', action: hide ? 'hide' : 'show', count: RHETORIC_TECHNIQUES.length });
     setHiddenAnnotationIds(prev => ({
       ...prev,
       rhetoricIds: hide ? RHETORIC_TECHNIQUES.map(r => r.id) : [],
@@ -798,6 +806,7 @@ export const EditorPage: React.FC = () => {
   }, []);
 
   const handleBulkToggleStructural = useCallback((hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', { type: 'structural', scope: 'section', action: hide ? 'hide' : 'show', count: STRUCTURAL_MARKUPS.length });
     setHiddenAnnotationIds(prev => ({
       ...prev,
       structuralIds: hide ? STRUCTURAL_MARKUPS.map(s => s.id) : [],
@@ -805,6 +814,7 @@ export const EditorPage: React.FC = () => {
   }, []);
 
   const handleBulkToggleFallacyIds = useCallback((ids: string[], hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', { type: 'fallacy', scope: 'subcategory', action: hide ? 'hide' : 'show', count: ids.length });
     setHiddenAnnotationIds(prev => ({
       ...prev,
       fallacyIds: hide
@@ -814,6 +824,7 @@ export const EditorPage: React.FC = () => {
   }, []);
 
   const handleBulkToggleRhetoricIds = useCallback((ids: string[], hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', { type: 'rhetoric', scope: 'subcategory', action: hide ? 'hide' : 'show', count: ids.length });
     setHiddenAnnotationIds(prev => ({
       ...prev,
       rhetoricIds: hide
@@ -823,6 +834,7 @@ export const EditorPage: React.FC = () => {
   }, []);
 
   const handleBulkToggleStructuralIds = useCallback((ids: string[], hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', { type: 'structural', scope: 'subcategory', action: hide ? 'hide' : 'show', count: ids.length });
     setHiddenAnnotationIds(prev => ({
       ...prev,
       structuralIds: hide

@@ -12,10 +12,10 @@ export const CHANGELOG: VersionEntry[] = [
     title: 'Annotation Visibility Controls',
     changes: [
       'Toggle visibility of individual fallacy, rhetoric, and structural annotations in the editor',
+      'Toggles eye icons for individual items, subcategory headers, and section headers',
       'Bulk show/hide all annotations per section (Fallacies, Rhetoric, Claims & Evidence)',
       'Bulk show/hide by subcategory (e.g., all Red Herring Fallacies, all Ethos rhetoric)',
       'Visibility state persisted per document',
-      'Eye icon toggles on individual items, subcategory headers, and section headers',
     ],
   },
   {

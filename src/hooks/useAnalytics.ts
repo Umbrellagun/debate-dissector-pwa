@@ -50,7 +50,9 @@ export type AnalyticsEvent =
   | 'comment_edited'
   | 'comment_deleted'
   | 'comment_resolved'
-  | 'comment_replied';
+  | 'comment_replied'
+  | 'annotation_visibility_toggled'
+  | 'annotation_bulk_visibility_toggled';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -82,6 +84,8 @@ export interface AnalyticsEventData {
   comment_deleted: { commentId: string };
   comment_resolved: { commentId: string };
   comment_replied: { commentId: string; parentId: string };
+  annotation_visibility_toggled: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; action: 'show' | 'hide' };
+  annotation_bulk_visibility_toggled: { type: 'fallacy' | 'rhetoric' | 'structural'; scope: 'section' | 'subcategory'; action: 'show' | 'hide'; count: number };
 }
 
 /**
