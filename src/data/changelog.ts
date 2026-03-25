@@ -7,6 +7,17 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.6.0',
+    date: 'March 25, 2026',
+    title: 'Comments System & UX Improvements',
+    changes: [
+      'New comments system: add, edit, delete, resolve, and reply to comments on selected text',
+      'Inline amber highlighting for commented text in the editor',
+      'Resolved comments shown dimmed (not hidden) to distinguish from deletion',
+      'Added close buttons to Stats and Comments sidebars',
+    ],
+  },
+  {
     version: '1.5.0',
     date: 'March 23, 2026',
     title: 'Annotation Statistics & Speaker Insights',
