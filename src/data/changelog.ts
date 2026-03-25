@@ -13,10 +13,7 @@ export const CHANGELOG: VersionEntry[] = [
     changes: [
       'New comments system: add, edit, delete, resolve, and reply to comments on selected text',
       'Inline amber highlighting for commented text in the editor',
-      'Comment threading with full reply support',
       'Resolved comments shown dimmed (not hidden) to distinguish from deletion',
-      'Resolved comments no longer highlight text in the editor',
-      'Reply comments now have the same options as parent comments (edit, resolve, reply, delete)',
       'Added close buttons to Stats and Comments sidebars',
     ],
   },
