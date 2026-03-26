@@ -1344,19 +1344,6 @@ export const EditorPage: React.FC = () => {
     >
       <Header
         onMenuClick={isViewingShared ? () => navigate('/') : handleLeftSidebarToggle}
-        titleElement={
-          isViewingShared ? (
-            <h1 className="text-lg font-semibold text-gray-900">{currentDoc.title}</h1>
-          ) : (
-            <input
-              type="text"
-              value={currentDoc.title}
-              onChange={e => handleTitleChange(e.target.value)}
-              placeholder="Untitled Debate"
-              className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
-            />
-          )
-        }
         actions={
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Annotation tags - hidden on small screens */}
@@ -1561,6 +1548,20 @@ export const EditorPage: React.FC = () => {
           </div>
         }
       />
+      {/* Document title bar */}
+      <div className="px-4 py-2 border-b border-gray-100 bg-white shrink-0">
+        {isViewingShared ? (
+          <h1 className="text-lg font-semibold text-gray-900 truncate">{currentDoc.title}</h1>
+        ) : (
+          <input
+            type="text"
+            value={currentDoc.title}
+            onChange={e => handleTitleChange(e.target.value)}
+            placeholder="Untitled Debate"
+            className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
+          />
+        )}
+      </div>
       <div className="flex-1 overflow-hidden bg-white flex flex-col relative">
         <div className="flex-1 overflow-hidden">
           <DebateEditor
