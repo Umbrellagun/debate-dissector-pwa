@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** March 5, 2026
+**Last Updated:** March 26, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -105,6 +105,18 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Color-code links by type or speaker
 - [ ] Export argument map as image or structured data
 - [ ] Add keyboard shortcuts for quick point marking and linking
+
+##### Argument Visualization (inspired by Kialo)
+- [ ] Build interactive tree view of argument flow (claims → rebuttals → supports)
+- [ ] Add sunburst/radial diagram showing debate topology and depth
+- [ ] Argument strength/impact indicators (visual weight based on evidence count)
+- [ ] Filter tree view by speaker, annotation type, or claim category
+- [ ] Zoom/pan navigation for large debate trees
+- [ ] Click-to-navigate: select a node in the tree to jump to that text in the editor
+- [ ] Collapsible branches for managing complex debates
+- [ ] Color-code tree nodes by speaker or annotation type
+- [ ] Summary statistics overlay (total claims, rebuttals, unsupported assertions)
+- [ ] Side-by-side view: editor + argument tree
 
 #### 3.6 Claim & Evidence Markup
 - [x] Define structural markup data model (id, text range, type, metadata)
@@ -399,16 +411,69 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [x] Set up hosting on Vercel or Netlify (configs ready)
 - [x] Configure CDN and caching headers
 
-### Phase 9: SEO & Security
+### Phase 9: Public Debate Library (Future)
+A browsable library of published debate analyses. **Note:** This introduces social/UGC features with significant security, moderation, and legal obligations.
 
-#### 9.1 Anti-Scraping & AI Bot Protection
+#### 9.0 Prerequisites
+- [ ] User authentication system (Phase 6.1) must be complete
+- [ ] Feature flags system (Phase 6.3) must be complete
+- [ ] Content moderation tooling (Phase 9.5) should be mature
+
+#### 9.1 Core Browsing Experience
+- [ ] Public feed/gallery of published debate analyses
+- [ ] Search by title, topic, speaker, or annotation type
+- [ ] Category/topic tagging system for debates
+- [ ] Sort by: newest, most viewed, most annotated
+- [ ] Preview cards showing title, excerpt, annotation counts, author
+- [ ] Read-only view of published debates (reuse existing shared view)
+
+#### 9.2 Publishing Workflow
+- [ ] "Publish" action from editor (distinct from private sharing)
+- [ ] Author attribution (display name, optional profile link)
+- [ ] Draft/published/unlisted status for published debates
+- [ ] Edit or unpublish after publishing
+- [ ] Versioning for published debates (readers see latest, author can update)
+
+#### 9.3 Community & Interaction
+- [ ] View count tracking per published debate
+- [ ] "Import as Copy" to analyze locally (already exists for shared docs)
+- [ ] Optional: upvote/bookmark published debates
+- [ ] Optional: comment on published debates (distinct from inline annotations)
+- [ ] **LEGAL:** UGC Terms of Service update (content ownership, license, liability)
+
+#### 9.4 Security & Moderation Obligations
+⚠️ **Adding public UGC creates significant ongoing obligations:**
+- [ ] **Content moderation queue** — review reported/flagged content before it goes viral
+- [ ] **Automated content screening** — profanity filter, spam detection at minimum
+- [ ] **Report/flag system** — users can report inappropriate published debates
+- [ ] **Admin review dashboard** — approve, reject, block content and users
+- [ ] **User banning/suspension** — ability to ban repeat offenders
+- [ ] **Rate limiting** — prevent spam publishing (e.g., max 5 publishes/day)
+- [ ] **DMCA takedown process** — legal requirement for UGC platforms in the US
+- [ ] **Abuse prevention** — bot detection, CAPTCHA on publish
+- [ ] **Data retention policy** — how long blocked/deleted content is retained
+- [ ] **LEGAL:** Update Privacy Policy (public profiles, UGC data, third-party visibility)
+- [ ] **LEGAL:** Update ToS (content moderation policy, acceptable use, DMCA, content license)
+- [ ] **LEGAL:** Consider COPPA compliance if minors may use the platform
+
+#### 9.5 Infrastructure Considerations
+- [ ] Evaluate database scalability (SQLite → PostgreSQL if needed at scale)
+- [ ] CDN caching for popular published debates
+- [ ] Pagination and infinite scroll for browse feed
+- [ ] Search indexing (full-text search on debate content)
+- [ ] Separate API endpoints for public vs. private content
+- [ ] Monitoring and alerting for moderation queue backlog
+
+### Phase 10: SEO & Security
+
+#### 10.1 Anti-Scraping & AI Bot Protection
 - [x] Update robots.txt to block AI crawlers (GPTBot, CCBot, Claude, etc.)
 - [x] Add `<meta name="robots" content="noai, noimageai">` tag
 - [x] Add X-Robots-Tag header to API responses (main.go middleware)
 - [ ] Configure Cloudflare Bot Fight Mode
 - [ ] Set up Cloudflare WAF rules for AI user-agents
 
-#### 9.2 SEO Optimization
+#### 10.2 SEO Optimization
 - [x] Add Open Graph meta tags for social sharing
 - [x] Add Twitter Card meta tags
 - [x] Add structured data (JSON-LD WebApplication schema)
@@ -418,13 +483,13 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [x] Add keywords and author meta tags
 - [x] Purchase debatedissector.com and add as alternate domain
 
-#### 9.3 Standard Webapp Features
+#### 10.3 Standard Webapp Features
 - [x] Add 404 Not Found page with catch-all route
 - [x] Add ErrorBoundary for React crash handling
 - [x] Create Privacy Policy page
 - [x] Create Terms of Service page
 
-#### 9.4 Backend Security & Rate Limiting
+#### 10.4 Backend Security & Rate Limiting
 - [x] Configure PocketBase rate limiting (60 req/min per IP)
 - [x] Set max request size (5MB)
 - [x] Disable collection listing (require exact ID to fetch)
@@ -432,7 +497,7 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 - [ ] Add CAPTCHA for share creation (optional)
 - [ ] **LEGAL:** If CAPTCHA added, update Privacy Policy (third-party CAPTCHA service)
 
-#### 9.5 Content Moderation
+#### 10.5 Content Moderation
 - [ ] Track share views via Umami analytics
 - [ ] Add "Report" functionality for inappropriate content
 - [ ] **LEGAL:** Update ToS (content moderation policy, report handling)
