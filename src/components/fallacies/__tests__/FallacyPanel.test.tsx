@@ -47,7 +47,7 @@ describe('FallacyPanel', () => {
     render(<FallacyPanel {...defaultProps} />);
     expect(screen.getByText('Informal Fallacies')).toBeInTheDocument();
     expect(screen.getByText('Formal Fallacies')).toBeInTheDocument();
-    expect(screen.getByText('Red Herrings')).toBeInTheDocument();
+    expect(screen.getByText('Red Herring Fallacies')).toBeInTheDocument();
   });
 
   it('toggles category expansion when clicked', () => {
@@ -88,7 +88,7 @@ describe('FallacyPanel', () => {
     render(<FallacyPanel {...defaultProps} selectedFallacyId="ad-hominem" />);
     
     const fallacyButton = screen.getByText('Ad Hominem').closest('button');
-    expect(fallacyButton).toHaveClass('bg-blue-50');
+    expect(fallacyButton?.parentElement).toHaveClass('bg-blue-50');
   });
 
   it('filters fallacies based on search query', () => {

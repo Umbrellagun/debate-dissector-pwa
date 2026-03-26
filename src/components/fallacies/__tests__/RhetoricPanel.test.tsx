@@ -87,7 +87,7 @@ describe('RhetoricPanel', () => {
     render(<RhetoricPanel {...defaultProps} selectedRhetoricId="ethos" />);
     
     const rhetoricButton = screen.getByText('Ethos').closest('button');
-    expect(rhetoricButton).toHaveClass('bg-blue-50');
+    expect(rhetoricButton?.parentElement).toHaveClass('bg-blue-50');
   });
 
   it('filters rhetoric based on search query', () => {
@@ -99,10 +99,10 @@ describe('RhetoricPanel', () => {
   });
 
   it('filters by name as well as description', () => {
-    render(<RhetoricPanel {...defaultProps} searchQuery="Logos" />);
+    render(<RhetoricPanel {...defaultProps} searchQuery="Ethos" />);
     
-    expect(screen.getByText('Logos')).toBeInTheDocument();
-    expect(screen.queryByText('Ethos')).not.toBeInTheDocument();
+    expect(screen.getByText('Ethos')).toBeInTheDocument();
+    expect(screen.queryByText('Pathos')).not.toBeInTheDocument();
   });
 
   it('shows internal search when no external searchQuery provided', () => {

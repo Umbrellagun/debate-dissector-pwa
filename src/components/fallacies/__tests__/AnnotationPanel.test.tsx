@@ -60,14 +60,14 @@ describe('AnnotationPanel', () => {
 
   it('shows dismissible hint by default', () => {
     render(<AnnotationPanel {...defaultProps} />);
-    expect(screen.getByText(/Select fallacies or rhetoric/)).toBeInTheDocument();
+    expect(screen.getByText(/Select an annotation type/)).toBeInTheDocument();
   });
 
   it('dismisses hint when clicking dismiss button', () => {
     render(<AnnotationPanel {...defaultProps} />);
     const dismissButton = screen.getByLabelText('Dismiss hint');
     fireEvent.click(dismissButton);
-    expect(screen.queryByText(/Select fallacies or rhetoric/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Select an annotation type/)).not.toBeInTheDocument();
   });
 
   it('toggles Fallacies dropdown when clicked', () => {
