@@ -23,16 +23,16 @@ describe('FALLACIES data', () => {
 
     it('should have valid categories for all fallacies', () => {
       const validCategories: FallacyCategory[] = [
-        'informal', 
-        'formal', 
-        'red-herring', 
+        'informal',
+        'formal',
+        'red-herring',
         'propositional',
         'quantification',
         'syllogistic',
         'faulty-generalization',
-        'conditional'
+        'conditional',
       ];
-      
+
       for (const fallacy of FALLACIES) {
         expect(validCategories).toContain(fallacy.category);
       }
@@ -40,7 +40,7 @@ describe('FALLACIES data', () => {
 
     it('should have valid hex color codes for all fallacies', () => {
       const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
-      
+
       for (const fallacy of FALLACIES) {
         expect(fallacy.color).toMatch(hexColorRegex);
       }

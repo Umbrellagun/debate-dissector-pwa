@@ -4,7 +4,15 @@ import { getVersions, deleteVersion } from '../../services/storage';
 
 // Inline SVG icons
 const HistoryIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
     <path d="M3 3v5h5" />
     <path d="M12 7v5l4 2" />
@@ -12,14 +20,30 @@ const HistoryIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const RotateCcwIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
     <path d="M3 3v5h5" />
   </svg>
 );
 
 const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M3 6h18" />
     <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
     <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -27,14 +51,30 @@ const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const ClockIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <circle cx="12" cy="12" r="10" />
     <path d="M12 6v6l4 2" />
   </svg>
 );
 
 const XIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M18 6 6 18" />
     <path d="m6 6 12 12" />
   </svg>
@@ -75,7 +115,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
     if (!window.confirm('Delete this version? This cannot be undone.')) {
       return;
     }
-    
+
     await deleteVersion(versionId);
     await loadVersions();
     if (selectedVersion?.id === versionId) {
@@ -84,7 +124,11 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
   };
 
   const handleRestore = (version: DocumentVersion) => {
-    if (!window.confirm('Restore this version? Your current changes will be saved as a new version first.')) {
+    if (
+      !window.confirm(
+        'Restore this version? Your current changes will be saved as a new version first.'
+      )
+    ) {
       return;
     }
     onRestore(version);
@@ -102,7 +146,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
     if (diffMins < 60) return `${diffMins} min ago`;
     if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
+
     return date.toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
@@ -138,10 +182,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
             <HistoryIcon className="w-5 h-5 text-gray-600" />
             <h2 className="text-lg font-semibold text-gray-900">Version History</h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded transition-colors"
-          >
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded transition-colors">
             <XIcon className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -160,7 +201,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
             </div>
           ) : (
             <div className="space-y-2">
-              {versions.map((version) => (
+              {versions.map(version => (
                 <div
                   key={version.id}
                   className={`p-3 rounded-lg border transition-colors cursor-pointer ${
@@ -183,16 +224,14 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1 truncate">
-                        {version.title}
-                      </p>
+                      <p className="text-sm text-gray-600 mt-1 truncate">{version.title}</p>
                       <p className="text-xs text-gray-400 mt-1 line-clamp-2">
                         {extractPreview(version)}
                       </p>
                     </div>
                     <div className="flex items-center gap-1 ml-2">
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleRestore(version);
                         }}
@@ -202,7 +241,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
                         <RotateCcwIcon className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleDelete(version.id);
                         }}

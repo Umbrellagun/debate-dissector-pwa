@@ -102,5 +102,5 @@ export const CHANGELOG: VersionEntry[] = [
 
 export const getLatestVersion = (): VersionEntry | undefined => CHANGELOG[0];
 
-export const getVersionByNumber = (version: string): VersionEntry | undefined => 
+export const getVersionByNumber = (version: string): VersionEntry | undefined =>
   CHANGELOG.find(v => v.version === version);

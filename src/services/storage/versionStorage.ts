@@ -18,7 +18,7 @@ export async function createVersion(
   label?: string
 ): Promise<DocumentVersion> {
   const db = await getDB();
-  
+
   const version: DocumentVersion = {
     id: generateVersionId(),
     documentId: document.id,
@@ -28,12 +28,12 @@ export async function createVersion(
     timestamp: Date.now(),
     label,
   };
-  
+
   await db.put('versions', version);
-  
+
   // Cleanup old versions if we exceed the limit
   await cleanupOldVersions(document.id);
-  
+
   return version;
 }
 
@@ -60,11 +60,11 @@ export async function getVersion(versionId: string): Promise<DocumentVersion | u
 export async function deleteVersion(versionId: string): Promise<boolean> {
   const db = await getDB();
   const existing = await db.get('versions', versionId);
-  
+
   if (!existing) {
     return false;
   }
-  
+
   await db.delete('versions', versionId);
   return true;
 }
@@ -75,7 +75,7 @@ export async function deleteVersion(versionId: string): Promise<boolean> {
 export async function deleteAllVersions(documentId: string): Promise<void> {
   const db = await getDB();
   const versions = await db.getAllFromIndex('versions', 'by-document', documentId);
-  
+
   for (const version of versions) {
     await db.delete('versions', version.id);
   }
@@ -87,14 +87,14 @@ export async function deleteAllVersions(documentId: string): Promise<void> {
 async function cleanupOldVersions(documentId: string): Promise<void> {
   const db = await getDB();
   const versions = await db.getAllFromIndex('versions', 'by-document', documentId);
-  
+
   if (versions.length <= MAX_VERSIONS_PER_DOCUMENT) {
     return;
   }
-  
+
   // Sort by timestamp descending
   versions.sort((a, b) => b.timestamp - a.timestamp);
-  
+
   // Delete oldest versions
   const toDelete = versions.slice(MAX_VERSIONS_PER_DOCUMENT);
   for (const version of toDelete) {
@@ -111,16 +111,16 @@ export async function updateVersionLabel(
 ): Promise<DocumentVersion | undefined> {
   const db = await getDB();
   const version = await db.get('versions', versionId);
-  
+
   if (!version) {
     return undefined;
   }
-  
+
   const updated: DocumentVersion = {
     ...version,
     label,
   };
-  
+
   await db.put('versions', updated);
   return updated;
 }

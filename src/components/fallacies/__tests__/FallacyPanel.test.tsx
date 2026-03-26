@@ -53,14 +53,14 @@ describe('FallacyPanel', () => {
   it('toggles category expansion when clicked', () => {
     render(<FallacyPanel {...defaultProps} />);
     const formalCategory = screen.getByText('Formal Fallacies');
-    
+
     // Formal is not expanded by default
     expect(screen.queryByText('Appeal to Authority')).not.toBeInTheDocument();
-    
+
     // Click to expand
     fireEvent.click(formalCategory);
     expect(screen.getByText('Appeal to Authority')).toBeInTheDocument();
-    
+
     // Click to collapse
     fireEvent.click(formalCategory);
     expect(screen.queryByText('Appeal to Authority')).not.toBeInTheDocument();
@@ -68,7 +68,7 @@ describe('FallacyPanel', () => {
 
   it('shows fallacies in expanded categories', () => {
     render(<FallacyPanel {...defaultProps} />);
-    
+
     // Informal and Red Herring are expanded by default
     expect(screen.getByText('Ad Hominem')).toBeInTheDocument();
     expect(screen.getByText('Straw Man')).toBeInTheDocument();
@@ -78,29 +78,29 @@ describe('FallacyPanel', () => {
   it('calls onFallacySelect when fallacy button is clicked', () => {
     const onFallacySelect = jest.fn();
     render(<FallacyPanel {...defaultProps} onFallacySelect={onFallacySelect} />);
-    
+
     fireEvent.click(screen.getByText('Ad Hominem'));
-    
+
     expect(onFallacySelect).toHaveBeenCalledWith(mockFallacies[0]);
   });
 
   it('highlights selected fallacy', () => {
     render(<FallacyPanel {...defaultProps} selectedFallacyId="ad-hominem" />);
-    
+
     const fallacyButton = screen.getByText('Ad Hominem').closest('button');
     expect(fallacyButton?.parentElement).toHaveClass('bg-blue-50');
   });
 
   it('filters fallacies based on search query', () => {
     render(<FallacyPanel {...defaultProps} searchQuery="Straw" />);
-    
+
     expect(screen.getByText('Straw Man')).toBeInTheDocument();
     expect(screen.queryByText('Ad Hominem')).not.toBeInTheDocument();
   });
 
   it('filters by description as well as name', () => {
     render(<FallacyPanel {...defaultProps} searchQuery="Misrepresenting" />);
-    
+
     expect(screen.getByText('Straw Man')).toBeInTheDocument();
     expect(screen.queryByText('Ad Hominem')).not.toBeInTheDocument();
   });
@@ -117,7 +117,7 @@ describe('FallacyPanel', () => {
 
   it('displays fallacy color indicators', () => {
     render(<FallacyPanel {...defaultProps} />);
-    
+
     // Check that colored indicators are present
     const adHominemButton = screen.getByText('Ad Hominem').closest('button');
     const colorIndicator = adHominemButton?.querySelector('span');

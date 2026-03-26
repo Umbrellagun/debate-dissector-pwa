@@ -8,7 +8,7 @@ import { createVersion } from './versionStorage';
  */
 function countAnnotationsInContent(content: Descendant[]): number {
   let count = 0;
-  
+
   const traverse = (nodes: Descendant[]) => {
     for (const node of nodes) {
       if ('text' in node) {
@@ -25,7 +25,7 @@ function countAnnotationsInContent(content: Descendant[]): number {
       }
     }
   };
-  
+
   traverse(content);
   return count;
 }
@@ -144,7 +144,7 @@ export async function listDocuments(): Promise<DocumentListItem[]> {
   const db = await getDB();
   const documents = await db.getAllFromIndex('documents', 'by-updated');
 
-  return documents.reverse().map((doc) => ({
+  return documents.reverse().map(doc => ({
     id: doc.id,
     title: doc.title,
     preview: extractPreview(doc.content),
@@ -183,15 +183,18 @@ const VERSION_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 /**
  * Save a document (create or update)
  */
-export async function saveDocument(doc: DebateDocument, forceVersion = false): Promise<DebateDocument> {
+export async function saveDocument(
+  doc: DebateDocument,
+  forceVersion = false
+): Promise<DebateDocument> {
   const db = await getDB();
   const existing = await db.get('documents', doc.id);
-  
+
   const document: DebateDocument = {
     ...doc,
     updatedAt: Date.now(),
   };
-  
+
   // Create a version snapshot if enough time has passed or forced
   const lastTime = lastVersionTime[doc.id] || 0;
   const now = Date.now();
@@ -199,9 +202,9 @@ export async function saveDocument(doc: DebateDocument, forceVersion = false): P
     await createVersion(existing);
     lastVersionTime[doc.id] = now;
   }
-  
+
   await db.put('documents', document);
-  
+
   await db.put('syncQueue', {
     id: `sync_${Date.now()}`,
     documentId: doc.id,
@@ -209,7 +212,7 @@ export async function saveDocument(doc: DebateDocument, forceVersion = false): P
     timestamp: Date.now(),
     synced: false,
   });
-  
+
   return document;
 }
 
@@ -221,8 +224,7 @@ export async function searchDocuments(query: string): Promise<DocumentListItem[]
   const lowerQuery = query.toLowerCase();
 
   return allDocs.filter(
-    (doc) =>
-      doc.title.toLowerCase().includes(lowerQuery) ||
-      doc.preview.toLowerCase().includes(lowerQuery)
+    doc =>
+      doc.title.toLowerCase().includes(lowerQuery) || doc.preview.toLowerCase().includes(lowerQuery)
   );
 }

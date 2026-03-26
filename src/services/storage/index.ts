@@ -9,11 +9,7 @@ export {
   generateDocumentId,
   saveDocument,
 } from './documentStorage';
-export {
-  getPreferences,
-  updatePreferences,
-  resetPreferences,
-} from './preferencesStorage';
+export { getPreferences, updatePreferences, resetPreferences } from './preferencesStorage';
 export {
   createVersion,
   getVersions,

@@ -73,14 +73,14 @@ describe('AnnotationPanel', () => {
   it('toggles Fallacies dropdown when clicked', () => {
     render(<AnnotationPanel {...defaultProps} />);
     const fallaciesButton = screen.getByText('Fallacies');
-    
+
     // Initially expanded by default
     expect(screen.getByText('Ad Hominem')).toBeInTheDocument();
-    
+
     // Click to collapse
     fireEvent.click(fallaciesButton);
     expect(screen.queryByText('Ad Hominem')).not.toBeInTheDocument();
-    
+
     // Click to expand again
     fireEvent.click(fallaciesButton);
     expect(screen.getByText('Ad Hominem')).toBeInTheDocument();
@@ -89,10 +89,10 @@ describe('AnnotationPanel', () => {
   it('toggles Rhetoric dropdown when clicked', () => {
     render(<AnnotationPanel {...defaultProps} />);
     const rhetoricButton = screen.getByText('Rhetoric');
-    
+
     // Initially expanded by default
     expect(screen.getByText('Ethos')).toBeInTheDocument();
-    
+
     // Click to collapse
     fireEvent.click(rhetoricButton);
     expect(screen.queryByText('Ethos')).not.toBeInTheDocument();
@@ -101,9 +101,9 @@ describe('AnnotationPanel', () => {
   it('filters fallacies based on search query', () => {
     render(<AnnotationPanel {...defaultProps} />);
     const searchInput = screen.getByPlaceholderText('Search annotations...');
-    
+
     fireEvent.change(searchInput, { target: { value: 'Straw' } });
-    
+
     expect(screen.getByText('Straw Man')).toBeInTheDocument();
     expect(screen.queryByText('Ad Hominem')).not.toBeInTheDocument();
   });
@@ -111,9 +111,9 @@ describe('AnnotationPanel', () => {
   it('filters rhetoric based on search query', () => {
     render(<AnnotationPanel {...defaultProps} />);
     const searchInput = screen.getByPlaceholderText('Search annotations...');
-    
+
     fireEvent.change(searchInput, { target: { value: 'emotion' } });
-    
+
     expect(screen.getByText('Pathos')).toBeInTheDocument();
     expect(screen.queryByText('Ethos')).not.toBeInTheDocument();
   });
@@ -121,56 +121,48 @@ describe('AnnotationPanel', () => {
   it('calls onFallacySelect when fallacy is clicked', () => {
     const onFallacySelect = jest.fn();
     render(<AnnotationPanel {...defaultProps} onFallacySelect={onFallacySelect} />);
-    
+
     fireEvent.click(screen.getByText('Ad Hominem'));
-    
+
     expect(onFallacySelect).toHaveBeenCalledWith(mockFallacies[0]);
   });
 
   it('calls onRhetoricSelect when rhetoric is clicked', () => {
     const onRhetoricSelect = jest.fn();
     render(<AnnotationPanel {...defaultProps} onRhetoricSelect={onRhetoricSelect} />);
-    
+
     fireEvent.click(screen.getByText('Ethos'));
-    
+
     expect(onRhetoricSelect).toHaveBeenCalledWith(mockRhetoric[0]);
   });
 
   it('shows fallacy details when selected', () => {
-    render(
-      <AnnotationPanel 
-        {...defaultProps} 
-        selectedFallacyId="ad-hominem"
-      />
-    );
-    
-    expect(screen.getByText('Attacking the person making the argument rather than the argument itself.')).toBeInTheDocument();
+    render(<AnnotationPanel {...defaultProps} selectedFallacyId="ad-hominem" />);
+
+    expect(
+      screen.getByText('Attacking the person making the argument rather than the argument itself.')
+    ).toBeInTheDocument();
     expect(screen.getByText('Apply/Remove from Selected Text')).toBeInTheDocument();
   });
 
   it('shows rhetoric details when selected', () => {
-    render(
-      <AnnotationPanel 
-        {...defaultProps} 
-        selectedRhetoricId="ethos"
-      />
-    );
-    
+    render(<AnnotationPanel {...defaultProps} selectedRhetoricId="ethos" />);
+
     expect(screen.getByText('Appeal to credibility or character.')).toBeInTheDocument();
   });
 
   it('calls onFallacyApply when apply button is clicked', () => {
     const onFallacyApply = jest.fn();
     render(
-      <AnnotationPanel 
-        {...defaultProps} 
+      <AnnotationPanel
+        {...defaultProps}
         selectedFallacyId="ad-hominem"
         onFallacyApply={onFallacyApply}
       />
     );
-    
+
     fireEvent.click(screen.getByText('Apply/Remove from Selected Text'));
-    
+
     expect(onFallacyApply).toHaveBeenCalledWith(mockFallacies[0]);
   });
 });

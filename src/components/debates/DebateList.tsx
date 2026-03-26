@@ -37,16 +37,14 @@ export const DebateList: React.FC<DebateListProps> = ({ documents, onDelete }) =
           />
         </svg>
         <h3 className="mt-2 text-sm font-medium text-gray-900">No debates yet</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Get started by creating a new debate analysis.
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Get started by creating a new debate analysis.</p>
       </div>
     );
   }
 
   return (
     <div className="divide-y divide-gray-200">
-      {documents.map((doc) => (
+      {documents.map(doc => (
         <div
           key={doc.id}
           className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer transition-colors"
@@ -57,9 +55,7 @@ export const DebateList: React.FC<DebateListProps> = ({ documents, onDelete }) =
               {doc.title || 'Untitled'}
             </h3>
             <div className="flex items-center gap-3 mt-1">
-              <span className="text-xs text-gray-500">
-                {formatDate(doc.updatedAt)}
-              </span>
+              <span className="text-xs text-gray-500">{formatDate(doc.updatedAt)}</span>
               {doc.annotationCount > 0 && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                   {doc.annotationCount} annotation{doc.annotationCount !== 1 ? 's' : ''}
@@ -69,7 +65,7 @@ export const DebateList: React.FC<DebateListProps> = ({ documents, onDelete }) =
           </div>
           {onDelete && (
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 onDelete(doc.id);
               }}

@@ -1,6 +1,6 @@
 /**
  * Analytics hook for tracking events with Umami
- * 
+ *
  * Setup:
  * 1. Deploy Umami (https://umami.is/docs/install)
  * 2. Add your website in Umami dashboard
@@ -21,7 +21,7 @@ declare global {
 }
 
 // Event types for type safety
-export type AnalyticsEvent = 
+export type AnalyticsEvent =
   | 'document_created'
   | 'document_deleted'
   | 'annotation_applied'
@@ -71,7 +71,11 @@ export interface AnalyticsEventData {
   search_used: { query: string; resultCount: number };
   stats_panel_opened: Record<string, never>;
   stats_tab_switched: { tab: string };
-  stats_breakdown_clicked: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; name: string };
+  stats_breakdown_clicked: {
+    type: 'fallacy' | 'rhetoric' | 'structural';
+    id: string;
+    name: string;
+  };
   speaker_assigned: { speakerId: string; speakerName: string };
   speaker_created: { speakerName: string };
   speaker_edited: { speakerId: string; speakerName: string };
@@ -84,28 +88,37 @@ export interface AnalyticsEventData {
   comment_deleted: { commentId: string };
   comment_resolved: { commentId: string };
   comment_replied: { commentId: string; parentId: string };
-  annotation_visibility_toggled: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; action: 'show' | 'hide' };
-  annotation_bulk_visibility_toggled: { type: 'fallacy' | 'rhetoric' | 'structural'; scope: 'section' | 'subcategory'; action: 'show' | 'hide'; count: number };
+  annotation_visibility_toggled: {
+    type: 'fallacy' | 'rhetoric' | 'structural';
+    id: string;
+    action: 'show' | 'hide';
+  };
+  annotation_bulk_visibility_toggled: {
+    type: 'fallacy' | 'rhetoric' | 'structural';
+    scope: 'section' | 'subcategory';
+    action: 'show' | 'hide';
+    count: number;
+  };
 }
 
 /**
  * Hook for tracking analytics events
  */
 export function useAnalytics() {
-  const trackEvent = useCallback(<T extends AnalyticsEvent>(
-    eventName: T,
-    eventData?: AnalyticsEventData[T]
-  ) => {
-    // Only track if umami is loaded and we're in production
-    if (typeof window !== 'undefined' && window.umami) {
-      try {
-        window.umami.track(eventName, eventData as Record<string, string | number | boolean>);
-      } catch (error) {
-        // Silently fail - analytics should never break the app
-        console.debug('Analytics tracking failed:', error);
+  const trackEvent = useCallback(
+    <T extends AnalyticsEvent>(eventName: T, eventData?: AnalyticsEventData[T]) => {
+      // Only track if umami is loaded and we're in production
+      if (typeof window !== 'undefined' && window.umami) {
+        try {
+          window.umami.track(eventName, eventData as Record<string, string | number | boolean>);
+        } catch (error) {
+          // Silently fail - analytics should never break the app
+          console.debug('Analytics tracking failed:', error);
+        }
       }
-    }
-  }, []);
+    },
+    []
+  );
 
   return { trackEvent };
 }

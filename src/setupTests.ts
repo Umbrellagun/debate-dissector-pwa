@@ -6,6 +6,7 @@ import '@testing-library/jest-dom';
 
 // Polyfill TextEncoder/TextDecoder for Jest environment (required by react-router v7)
 if (typeof global.TextEncoder === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { TextEncoder, TextDecoder } = require('util');
   global.TextEncoder = TextEncoder;
   global.TextDecoder = TextDecoder;

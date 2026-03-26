@@ -6,12 +6,24 @@ import './App.css';
 
 // Code splitting: Lazy load pages for better initial load performance
 const EditorPage = lazy(() => import('./pages/EditorPage').then(m => ({ default: m.EditorPage })));
-const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const SharedDebatePage = lazy(() => import('./pages/SharedDebatePage').then(m => ({ default: m.SharedDebatePage })));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
-const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
-const TermsOfServicePage = lazy(() => import('./pages/TermsOfServicePage').then(m => ({ default: m.TermsOfServicePage })));
-const ChangelogPage = lazy(() => import('./pages/ChangelogPage').then(m => ({ default: m.ChangelogPage })));
+const SettingsPage = lazy(() =>
+  import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage }))
+);
+const SharedDebatePage = lazy(() =>
+  import('./pages/SharedDebatePage').then(m => ({ default: m.SharedDebatePage }))
+);
+const NotFoundPage = lazy(() =>
+  import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage }))
+);
+const PrivacyPolicyPage = lazy(() =>
+  import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage }))
+);
+const TermsOfServicePage = lazy(() =>
+  import('./pages/TermsOfServicePage').then(m => ({ default: m.TermsOfServicePage }))
+);
+const ChangelogPage = lazy(() =>
+  import('./pages/ChangelogPage').then(m => ({ default: m.ChangelogPage }))
+);
 
 // Loading fallback component
 const PageLoader = () => (

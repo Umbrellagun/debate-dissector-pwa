@@ -41,7 +41,7 @@ export type CommentMark = {
 };
 
 // Union type for any annotation mark (fallacy or rhetoric)
-export type AnnotationMark = 
+export type AnnotationMark =
   | (FallacyMark & { type: 'fallacy' })
   | (RhetoricMark & { type: 'rhetoric' })
   | (StructuralMark & { type: 'structural' })

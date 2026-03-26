@@ -1,5 +1,10 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { DebateDocument, UserPreferences, DEFAULT_USER_PREFERENCES, DocumentVersion } from '../../models';
+import {
+  DebateDocument,
+  UserPreferences,
+  DEFAULT_USER_PREFERENCES,
+  DocumentVersion,
+} from '../../models';
 
 const DB_NAME = 'debate-dissector';
 const DB_VERSION = 2;

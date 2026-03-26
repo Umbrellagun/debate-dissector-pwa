@@ -39,7 +39,7 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
   usedSpeakerIds = [],
   hiddenSpeakerIds = [],
   pinnedSpeakerIds = [],
-  onSpeakerSelect,
+  onSpeakerSelect: _onSpeakerSelect,
   onSpeakerAdd,
   onSpeakerUpdate,
   onSpeakerDelete,
@@ -54,13 +54,13 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
 
   const handleAddSpeaker = useCallback(() => {
     if (!newSpeakerName.trim()) return;
-    
+
     const newSpeaker: Speaker = {
       id: generateSpeakerId(),
       name: newSpeakerName.trim(),
       color: getNextColor(speakers),
     };
-    
+
     onSpeakerAdd?.(newSpeaker);
     setNewSpeakerName('');
     setIsAdding(false);
@@ -71,16 +71,22 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
     setEditingName(speaker.name);
   }, []);
 
-  const handleSaveEdit = useCallback((speaker: Speaker) => {
-    if (!editingName.trim()) return;
-    onSpeakerUpdate?.({ ...speaker, name: editingName.trim() });
-    setEditingSpeakerId(null);
-    setEditingName('');
-  }, [editingName, onSpeakerUpdate]);
+  const handleSaveEdit = useCallback(
+    (speaker: Speaker) => {
+      if (!editingName.trim()) return;
+      onSpeakerUpdate?.({ ...speaker, name: editingName.trim() });
+      setEditingSpeakerId(null);
+      setEditingName('');
+    },
+    [editingName, onSpeakerUpdate]
+  );
 
-  const handleColorChange = useCallback((speaker: Speaker, color: string) => {
-    onSpeakerUpdate?.({ ...speaker, color });
-  }, [onSpeakerUpdate]);
+  const handleColorChange = useCallback(
+    (speaker: Speaker, color: string) => {
+      onSpeakerUpdate?.({ ...speaker, color });
+    },
+    [onSpeakerUpdate]
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -94,7 +100,12 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
             title="Add speaker"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
           </button>
         )}
@@ -106,8 +117,8 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
           <input
             type="text"
             value={newSpeakerName}
-            onChange={(e) => setNewSpeakerName(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={e => setNewSpeakerName(e.target.value)}
+            onKeyDown={e => {
               if (e.key === 'Enter') handleAddSpeaker();
               if (e.key === 'Escape') {
                 setIsAdding(false);
@@ -159,7 +170,7 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
               <span className="text-sm text-gray-500 italic">No speaker</span>
             </button>
 
-            {speakers.map((speaker) => (
+            {speakers.map(speaker => (
               <div
                 key={speaker.id}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -172,14 +183,14 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
                     <input
                       type="color"
                       value={speaker.color}
-                      onChange={(e) => handleColorChange(speaker, e.target.value)}
+                      onChange={e => handleColorChange(speaker, e.target.value)}
                       className="w-6 h-6 rounded cursor-pointer border-0"
                     />
                     <input
                       type="text"
                       value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onKeyDown={(e) => {
+                      onChange={e => setEditingName(e.target.value)}
+                      onKeyDown={e => {
                         if (e.key === 'Enter') handleSaveEdit(speaker);
                         if (e.key === 'Escape') setEditingSpeakerId(null);
                       }}
@@ -190,16 +201,36 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
                       onClick={() => handleSaveEdit(speaker)}
                       className="p-1 text-green-600 hover:bg-green-50 rounded"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     </button>
                     <button
                       onClick={() => setEditingSpeakerId(null)}
                       className="p-1 text-gray-400 hover:bg-gray-100 rounded"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -234,9 +265,19 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
                             ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'
                             : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                         }`}
-                        title={pinnedSpeakerIds.includes(speaker.id) ? 'Unpin from toolbar' : 'Pin to toolbar'}
+                        title={
+                          pinnedSpeakerIds.includes(speaker.id)
+                            ? 'Unpin from toolbar'
+                            : 'Pin to toolbar'
+                        }
                       >
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill={pinnedSpeakerIds.includes(speaker.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}>
+                        <svg
+                          className="w-4 h-4"
+                          viewBox="0 0 24 24"
+                          fill={pinnedSpeakerIds.includes(speaker.id) ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
                           <path d="M12 17v5M9 3h6a2 2 0 012 2v4l2 2v2H5v-2l2-2V5a2 2 0 012-2z" />
                         </svg>
                       </button>
@@ -250,13 +291,32 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
                             ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                             : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50'
                         }`}
-                        title={hiddenSpeakerIds.includes(speaker.id) ? 'Show paragraphs' : 'Hide paragraphs'}
+                        title={
+                          hiddenSpeakerIds.includes(speaker.id)
+                            ? 'Show paragraphs'
+                            : 'Hide paragraphs'
+                        }
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           {hiddenSpeakerIds.includes(speaker.id) ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                            />
                           ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
                           )}
                         </svg>
                       </button>
@@ -266,8 +326,18 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
                       className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
                       title="Edit speaker"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
                       </svg>
                     </button>
                     <button
@@ -275,8 +345,18 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
                       className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
                       title="Delete speaker"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   </>

@@ -1,5 +1,5 @@
 import { Descendant } from 'slate';
-import { calculateAnnotationStats, AnnotationStats } from '../annotationStats';
+import { calculateAnnotationStats } from '../annotationStats';
 
 // Helper to create a paragraph with plain text
 const plainParagraph = (text: string): Descendant => ({
@@ -13,7 +13,9 @@ const fallacyParagraph = (text: string, fallacyId: string): Descendant => ({
   children: [
     {
       text,
-      fallacyMarks: [{ id: `mark-${fallacyId}-1`, fallacyId, color: '#EF4444', appliedAt: Date.now() }],
+      fallacyMarks: [
+        { id: `mark-${fallacyId}-1`, fallacyId, color: '#EF4444', appliedAt: Date.now() },
+      ],
     } as any,
   ],
 });
@@ -24,7 +26,9 @@ const rhetoricParagraph = (text: string, rhetoricId: string): Descendant => ({
   children: [
     {
       text,
-      rhetoricMarks: [{ id: `mark-${rhetoricId}-1`, rhetoricId, color: '#3B82F6', appliedAt: Date.now() }],
+      rhetoricMarks: [
+        { id: `mark-${rhetoricId}-1`, rhetoricId, color: '#3B82F6', appliedAt: Date.now() },
+      ],
     } as any,
   ],
 });
@@ -35,7 +39,9 @@ const structuralParagraph = (text: string, markupId: string): Descendant => ({
   children: [
     {
       text,
-      structuralMarks: [{ id: `mark-${markupId}-1`, markupId, color: '#8B5CF6', appliedAt: Date.now() }],
+      structuralMarks: [
+        { id: `mark-${markupId}-1`, markupId, color: '#8B5CF6', appliedAt: Date.now() },
+      ],
     } as any,
   ],
 });
@@ -65,10 +71,7 @@ describe('calculateAnnotationStats', () => {
     });
 
     it('should handle multiple plain paragraphs', () => {
-      const content = [
-        plainParagraph('Hello'),
-        plainParagraph('World'),
-      ];
+      const content = [plainParagraph('Hello'), plainParagraph('World')];
       const stats = calculateAnnotationStats(content);
 
       expect(stats.totalCharacters).toBe(10);
@@ -85,7 +88,9 @@ describe('calculateAnnotationStats', () => {
             { text: 'Plain ' },
             {
               text: 'straw man',
-              fallacyMarks: [{ id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() }],
+              fallacyMarks: [
+                { id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() },
+              ],
             } as any,
           ],
         },
@@ -108,11 +113,15 @@ describe('calculateAnnotationStats', () => {
           children: [
             {
               text: 'first',
-              fallacyMarks: [{ id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() }],
+              fallacyMarks: [
+                { id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() },
+              ],
             } as any,
             {
               text: 'second',
-              fallacyMarks: [{ id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() }],
+              fallacyMarks: [
+                { id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() },
+              ],
             } as any,
           ],
         },
@@ -130,11 +139,15 @@ describe('calculateAnnotationStats', () => {
           children: [
             {
               text: 'first',
-              fallacyMarks: [{ id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() }],
+              fallacyMarks: [
+                { id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() },
+              ],
             } as any,
             {
               text: 'second',
-              fallacyMarks: [{ id: 'f2', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() }],
+              fallacyMarks: [
+                { id: 'f2', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() },
+              ],
             } as any,
           ],
         },
@@ -205,9 +218,9 @@ describe('calculateAnnotationStats', () => {
   describe('breakdown sorting', () => {
     it('should sort breakdown by character count descending', () => {
       const content: Descendant[] = [
-        fallacyParagraph('ab', 'straw-man'),        // 2 chars
+        fallacyParagraph('ab', 'straw-man'), // 2 chars
         rhetoricParagraph('abcdef', 'appeal-to-authority'), // 6 chars
-        structuralParagraph('abcd', 'claim'),         // 4 chars
+        structuralParagraph('abcd', 'claim'), // 4 chars
       ];
       const stats = calculateAnnotationStats(content);
 
@@ -225,7 +238,9 @@ describe('calculateAnnotationStats', () => {
           children: [
             {
               text: 'quoted fallacy',
-              fallacyMarks: [{ id: 'f1', fallacyId: 'ad-hominem', color: '#F87171', appliedAt: Date.now() }],
+              fallacyMarks: [
+                { id: 'f1', fallacyId: 'ad-hominem', color: '#F87171', appliedAt: Date.now() },
+              ],
             } as any,
           ],
         },
@@ -266,9 +281,7 @@ describe('speaker stats', () => {
   });
 
   it('should count annotations per speaker', () => {
-    const speakers = [
-      { id: 's1', name: 'Speaker A', color: '#3B82F6' },
-    ];
+    const speakers = [{ id: 's1', name: 'Speaker A', color: '#3B82F6' }];
     const content: any[] = [
       {
         type: 'paragraph',
@@ -276,7 +289,9 @@ describe('speaker stats', () => {
         children: [
           {
             text: 'fallacy text',
-            fallacyMarks: [{ id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() }],
+            fallacyMarks: [
+              { id: 'f1', fallacyId: 'straw-man', color: '#EF4444', appliedAt: Date.now() },
+            ],
           },
         ],
       },

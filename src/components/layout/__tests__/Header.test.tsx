@@ -29,7 +29,7 @@ describe('Header', () => {
   it('renders menu button when onMenuClick is provided', () => {
     const onMenuClick = jest.fn();
     renderWithRouter(<Header onMenuClick={onMenuClick} />);
-    
+
     const menuButton = screen.getByLabelText('Toggle menu');
     expect(menuButton).toBeInTheDocument();
   });
@@ -37,7 +37,7 @@ describe('Header', () => {
   it('calls onMenuClick when menu button is clicked', () => {
     const onMenuClick = jest.fn();
     renderWithRouter(<Header onMenuClick={onMenuClick} />);
-    
+
     fireEvent.click(screen.getByLabelText('Toggle menu'));
     expect(onMenuClick).toHaveBeenCalledTimes(1);
   });
@@ -45,7 +45,7 @@ describe('Header', () => {
   it('renders back button when onBackClick is provided', () => {
     const onBackClick = jest.fn();
     renderWithRouter(<Header onBackClick={onBackClick} />);
-    
+
     const backButton = screen.getByLabelText('Go back');
     expect(backButton).toBeInTheDocument();
   });
@@ -53,7 +53,7 @@ describe('Header', () => {
   it('calls onBackClick when back button is clicked', () => {
     const onBackClick = jest.fn();
     renderWithRouter(<Header onBackClick={onBackClick} />);
-    
+
     fireEvent.click(screen.getByLabelText('Go back'));
     expect(onBackClick).toHaveBeenCalledTimes(1);
   });
@@ -62,15 +62,13 @@ describe('Header', () => {
     const onMenuClick = jest.fn();
     const onBackClick = jest.fn();
     renderWithRouter(<Header onMenuClick={onMenuClick} onBackClick={onBackClick} />);
-    
+
     expect(screen.getByLabelText('Go back')).toBeInTheDocument();
     expect(screen.queryByLabelText('Toggle menu')).not.toBeInTheDocument();
   });
 
   it('renders actions when provided', () => {
-    renderWithRouter(
-      <Header actions={<button data-testid="action-button">Action</button>} />
-    );
+    renderWithRouter(<Header actions={<button data-testid="action-button">Action</button>} />);
     expect(screen.getByTestId('action-button')).toBeInTheDocument();
   });
 

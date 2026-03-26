@@ -1,8 +1,33 @@
-import React, { useCallback, useMemo, useImperativeHandle, forwardRef, useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useImperativeHandle,
+  forwardRef,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
 import { createEditor, Descendant, Editor, Transforms } from 'slate';
-import { Slate, Editable, withReact, RenderLeafProps, RenderElementProps, ReactEditor } from 'slate-react';
+import {
+  Slate,
+  Editable,
+  withReact,
+  RenderLeafProps,
+  RenderElementProps,
+  ReactEditor,
+} from 'slate-react';
 import { withHistory } from 'slate-history';
-import { CustomEditor, CustomText, CustomElement, DEFAULT_INITIAL_VALUE, FallacyMark, RhetoricMark, StructuralMark, ParagraphElement, BlockQuoteElement } from './types';
+import {
+  CustomEditor,
+  CustomText,
+  CustomElement,
+  DEFAULT_INITIAL_VALUE,
+  FallacyMark,
+  RhetoricMark,
+  StructuralMark,
+  ParagraphElement,
+  BlockQuoteElement,
+} from './types';
 import { Speaker, Comment } from '../../models';
 import { HiddenAnnotationIds } from './VisibilityControls';
 import { EditorToolbar, PinnedAnnotation, PinnedSpeaker } from './EditorToolbar';
@@ -10,7 +35,7 @@ import { toggleMark } from './utils';
 import { MarkType } from './types';
 import { FALLACIES } from '../../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../../data/rhetoric';
-import { STRUCTURAL_MARKUPS, getStructuralMarkupById } from '../../data/structuralMarkup';
+import { getStructuralMarkupById } from '../../data/structuralMarkup';
 import './types'; // Import type augmentation
 
 // Helper to get fallacy name from ID
@@ -75,28 +100,41 @@ interface AnnotationTooltipProps {
   leafElement?: HTMLElement | null;
 }
 
-const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhetoricMarks, structuralMarks = [], onClose, anchorRect, tooltipRef, onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText, leafElement }) => {
+const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({
+  fallacyMarks,
+  rhetoricMarks,
+  structuralMarks = [],
+  anchorRect,
+  tooltipRef,
+  onFallacyClick,
+  onRhetoricClick,
+  onStructuralClick,
+  selectLeafText,
+  leafElement,
+}) => {
   // Helper to check if a structural mark has a source citation
   const hasSourceCitation = (mark: StructuralMark) => {
-    return mark.metadata && (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication);
+    return (
+      mark.metadata &&
+      (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication)
+    );
   };
-  
+
   // Citable markup types that should show citation indicator
   const citableMarkupTypes = ['evidence', 'statistic', 'quote'];
   if (!anchorRect) return null;
 
   const totalItems = fallacyMarks.length + rhetoricMarks.length + structuralMarks.length;
-  const estimatedHeight = totalItems * 24 + (fallacyMarks.length > 0 && rhetoricMarks.length > 0 ? 80 : 50);
+  const estimatedHeight =
+    totalItems * 24 + (fallacyMarks.length > 0 && rhetoricMarks.length > 0 ? 80 : 50);
   const viewportHeight = window.innerHeight;
   const spaceAbove = anchorRect.top;
   const spaceBelow = viewportHeight - anchorRect.bottom;
-  
+
   const showBelow = spaceAbove < estimatedHeight + 10 && spaceBelow > estimatedHeight;
 
   // Position directly above or below the badge with minimal gap
-  const top = showBelow 
-    ? anchorRect.bottom + 4 
-    : anchorRect.top - estimatedHeight;
+  const top = showBelow ? anchorRect.bottom + 4 : anchorRect.top - estimatedHeight;
 
   const arrowStyles: React.CSSProperties = showBelow
     ? {
@@ -116,7 +154,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
     <div
       ref={tooltipRef}
       contentEditable={false}
-      onClick={(e) => e.stopPropagation()}
+      onClick={e => e.stopPropagation()}
       style={{
         position: 'fixed',
         left: anchorRect.left + anchorRect.width / 2,
@@ -135,7 +173,15 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
     >
       {fallacyMarks.length > 0 && (
         <>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px', borderBottom: '1px solid #374151', paddingBottom: '4px', color: '#f87171' }}>
+          <div
+            style={{
+              fontWeight: 'bold',
+              marginBottom: '4px',
+              borderBottom: '1px solid #374151',
+              paddingBottom: '4px',
+              color: '#f87171',
+            }}
+          >
             Fallacies:
           </div>
           {fallacyMarks.map((mark, idx) => (
@@ -156,8 +202,8 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                 width: '100%',
                 textAlign: 'left',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               <span
                 style={{
@@ -175,7 +221,16 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
       )}
       {rhetoricMarks.length > 0 && (
         <>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px', marginTop: fallacyMarks.length > 0 ? '8px' : 0, borderBottom: '1px solid #374151', paddingBottom: '4px', color: '#60a5fa' }}>
+          <div
+            style={{
+              fontWeight: 'bold',
+              marginBottom: '4px',
+              marginTop: fallacyMarks.length > 0 ? '8px' : 0,
+              borderBottom: '1px solid #374151',
+              paddingBottom: '4px',
+              color: '#60a5fa',
+            }}
+          >
             Rhetoric:
           </div>
           {rhetoricMarks.map((mark, idx) => (
@@ -196,8 +251,8 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                 width: '100%',
                 textAlign: 'left',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               <span
                 style={{
@@ -215,7 +270,16 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
       )}
       {structuralMarks.length > 0 && (
         <>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px', marginTop: (fallacyMarks.length > 0 || rhetoricMarks.length > 0) ? '8px' : 0, borderBottom: '1px solid #374151', paddingBottom: '4px', color: '#a78bfa' }}>
+          <div
+            style={{
+              fontWeight: 'bold',
+              marginBottom: '4px',
+              marginTop: fallacyMarks.length > 0 || rhetoricMarks.length > 0 ? '8px' : 0,
+              borderBottom: '1px solid #374151',
+              paddingBottom: '4px',
+              color: '#a78bfa',
+            }}
+          >
             Claims & Evidence:
           </div>
           {structuralMarks.map((mark, idx) => {
@@ -245,8 +309,10 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                   width: '100%',
                   textAlign: 'left',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)')
+                }
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <span
                   style={{
@@ -267,12 +333,26 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({ fallacyMarks, rhe
                     }}
                   >
                     {hasCitation ? (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#10B981"
+                        strokeWidth="2.5"
+                      >
                         <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
                         <path d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                       </svg>
                     ) : (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#F59E0B"
+                        strokeWidth="2.5"
+                      >
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 8v4M12 16h.01" />
                       </svg>
@@ -356,27 +436,28 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const { onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText } = React.useContext(AnnotationClickContext);
+  const { onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText } =
+    React.useContext(AnnotationClickContext);
   const spanRef = useRef<HTMLSpanElement>(null);
-  let style: React.CSSProperties = {};
+  const style: React.CSSProperties = {};
   let className = '';
-  
+
   // Handle click outside to close pinned tooltip
   useEffect(() => {
     if (!isPinned) return;
-    
+
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
       const isInsideBadge = badgeRef.current?.contains(target);
       const isInsideTooltip = tooltipRef.current?.contains(target);
-      
+
       if (!isInsideBadge && !isInsideTooltip) {
         setShowTooltip(false);
         setIsPinned(false);
         setAnchorRect(null);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isPinned]);
@@ -392,7 +473,9 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   // Filter marks based on visibility settings
   const fallacyMarks = allFallacyMarks.filter(m => !hiddenIds.fallacyIds.includes(m.fallacyId));
   const rhetoricMarks = allRhetoricMarks.filter(m => !hiddenIds.rhetoricIds.includes(m.rhetoricId));
-  const structuralMarks = allStructuralMarks.filter(m => !hiddenIds.structuralIds.includes(m.markupId));
+  const structuralMarks = allStructuralMarks.filter(
+    m => !hiddenIds.structuralIds.includes(m.markupId)
+  );
 
   const fallacyCount = fallacyMarks.length;
   const rhetoricCount = rhetoricMarks.length;
@@ -405,7 +488,11 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const commentCount = unresolvedCommentMarks.length;
   const totalAnnotations = fallacyCount + rhetoricCount + structuralCount;
   // Check hasFallacy considering hidden IDs for legacy fallacyColor too
-  const hasFallacy = fallacyCount > 0 || (customLeaf.fallacyColor && customLeaf.fallacyId && !hiddenIds.fallacyIds.includes(customLeaf.fallacyId));
+  const hasFallacy =
+    fallacyCount > 0 ||
+    (customLeaf.fallacyColor &&
+      customLeaf.fallacyId &&
+      !hiddenIds.fallacyIds.includes(customLeaf.fallacyId));
   const hasRhetoric = rhetoricCount > 0;
   const hasStructural = structuralCount > 0;
   const hasComments = commentCount > 0;
@@ -413,16 +500,17 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   // Determine background color - use dynamic lookup from fallacy/rhetoric ID
   if (hasFallacy || hasRhetoric) {
     let displayColor: string | undefined;
-    
+
     // Find the most recently applied mark across both types
     const lastFallacy = fallacyCount > 0 ? fallacyMarks[fallacyCount - 1] : null;
     const lastRhetoric = rhetoricCount > 0 ? rhetoricMarks[rhetoricCount - 1] : null;
-    
+
     if (lastFallacy && lastRhetoric) {
       // Both exist - use whichever was applied last
-      displayColor = (lastFallacy.appliedAt || 0) > (lastRhetoric.appliedAt || 0)
-        ? getFallacyColor(lastFallacy.fallacyId) || lastFallacy.color
-        : getRhetoricColor(lastRhetoric.rhetoricId) || lastRhetoric.color;
+      displayColor =
+        (lastFallacy.appliedAt || 0) > (lastRhetoric.appliedAt || 0)
+          ? getFallacyColor(lastFallacy.fallacyId) || lastFallacy.color
+          : getRhetoricColor(lastRhetoric.rhetoricId) || lastRhetoric.color;
     } else if (lastFallacy) {
       // Dynamic lookup by ID, fallback to stored color
       displayColor = getFallacyColor(lastFallacy.fallacyId) || lastFallacy.color;
@@ -433,7 +521,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
       // Legacy fallback - try dynamic lookup first
       displayColor = getFallacyColor(customLeaf.fallacyId) || customLeaf.fallacyColor;
     }
-    
+
     if (displayColor) {
       style.backgroundColor = displayColor;
       style.padding = '2px 0';
@@ -446,16 +534,19 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   }
 
   // Handle structural marks - dotted underline to differentiate from fallacy/rhetoric
-  const hasSourceCitation = structuralMarks.some(mark => 
-    mark.metadata && (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication)
+  const hasSourceCitation = structuralMarks.some(
+    mark =>
+      mark.metadata &&
+      (mark.metadata.sourceUrl || mark.metadata.sourceAuthor || mark.metadata.sourcePublication)
   );
   const citableMarkupTypes = ['evidence', 'statistic', 'quote'];
   const isCitableMarkup = structuralMarks.some(mark => citableMarkupTypes.includes(mark.markupId));
-  
+
   if (hasStructural) {
     const lastStructural = structuralMarks[structuralCount - 1];
-    const structuralColor = getStructuralMarkupColor(lastStructural.markupId) || lastStructural.color;
-    
+    const structuralColor =
+      getStructuralMarkupColor(lastStructural.markupId) || lastStructural.color;
+
     style.borderBottom = `2px dotted ${structuralColor}`;
     style.paddingBottom = '1px';
     // No background highlight - only underlines for structural marks
@@ -486,20 +577,20 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   }
 
   // Get badge position and show tooltip
-  const handleShowTooltip = () => {
+  const _handleShowTooltip = () => {
     if (badgeRef.current) {
       setAnchorRect(badgeRef.current.getBoundingClientRect());
     }
     setShowTooltip(true);
   };
-  
+
   const handleHideTooltip = () => {
     // Don't hide if pinned
     if (isPinned) return;
     setShowTooltip(false);
     setAnchorRect(null);
   };
-  
+
   const handleBadgeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -517,7 +608,6 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
       setIsPinned(true);
     }
   };
-
 
   // Show badge with tooltip if multiple annotations
   if (totalAnnotations > 1) {
@@ -537,7 +627,8 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
               fontSize: '9px',
               fontWeight: 'bold',
               color: '#fff',
-              backgroundColor: hasRhetoric && !hasFallacy ? 'rgba(59,130,246,0.8)' : 'rgba(0,0,0,0.6)',
+              backgroundColor:
+                hasRhetoric && !hasFallacy ? 'rgba(59,130,246,0.8)' : 'rgba(0,0,0,0.6)',
               borderRadius: '6px',
               padding: '1px 4px',
               userSelect: 'none',
@@ -549,11 +640,11 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
             +{totalAnnotations - 1}
           </span>
           {showTooltip && (
-            <AnnotationTooltip 
-              fallacyMarks={fallacyMarks} 
+            <AnnotationTooltip
+              fallacyMarks={fallacyMarks}
               rhetoricMarks={rhetoricMarks}
               structuralMarks={structuralMarks}
-              onClose={handleHideTooltip} 
+              onClose={handleHideTooltip}
               anchorRect={anchorRect}
               tooltipRef={tooltipRef}
               onFallacyClick={onFallacyClick}
@@ -569,16 +660,16 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   }
 
   // Handle click on annotated text - select first annotation in sidebar
-  const handleAnnotationClick = (e: React.MouseEvent) => {
+  const handleAnnotationClick = (_e: React.MouseEvent) => {
     // Only trigger if it's a simple click (no text selection)
     const selection = window.getSelection();
     if (selection && selection.toString().length > 0) return;
-    
+
     // Select this leaf's text so it can be edited
     if (spanRef.current && selectLeafText) {
       selectLeafText(spanRef.current);
     }
-    
+
     // Find the first annotation and trigger its click handler
     if (fallacyMarks[0] && onFallacyClick) {
       onFallacyClick(fallacyMarks[0].fallacyId);
@@ -594,12 +685,12 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   if (totalAnnotations > 0) {
     // Show source indicator for citable structural markup
     const showSourceIndicator = hasStructural && isCitableMarkup;
-    
+
     return (
-      <span 
-        {...attributes} 
+      <span
+        {...attributes}
         ref={spanRef}
-        style={{ ...style, cursor: 'pointer', position: 'relative' }} 
+        style={{ ...style, cursor: 'pointer', position: 'relative' }}
         className={className.trim() || undefined}
         onClick={handleAnnotationClick}
       >
@@ -619,12 +710,26 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
             title={hasSourceCitation ? 'Has source citation' : 'Missing source citation'}
           >
             {hasSourceCitation ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#10B981"
+                strokeWidth="2.5"
+              >
                 <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
                 <path d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
             ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="2.5"
+              >
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 8v4M12 16h.01" />
               </svg>
@@ -646,29 +751,39 @@ const Element: React.FC<RenderElementProps> = ({ attributes, children, element }
   const customElement = element as CustomElement;
   const speakers = React.useContext(SpeakersContext);
   const hiddenSpeakerIds = React.useContext(HiddenSpeakersContext);
-  
+
   // Get speaker info if element has a speakerId
   const speakerId = (customElement as ParagraphElement | BlockQuoteElement).speakerId;
   const speaker = speakerId ? speakers.find(s => s.id === speakerId) : null;
   const isHidden = speakerId ? hiddenSpeakerIds.includes(speakerId) : false;
-  
+
   // Hidden style for filtered paragraphs
-  const hiddenStyle: React.CSSProperties = isHidden ? { 
-    opacity: 0.3, 
-    filter: 'grayscale(100%)',
-    pointerEvents: 'none' as const,
-  } : {};
-  
+  const hiddenStyle: React.CSSProperties = isHidden
+    ? {
+        opacity: 0.3,
+        filter: 'grayscale(100%)',
+        pointerEvents: 'none' as const,
+      }
+    : {};
+
   switch (customElement.type) {
     case 'heading-one':
-      return <h1 {...attributes} className="text-2xl font-bold mb-2">{children}</h1>;
+      return (
+        <h1 {...attributes} className="text-2xl font-bold mb-2">
+          {children}
+        </h1>
+      );
     case 'heading-two':
-      return <h2 {...attributes} className="text-xl font-semibold mb-2">{children}</h2>;
+      return (
+        <h2 {...attributes} className="text-xl font-semibold mb-2">
+          {children}
+        </h2>
+      );
     case 'block-quote':
       if (speaker) {
         return (
           <div {...attributes} className="relative mb-2" style={hiddenStyle}>
-            <div 
+            <div
               className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
               style={{ backgroundColor: speaker.color }}
               title={speaker.name}
@@ -680,7 +795,10 @@ const Element: React.FC<RenderElementProps> = ({ attributes, children, element }
         );
       }
       return (
-        <blockquote {...attributes} className="border-l-4 border-gray-300 pl-4 italic text-gray-600">
+        <blockquote
+          {...attributes}
+          className="border-l-4 border-gray-300 pl-4 italic text-gray-600"
+        >
           {children}
         </blockquote>
       );
@@ -688,7 +806,7 @@ const Element: React.FC<RenderElementProps> = ({ attributes, children, element }
       if (speaker) {
         return (
           <div {...attributes} className="relative mb-2" style={hiddenStyle}>
-            <div 
+            <div
               className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
               style={{ backgroundColor: speaker.color }}
               title={speaker.name}
@@ -697,7 +815,11 @@ const Element: React.FC<RenderElementProps> = ({ attributes, children, element }
           </div>
         );
       }
-      return <p {...attributes} className="mb-2">{children}</p>;
+      return (
+        <p {...attributes} className="mb-2">
+          {children}
+        </p>
+      );
   }
 };
 
@@ -727,30 +849,37 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
     ref
   ) => {
     const editor = useMemo(() => withHistory(withReact(createEditor())), []);
-    
+
     // Function to select the text of a leaf element in the editor
-    const selectLeafText = useCallback((element: HTMLElement) => {
-      const slateNode = ReactEditor.toSlateNode(editor, element);
-      const path = ReactEditor.findPath(editor, slateNode);
-      const range = Editor.range(editor, path);
-      Transforms.select(editor, range);
-      ReactEditor.focus(editor);
-    }, [editor]);
-    
-    const annotationClickContextValue = useMemo(() => ({
-      onFallacyClick,
-      onRhetoricClick,
-      onStructuralClick,
-      selectLeafText,
-    }), [onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText]);
+    const selectLeafText = useCallback(
+      (element: HTMLElement) => {
+        const slateNode = ReactEditor.toSlateNode(editor, element);
+        const path = ReactEditor.findPath(editor, slateNode);
+        const range = Editor.range(editor, path);
+        Transforms.select(editor, range);
+        ReactEditor.focus(editor);
+      },
+      [editor]
+    );
+
+    const annotationClickContextValue = useMemo(
+      () => ({
+        onFallacyClick,
+        onRhetoricClick,
+        onStructuralClick,
+        selectLeafText,
+      }),
+      [onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText]
+    );
 
     useImperativeHandle(ref, () => ({
       getEditor: () => editor,
     }));
 
-    const renderLeaf = useCallback((props: RenderLeafProps) => (
-      <Leaf {...props} />
-    ), [onFallacyClick, onRhetoricClick, onStructuralClick]);
+    const renderLeaf = useCallback(
+      (props: RenderLeafProps) => <Leaf {...props} />,
+      [onFallacyClick, onRhetoricClick, onStructuralClick]
+    );
     const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, []);
 
     const handleChange = useCallback(
@@ -790,35 +919,35 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       <AnnotationClickContext.Provider value={annotationClickContextValue}>
         <SpeakersContext.Provider value={speakers}>
           <HiddenSpeakersContext.Provider value={hiddenSpeakerIds}>
-          <CommentsContext.Provider value={comments}>
-          <HiddenAnnotationsContext.Provider value={hiddenAnnotationIds}>
-            <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
-              <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
-                {!readOnly && (
-                  <EditorToolbar
-                    selectedAnnotation={selectedAnnotation}
-                    hasTextSelection={hasTextSelection}
-                    onApplyAnnotation={onApplyAnnotation}
-                    pinnedAnnotations={pinnedAnnotations}
-                    onApplyPinnedAnnotation={onApplyPinnedAnnotation}
-                    pinnedSpeakers={pinnedSpeakers}
-                    onAssignPinnedSpeaker={onAssignPinnedSpeaker}
-                  />
-                )}
-                <Editable
-                  className="flex-1 p-3 sm:p-4 md:p-6 focus:outline-none overflow-y-auto text-base leading-relaxed"
-                  renderLeaf={renderLeaf}
-                  renderElement={renderElement}
-                  placeholder={placeholder}
-                  readOnly={readOnly}
-                  onKeyDown={handleKeyDown}
-                  onClick={handleClick}
-                  spellCheck
-                />
-              </Slate>
-            </div>
-          </HiddenAnnotationsContext.Provider>
-          </CommentsContext.Provider>
+            <CommentsContext.Provider value={comments}>
+              <HiddenAnnotationsContext.Provider value={hiddenAnnotationIds}>
+                <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+                  <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
+                    {!readOnly && (
+                      <EditorToolbar
+                        selectedAnnotation={selectedAnnotation}
+                        hasTextSelection={hasTextSelection}
+                        onApplyAnnotation={onApplyAnnotation}
+                        pinnedAnnotations={pinnedAnnotations}
+                        onApplyPinnedAnnotation={onApplyPinnedAnnotation}
+                        pinnedSpeakers={pinnedSpeakers}
+                        onAssignPinnedSpeaker={onAssignPinnedSpeaker}
+                      />
+                    )}
+                    <Editable
+                      className="flex-1 p-3 sm:p-4 md:p-6 focus:outline-none overflow-y-auto text-base leading-relaxed"
+                      renderLeaf={renderLeaf}
+                      renderElement={renderElement}
+                      placeholder={placeholder}
+                      readOnly={readOnly}
+                      onKeyDown={handleKeyDown}
+                      onClick={handleClick}
+                      spellCheck
+                    />
+                  </Slate>
+                </div>
+              </HiddenAnnotationsContext.Provider>
+            </CommentsContext.Provider>
           </HiddenSpeakersContext.Provider>
         </SpeakersContext.Provider>
       </AnnotationClickContext.Provider>

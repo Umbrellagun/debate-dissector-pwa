@@ -1,5 +1,17 @@
-import { Editor, Transforms, Element as SlateElement, Range, Text, Node, Path } from 'slate';
-import { CustomEditor, MarkType, BlockType, CustomElement, FallacyMark, RhetoricMark, StructuralMark, CommentMark, CustomText, ParagraphElement, BlockQuoteElement } from './types';
+import { Editor, Transforms, Element as SlateElement, Range, Node } from 'slate';
+import {
+  CustomEditor,
+  MarkType,
+  BlockType,
+  CustomElement,
+  FallacyMark,
+  RhetoricMark,
+  StructuralMark,
+  CommentMark,
+  CustomText,
+  ParagraphElement,
+  BlockQuoteElement,
+} from './types';
 
 /**
  * Check if a mark is active at the current selection
@@ -31,8 +43,7 @@ export function isBlockActive(editor: CustomEditor, blockType: BlockType): boole
   const [match] = Array.from(
     Editor.nodes(editor, {
       at: Editor.unhangRange(editor, selection),
-      match: (n) =>
-        !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === blockType,
+      match: n => !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === blockType,
     })
   );
 
@@ -49,7 +60,7 @@ export function toggleBlock(editor: CustomEditor, blockType: BlockType): void {
   Transforms.setNodes<CustomElement>(
     editor,
     { type: newType },
-    { match: (n) => SlateElement.isElement(n) && Editor.isBlock(editor, n) }
+    { match: n => SlateElement.isElement(n) && Editor.isBlock(editor, n) }
   );
 }
 
@@ -75,7 +86,7 @@ export function applyFallacyMark(
   // Get existing marks to preserve multiple fallacies
   const marks = Editor.marks(editor);
   const existingFallacyMarks: FallacyMark[] = marks?.fallacyMarks || [];
-  
+
   // Check if this fallacy is already applied - if so, remove it (toggle)
   const alreadyApplied = existingFallacyMarks.some(m => m.fallacyId === fallacyId);
   if (alreadyApplied) {
@@ -106,7 +117,7 @@ export function applyFallacyMark(
   // Add to the array of fallacy marks
   const updatedMarks = [...existingFallacyMarks, newMark];
   Editor.addMark(editor, 'fallacyMarks', updatedMarks);
-  
+
   // Also set the primary display color (latest fallacy)
   Editor.addMark(editor, 'fallacyId', fallacyId);
   Editor.addMark(editor, 'fallacyColor', fallacyColor);
@@ -147,7 +158,7 @@ export function applyRhetoricMark(
   // Get existing marks to preserve multiple rhetoric techniques
   const marks = Editor.marks(editor);
   const existingRhetoricMarks: RhetoricMark[] = marks?.rhetoricMarks || [];
-  
+
   // Check if this rhetoric is already applied - if so, remove it (toggle)
   const alreadyApplied = existingRhetoricMarks.some(m => m.rhetoricId === rhetoricId);
   if (alreadyApplied) {
@@ -209,11 +220,11 @@ export function applyStructuralMark(
   // Get existing marks to preserve multiple structural marks
   const marks = Editor.marks(editor);
   const existingStructuralMarks: StructuralMark[] = marks?.structuralMarks || [];
-  
+
   // Check if this markup is already applied
   const existingMarkIndex = existingStructuralMarks.findIndex(m => m.markupId === markupId);
   const alreadyApplied = existingMarkIndex !== -1;
-  
+
   if (alreadyApplied) {
     // Check if metadata is provided (could be with values, or empty to clear)
     if (metadata !== undefined) {
@@ -231,7 +242,7 @@ export function applyStructuralMark(
         end: endOffset.offset,
       };
     }
-    
+
     // No metadata provided (undefined) - toggle OFF (remove) the markup
     const updatedMarks = existingStructuralMarks.filter(m => m.markupId !== markupId);
     if (updatedMarks.length === 0) {
@@ -244,10 +255,10 @@ export function applyStructuralMark(
 
   // Mutually exclusive markup pairs - applying one removes the other
   const mutuallyExclusive: Record<string, string> = {
-    'claim': 'unsupported',
-    'unsupported': 'claim',
+    claim: 'unsupported',
+    unsupported: 'claim',
   };
-  
+
   // Remove conflicting markup if present
   let filteredMarks = existingStructuralMarks;
   const conflicting = mutuallyExclusive[markupId];
@@ -284,9 +295,7 @@ export function removeStructuralMark(editor: CustomEditor): void {
 /**
  * Get structural marks at current cursor position
  */
-export function getStructuralMarksAtSelection(
-  editor: CustomEditor
-): StructuralMark[] {
+export function getStructuralMarksAtSelection(editor: CustomEditor): StructuralMark[] {
   const marks = Editor.marks(editor);
   return marks?.structuralMarks || [];
 }
@@ -342,7 +351,9 @@ export function removeCommentMark(editor: CustomEditor, commentId: string): void
       if (updatedMarks.length === 0) {
         Transforms.unsetNodes(editor, 'commentMarks', { at: path });
       } else {
-        Transforms.setNodes(editor, { commentMarks: updatedMarks } as Partial<CustomText>, { at: path });
+        Transforms.setNodes(editor, { commentMarks: updatedMarks } as Partial<CustomText>, {
+          at: path,
+        });
       }
     }
   }
@@ -351,9 +362,7 @@ export function removeCommentMark(editor: CustomEditor, commentId: string): void
 /**
  * Get comment marks at current cursor position
  */
-export function getCommentMarksAtSelection(
-  editor: CustomEditor
-): CommentMark[] {
+export function getCommentMarksAtSelection(editor: CustomEditor): CommentMark[] {
   const marks = Editor.marks(editor);
   return marks?.commentMarks || [];
 }
@@ -453,9 +462,7 @@ export function getAllAnnotations(
 /**
  * Count annotations by fallacy type
  */
-export function countAnnotationsByFallacy(
-  editor: CustomEditor
-): Record<string, number> {
+export function countAnnotationsByFallacy(editor: CustomEditor): Record<string, number> {
   const counts: Record<string, number> = {};
 
   const textNodes = Array.from(Node.texts(editor));
@@ -472,17 +479,14 @@ export function countAnnotationsByFallacy(
 /**
  * Find and select the next annotation in the document
  */
-export function selectNextAnnotation(
-  editor: CustomEditor,
-  currentFallacyId?: string
-): boolean {
+export function selectNextAnnotation(editor: CustomEditor, currentFallacyId?: string): boolean {
   const { selection } = editor;
   let foundCurrent = !selection;
   const textNodes = Array.from(Node.texts(editor));
-  
+
   for (const [node, path] of textNodes) {
     const textNode = node as CustomText;
-    
+
     if (selection && !foundCurrent) {
       const nodeRange = Editor.range(editor, path);
       if (Range.includes(nodeRange, selection.anchor)) {
@@ -490,7 +494,7 @@ export function selectNextAnnotation(
         continue;
       }
     }
-    
+
     if (foundCurrent && textNode.fallacyId) {
       if (!currentFallacyId || textNode.fallacyId === currentFallacyId) {
         const range = Editor.range(editor, path);
@@ -518,10 +522,7 @@ export function selectNextAnnotation(
 /**
  * Find and select the previous annotation in the document
  */
-export function selectPreviousAnnotation(
-  editor: CustomEditor,
-  currentFallacyId?: string
-): boolean {
+export function selectPreviousAnnotation(editor: CustomEditor, currentFallacyId?: string): boolean {
   const { selection } = editor;
   const allAnnotations: Array<{ path: number[]; fallacyId: string }> = [];
   const textNodes = Array.from(Node.texts(editor));
@@ -571,27 +572,23 @@ export function assignSpeakerToSelection(
   const blocks = Array.from(
     Editor.nodes(editor, {
       at: selection,
-      match: (n) => 
-        SlateElement.isElement(n) && 
-        (n.type === 'paragraph' || n.type === 'block-quote'),
+      match: n => SlateElement.isElement(n) && (n.type === 'paragraph' || n.type === 'block-quote'),
     })
   );
 
   // Update each block with the speaker ID
   for (const [node, path] of blocks) {
     const currentSpeakerId = (node as ParagraphElement | BlockQuoteElement).speakerId;
-    
+
     // If toggle mode and same speaker, remove it
     if (toggle && speakerId !== null && currentSpeakerId === speakerId) {
       Transforms.unsetNodes(editor, 'speakerId', { at: path });
     } else if (speakerId === null) {
       Transforms.unsetNodes(editor, 'speakerId', { at: path });
     } else {
-      Transforms.setNodes(
-        editor,
-        { speakerId } as Partial<ParagraphElement | BlockQuoteElement>,
-        { at: path }
-      );
+      Transforms.setNodes(editor, { speakerId } as Partial<ParagraphElement | BlockQuoteElement>, {
+        at: path,
+      });
     }
   }
 }
@@ -606,7 +603,7 @@ export function getSpeakerAtSelection(editor: CustomEditor): string | null {
   const [match] = Array.from(
     Editor.nodes(editor, {
       at: selection,
-      match: (n) =>
+      match: n =>
         SlateElement.isElement(n) &&
         (n.type === 'paragraph' || n.type === 'block-quote') &&
         'speakerId' in n,
@@ -630,7 +627,7 @@ export function getUsedSpeakerIds(editor: CustomEditor): string[] {
   const blocks = Array.from(
     Editor.nodes(editor, {
       at: [],
-      match: (n) =>
+      match: n =>
         SlateElement.isElement(n) &&
         (n.type === 'paragraph' || n.type === 'block-quote') &&
         'speakerId' in n &&

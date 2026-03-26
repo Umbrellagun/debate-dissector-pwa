@@ -75,7 +75,10 @@ function extractTextNodes(content: Descendant[]): CustomText[] {
 /**
  * Calculate comprehensive annotation statistics from document content
  */
-export function calculateAnnotationStats(content: Descendant[], speakers?: Speaker[]): AnnotationStats {
+export function calculateAnnotationStats(
+  content: Descendant[],
+  speakers?: Speaker[]
+): AnnotationStats {
   const textNodes = extractTextNodes(content);
 
   let totalCharacters = 0;
@@ -237,11 +240,17 @@ function calculateSpeakerStats(content: Descendant[], speakers: Speaker[]): Spea
     const element = node as CustomElement;
     if (!('children' in element)) continue;
 
-    const speakerId = ('speakerId' in element) ? element.speakerId : undefined;
+    const speakerId = 'speakerId' in element ? element.speakerId : undefined;
     if (!speakerId) continue;
 
     if (!speakerMap[speakerId]) {
-      speakerMap[speakerId] = { charCount: 0, annotatedCharacters: 0, paragraphCount: 0, allMarkIds: new Set(), annotationInstances: {} };
+      speakerMap[speakerId] = {
+        charCount: 0,
+        annotatedCharacters: 0,
+        paragraphCount: 0,
+        allMarkIds: new Set(),
+        annotationInstances: {},
+      };
     }
 
     speakerMap[speakerId].paragraphCount += 1;
@@ -301,28 +310,39 @@ function calculateSpeakerStats(content: Descendant[], speakers: Speaker[]): Spea
 
     const annotationBreakdown: SpeakerAnnotationDetail[] = [];
     for (const [compositeKey, markIds] of Object.entries(data.annotationInstances)) {
-      const [type, annotationId] = compositeKey.split(':') as ['fallacy' | 'rhetoric' | 'structural', string];
+      const [type, annotationId] = compositeKey.split(':') as [
+        'fallacy' | 'rhetoric' | 'structural',
+        string,
+      ];
       let name = annotationId;
       let color = '#9CA3AF';
 
       if (type === 'fallacy') {
         const f = FALLACIES.find(x => x.id === annotationId);
-        if (f) { name = f.name; color = f.color; }
+        if (f) {
+          name = f.name;
+          color = f.color;
+        }
       } else if (type === 'rhetoric') {
         const r = RHETORIC_TECHNIQUES.find(x => x.id === annotationId);
-        if (r) { name = r.name; color = r.color; }
+        if (r) {
+          name = r.name;
+          color = r.color;
+        }
       } else {
         const s = STRUCTURAL_MARKUPS.find(x => x.id === annotationId);
-        if (s) { name = s.name; color = s.color; }
+        if (s) {
+          name = s.name;
+          color = s.color;
+        }
       }
 
       annotationBreakdown.push({ id: annotationId, name, color, type, count: markIds.size });
     }
     annotationBreakdown.sort((a, b) => b.count - a.count);
 
-    const coveragePercent = data.charCount > 0
-      ? Math.round((data.annotatedCharacters / data.charCount) * 100)
-      : 0;
+    const coveragePercent =
+      data.charCount > 0 ? Math.round((data.annotatedCharacters / data.charCount) * 100) : 0;
 
     result.push({
       id,

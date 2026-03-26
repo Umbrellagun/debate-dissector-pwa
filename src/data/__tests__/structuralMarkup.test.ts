@@ -1,5 +1,5 @@
-import { 
-  STRUCTURAL_MARKUPS, 
+import {
+  STRUCTURAL_MARKUPS,
   STRUCTURAL_MARKUP_CATEGORIES,
   getStructuralMarkupById,
   getStructuralMarkupsByIds,
@@ -63,9 +63,7 @@ describe('STRUCTURAL_MARKUPS data', () => {
     });
 
     it('should have unique keyboard shortcuts where defined', () => {
-      const shortcuts = STRUCTURAL_MARKUPS
-        .filter(m => m.shortcut)
-        .map(m => m.shortcut);
+      const shortcuts = STRUCTURAL_MARKUPS.filter(m => m.shortcut).map(m => m.shortcut);
       const uniqueShortcuts = new Set(shortcuts);
       expect(uniqueShortcuts.size).toBe(shortcuts.length);
     });
@@ -73,10 +71,15 @@ describe('STRUCTURAL_MARKUPS data', () => {
 
   describe('expected markup types', () => {
     const expectedTypes: StructuralMarkupType[] = [
-      'claim', 'evidence', 'unsupported', 'statistic', 'quote', 'anecdote',
+      'claim',
+      'evidence',
+      'unsupported',
+      'statistic',
+      'quote',
+      'anecdote',
     ];
 
-    it.each(expectedTypes)('should include %s markup', (typeId) => {
+    it.each(expectedTypes)('should include %s markup', typeId => {
       const found = STRUCTURAL_MARKUPS.find(m => m.id === typeId);
       expect(found).toBeDefined();
     });

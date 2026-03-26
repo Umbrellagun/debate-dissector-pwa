@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { AnnotationStats, AnnotationCount, SpeakerStat, SpeakerAnnotationDetail } from '../../utils/annotationStats';
+import {
+  AnnotationStats,
+  AnnotationCount,
+  SpeakerStat,
+  SpeakerAnnotationDetail,
+} from '../../utils/annotationStats';
 import { trackAnalyticsEvent } from '../../hooks/useAnalytics';
 
 interface AnnotationStatsPanelProps {
@@ -37,7 +42,7 @@ const PieChart: React.FC<{ slices: PieSlice[]; size?: number }> = ({ slices, siz
 
   const paths = slices
     .filter(s => s.value > 0)
-    .map((slice) => {
+    .map(slice => {
       const startAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
       cumulative += slice.value;
       const endAngle = (cumulative / total) * 2 * Math.PI - Math.PI / 2;
@@ -51,9 +56,7 @@ const PieChart: React.FC<{ slices: PieSlice[]; size?: number }> = ({ slices, siz
 
       // If this is the only slice (100%), draw a full circle
       if (slice.value === total) {
-        return (
-          <circle key={slice.label} cx={cx} cy={cy} r={radius} fill={slice.color} />
-        );
+        return <circle key={slice.label} cx={cx} cy={cy} r={radius} fill={slice.color} />;
       }
 
       const d = `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
@@ -77,31 +80,40 @@ const PieChart: React.FC<{ slices: PieSlice[]; size?: number }> = ({ slices, siz
 
 // --- Horizontal bar ---
 
-const Bar: React.FC<{ 
-  label: string; 
-  value: number; 
-  max: number; 
-  color: string; 
+const Bar: React.FC<{
+  label: string;
+  value: number;
+  max: number;
+  color: string;
   suffix?: string;
 }> = ({ label, value, max, color, suffix = '' }) => {
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-gray-600 w-28 truncate" title={label}>{label}</span>
+      <span className="text-xs text-gray-600 w-28 truncate" title={label}>
+        {label}
+      </span>
       <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${Math.max(pct, 1)}%`, backgroundColor: color }}
         />
       </div>
-      <span className="text-xs font-medium text-gray-700 w-12 text-right">{value}{suffix}</span>
+      <span className="text-xs font-medium text-gray-700 w-12 text-right">
+        {value}
+        {suffix}
+      </span>
     </div>
   );
 };
 
 // --- Coverage ring ---
 
-const CoverageRing: React.FC<{ percent: number; label: string; color: string }> = ({ percent, label, color }) => {
+const CoverageRing: React.FC<{ percent: number; label: string; color: string }> = ({
+  percent,
+  label,
+  color,
+}) => {
   const circumference = 2 * Math.PI * 20;
   const dashOffset = circumference - (percent / 100) * circumference;
 
@@ -110,7 +122,9 @@ const CoverageRing: React.FC<{ percent: number; label: string; color: string }> 
       <svg width="52" height="52" viewBox="0 0 52 52">
         <circle cx="26" cy="26" r="20" fill="none" stroke="#E5E7EB" strokeWidth="5" />
         <circle
-          cx="26" cy="26" r="20"
+          cx="26"
+          cy="26"
+          r="20"
           fill="none"
           stroke={color}
           strokeWidth="5"
@@ -133,7 +147,7 @@ const CoverageRing: React.FC<{ percent: number; label: string; color: string }> 
 
 export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
   stats,
-  documentTitle,
+  documentTitle: _documentTitle,
   onClose,
   onAnnotationClick,
 }) => {
@@ -153,16 +167,19 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
     pieSlices.push({ label: 'Rhetoric', value: stats.rhetoricCoverage, color: '#3B82F6' });
   }
   if (stats.structuralCoverage > 0) {
-    pieSlices.push({ label: 'Claims & Evidence', value: stats.structuralCoverage, color: '#8B5CF6' });
+    pieSlices.push({
+      label: 'Claims & Evidence',
+      value: stats.structuralCoverage,
+      color: '#8B5CF6',
+    });
   }
   const unannotatedPct = 100 - stats.coveragePercent;
   if (unannotatedPct > 0) {
     pieSlices.push({ label: 'Unannotated', value: unannotatedPct, color: '#E5E7EB' });
   }
 
-  const maxCharCount = stats.breakdown.length > 0
-    ? Math.max(...stats.breakdown.map(b => b.charCount))
-    : 0;
+  const maxCharCount =
+    stats.breakdown.length > 0 ? Math.max(...stats.breakdown.map(b => b.charCount)) : 0;
 
   const fallacyBreakdown = stats.breakdown.filter(b => b.type === 'fallacy');
   const rhetoricBreakdown = stats.breakdown.filter(b => b.type === 'rhetoric');
@@ -173,8 +190,18 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
       {/* Header */}
       <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h2v8H3zm6-4h2v12H9zm6-6h2v18h-2zm6 10h2v8h-2z" />
+          <svg
+            className="w-5 h-5 text-indigo-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3 13h2v8H3zm6-4h2v12H9zm6-6h2v18h-2zm6 10h2v8h-2z"
+            />
           </svg>
           <h2 className="font-semibold text-gray-900">Statistics</h2>
         </div>
@@ -184,8 +211,18 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
             className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
             aria-label="Close statistics"
           >
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}
@@ -219,8 +256,18 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         {stats.totalCharacters === 0 ? (
           <div className="text-center py-8">
-            <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-12 h-12 mx-auto text-gray-300 mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             <p className="text-sm text-gray-500">No content to analyze.</p>
             <p className="text-xs text-gray-400 mt-1">Start writing or paste debate text.</p>
@@ -232,12 +279,17 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
               <PieChart slices={pieSlices} />
               {/* Legend */}
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-3">
-                {pieSlices.filter(s => s.label !== 'Unannotated').map(s => (
-                  <div key={s.label} className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                    <span className="text-xs text-gray-600">{s.label}</span>
-                  </div>
-                ))}
+                {pieSlices
+                  .filter(s => s.label !== 'Unannotated')
+                  .map(s => (
+                    <div key={s.label} className="flex items-center gap-1.5">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: s.color }}
+                      />
+                      <span className="text-xs text-gray-600">{s.label}</span>
+                    </div>
+                  ))}
               </div>
             </div>
 
@@ -252,14 +304,18 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
                 <div className="text-xs text-gray-500">Coverage</div>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold text-gray-900">{stats.totalCharacters.toLocaleString()}</div>
+                <div className="text-xl font-bold text-gray-900">
+                  {stats.totalCharacters.toLocaleString()}
+                </div>
                 <div className="text-xs text-gray-500">Characters</div>
               </div>
             </div>
 
             {/* Coverage by type rings */}
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Coverage by Type</h3>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Coverage by Type
+              </h3>
               <div className="flex justify-around">
                 <CoverageRing percent={stats.fallacyCoverage} label="Fallacies" color="#EF4444" />
                 <CoverageRing percent={stats.rhetoricCoverage} label="Rhetoric" color="#3B82F6" />
@@ -269,21 +325,44 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
 
             {/* Instance counts */}
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Instance Counts</h3>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Instance Counts
+              </h3>
               <div className="space-y-2">
-                <Bar label="Fallacies" value={stats.fallacyCount} max={stats.totalAnnotations} color="#EF4444" />
-                <Bar label="Rhetoric" value={stats.rhetoricCount} max={stats.totalAnnotations} color="#3B82F6" />
-                <Bar label="Claims & Evidence" value={stats.structuralCount} max={stats.totalAnnotations} color="#8B5CF6" />
+                <Bar
+                  label="Fallacies"
+                  value={stats.fallacyCount}
+                  max={stats.totalAnnotations}
+                  color="#EF4444"
+                />
+                <Bar
+                  label="Rhetoric"
+                  value={stats.rhetoricCount}
+                  max={stats.totalAnnotations}
+                  color="#3B82F6"
+                />
+                <Bar
+                  label="Claims & Evidence"
+                  value={stats.structuralCount}
+                  max={stats.totalAnnotations}
+                  color="#8B5CF6"
+                />
               </div>
             </div>
 
             {/* Speaker stats */}
             {stats.speakerStats.length > 0 && (
               <div>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">By Speaker</h3>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  By Speaker
+                </h3>
                 <div className="space-y-3">
                   {stats.speakerStats.map(speaker => (
-                    <SpeakerStatRow key={speaker.id} speaker={speaker} totalChars={stats.totalCharacters} />
+                    <SpeakerStatRow
+                      key={speaker.id}
+                      speaker={speaker}
+                      totalChars={stats.totalCharacters}
+                    />
                   ))}
                 </div>
               </div>
@@ -305,7 +384,13 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
                     </h4>
                     <div className="space-y-1.5">
                       {fallacyBreakdown.map(item => (
-                        <BreakdownRow key={item.id} item={item} maxCharCount={maxCharCount} totalChars={stats.totalCharacters} onClick={onAnnotationClick} />
+                        <BreakdownRow
+                          key={item.id}
+                          item={item}
+                          maxCharCount={maxCharCount}
+                          totalChars={stats.totalCharacters}
+                          onClick={onAnnotationClick}
+                        />
                       ))}
                     </div>
                   </div>
@@ -318,7 +403,13 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
                     </h4>
                     <div className="space-y-1.5">
                       {rhetoricBreakdown.map(item => (
-                        <BreakdownRow key={item.id} item={item} maxCharCount={maxCharCount} totalChars={stats.totalCharacters} onClick={onAnnotationClick} />
+                        <BreakdownRow
+                          key={item.id}
+                          item={item}
+                          maxCharCount={maxCharCount}
+                          totalChars={stats.totalCharacters}
+                          onClick={onAnnotationClick}
+                        />
                       ))}
                     </div>
                   </div>
@@ -331,7 +422,13 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
                     </h4>
                     <div className="space-y-1.5">
                       {structuralBreakdown.map(item => (
-                        <BreakdownRow key={item.id} item={item} maxCharCount={maxCharCount} totalChars={stats.totalCharacters} onClick={onAnnotationClick} />
+                        <BreakdownRow
+                          key={item.id}
+                          item={item}
+                          maxCharCount={maxCharCount}
+                          totalChars={stats.totalCharacters}
+                          onClick={onAnnotationClick}
+                        />
                       ))}
                     </div>
                   </div>
@@ -340,58 +437,69 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
             )}
 
             {/* Per-speaker breakdown */}
-            {stats.speakerStats.length > 0 && stats.speakerStats.some(s => s.annotationBreakdown.length > 0) && (
-              <div className="border-t-2 border-gray-300 pt-4">
-                <h3 className="text-xs font-semibold text-gray-800 uppercase tracking-wider mb-3">
-                  By Speaker
-                </h3>
-                <div className="space-y-3">
-                  {stats.speakerStats.filter(s => s.annotationBreakdown.length > 0).map(speaker => (
-                    <SpeakerBreakdownCard
-                      key={speaker.id}
-                      speaker={speaker}
-                      onAnnotationClick={onAnnotationClick}
-                    />
-                  ))}
+            {stats.speakerStats.length > 0 &&
+              stats.speakerStats.some(s => s.annotationBreakdown.length > 0) && (
+                <div className="border-t-2 border-gray-300 pt-4">
+                  <h3 className="text-xs font-semibold text-gray-800 uppercase tracking-wider mb-3">
+                    By Speaker
+                  </h3>
+                  <div className="space-y-3">
+                    {stats.speakerStats
+                      .filter(s => s.annotationBreakdown.length > 0)
+                      .map(speaker => (
+                        <SpeakerBreakdownCard
+                          key={speaker.id}
+                          speaker={speaker}
+                          onAnnotationClick={onAnnotationClick}
+                        />
+                      ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {stats.breakdown.length === 0 && (
               <div className="text-center py-6">
                 <p className="text-sm text-gray-500">No annotations yet.</p>
-                <p className="text-xs text-gray-400 mt-1">Select text and apply annotations to see breakdown.</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Select text and apply annotations to see breakdown.
+                </p>
               </div>
             )}
           </>
         )}
       </div>
-
     </div>
   );
 };
 
 // --- Speaker stat row ---
 
-const SpeakerStatRow: React.FC<{ speaker: SpeakerStat; totalChars: number }> = ({ speaker, totalChars }) => {
+const SpeakerStatRow: React.FC<{ speaker: SpeakerStat; totalChars: number }> = ({
+  speaker,
+  totalChars,
+}) => {
   const pct = totalChars > 0 ? Math.round((speaker.charCount / totalChars) * 100) : 0;
 
   // Build stacked bar: colored segments fill only the coverage portion, rest is gray
   const coverage = speaker.coveragePercent;
   const totalCount = speaker.annotationBreakdown.reduce((s, a) => s + a.count, 0);
-  const segments = totalCount > 0
-    ? speaker.annotationBreakdown.map(a => ({
-        color: a.color,
-        // Each segment's width is its share of the covered portion
-        pct: (a.count / totalCount) * coverage,
-        name: a.name,
-      }))
-    : [];
+  const segments =
+    totalCount > 0
+      ? speaker.annotationBreakdown.map(a => ({
+          color: a.color,
+          // Each segment's width is its share of the covered portion
+          pct: (a.count / totalCount) * coverage,
+          name: a.name,
+        }))
+      : [];
 
   return (
     <div className="bg-gray-50 rounded-lg p-3">
       <div className="flex items-center gap-2 mb-2">
-        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: speaker.color }} />
+        <span
+          className="w-3 h-3 rounded-full shrink-0"
+          style={{ backgroundColor: speaker.color }}
+        />
         <span className="text-sm font-medium text-gray-800">{speaker.name}</span>
         <span className="text-xs text-gray-400 ml-auto">{pct}% of text</span>
       </div>
@@ -413,8 +521,12 @@ const SpeakerStatRow: React.FC<{ speaker: SpeakerStat; totalChars: number }> = (
       <div className="flex gap-4 text-xs text-gray-500">
         <span>{speaker.charCount.toLocaleString()} chars</span>
         <span>{speaker.coveragePercent}% annotated</span>
-        <span>{speaker.paragraphCount} paragraph{speaker.paragraphCount !== 1 ? 's' : ''}</span>
-        <span>{speaker.annotationCount} annotation{speaker.annotationCount !== 1 ? 's' : ''}</span>
+        <span>
+          {speaker.paragraphCount} paragraph{speaker.paragraphCount !== 1 ? 's' : ''}
+        </span>
+        <span>
+          {speaker.annotationCount} annotation{speaker.annotationCount !== 1 ? 's' : ''}
+        </span>
       </div>
     </div>
   );
@@ -429,16 +541,22 @@ const SpeakerBreakdownCard: React.FC<{
   const fallacies = speaker.annotationBreakdown.filter(a => a.type === 'fallacy');
   const rhetoric = speaker.annotationBreakdown.filter(a => a.type === 'rhetoric');
   const structural = speaker.annotationBreakdown.filter(a => a.type === 'structural');
-  const maxCount = speaker.annotationBreakdown.length > 0
-    ? Math.max(...speaker.annotationBreakdown.map(a => a.count))
-    : 0;
+  const maxCount =
+    speaker.annotationBreakdown.length > 0
+      ? Math.max(...speaker.annotationBreakdown.map(a => a.count))
+      : 0;
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200">
-        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: speaker.color }} />
+        <span
+          className="w-2.5 h-2.5 rounded-full shrink-0"
+          style={{ backgroundColor: speaker.color }}
+        />
         <span className="text-xs font-semibold text-gray-700">{speaker.name}</span>
-        <span className="text-xs text-gray-400 ml-auto">{speaker.annotationBreakdown.reduce((s, a) => s + a.count, 0)} total</span>
+        <span className="text-xs text-gray-400 ml-auto">
+          {speaker.annotationBreakdown.reduce((s, a) => s + a.count, 0)} total
+        </span>
       </div>
       <div className="px-3 py-2 space-y-2">
         {fallacies.length > 0 && (
@@ -446,7 +564,12 @@ const SpeakerBreakdownCard: React.FC<{
             <span className="text-[10px] font-medium text-red-500 uppercase">Fallacies</span>
             <div className="space-y-1 mt-0.5">
               {fallacies.map(a => (
-                <SpeakerAnnotationRow key={a.id} item={a} maxCount={maxCount} onClick={onAnnotationClick} />
+                <SpeakerAnnotationRow
+                  key={a.id}
+                  item={a}
+                  maxCount={maxCount}
+                  onClick={onAnnotationClick}
+                />
               ))}
             </div>
           </div>
@@ -456,17 +579,29 @@ const SpeakerBreakdownCard: React.FC<{
             <span className="text-[10px] font-medium text-blue-500 uppercase">Rhetoric</span>
             <div className="space-y-1 mt-0.5">
               {rhetoric.map(a => (
-                <SpeakerAnnotationRow key={a.id} item={a} maxCount={maxCount} onClick={onAnnotationClick} />
+                <SpeakerAnnotationRow
+                  key={a.id}
+                  item={a}
+                  maxCount={maxCount}
+                  onClick={onAnnotationClick}
+                />
               ))}
             </div>
           </div>
         )}
         {structural.length > 0 && (
           <div>
-            <span className="text-[10px] font-medium text-purple-500 uppercase">Claims & Evidence</span>
+            <span className="text-[10px] font-medium text-purple-500 uppercase">
+              Claims & Evidence
+            </span>
             <div className="space-y-1 mt-0.5">
               {structural.map(a => (
-                <SpeakerAnnotationRow key={a.id} item={a} maxCount={maxCount} onClick={onAnnotationClick} />
+                <SpeakerAnnotationRow
+                  key={a.id}
+                  item={a}
+                  maxCount={maxCount}
+                  onClick={onAnnotationClick}
+                />
               ))}
             </div>
           </div>
@@ -494,16 +629,25 @@ const SpeakerAnnotationRow: React.FC<{
       title={isClickable ? `View ${item.name} in annotation panel` : item.name}
     >
       <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-      <span className="text-[11px] text-gray-600 w-20 truncate text-left" title={item.name}>{item.name}</span>
+      <span className="text-[11px] text-gray-600 w-20 truncate text-left" title={item.name}>
+        {item.name}
+      </span>
       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${Math.max(barPct, 4)}%`, backgroundColor: item.color }}
         />
       </div>
-      <span className="text-[11px] font-medium text-gray-500 w-6 text-right shrink-0">{item.count}x</span>
+      <span className="text-[11px] font-medium text-gray-500 w-6 text-right shrink-0">
+        {item.count}x
+      </span>
       {isClickable && (
-        <svg className="w-3 h-3 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-3 h-3 text-gray-300 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       )}
@@ -533,7 +677,9 @@ const BreakdownRow: React.FC<{
       title={isClickable ? `View ${item.name} in annotation panel` : item.name}
     >
       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-      <span className="text-xs text-gray-700 w-24 truncate text-left" title={item.name}>{item.name}</span>
+      <span className="text-xs text-gray-700 w-24 truncate text-left" title={item.name}>
+        {item.name}
+      </span>
       <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
@@ -545,7 +691,12 @@ const BreakdownRow: React.FC<{
         <span className="text-xs text-gray-400">{pct}%</span>
       </div>
       {isClickable && (
-        <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-3.5 h-3.5 text-gray-400 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       )}

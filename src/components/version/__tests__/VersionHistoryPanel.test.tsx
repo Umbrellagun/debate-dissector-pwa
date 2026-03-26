@@ -57,7 +57,7 @@ describe('VersionHistoryPanel', () => {
 
   it('loads and displays versions', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('First Version')).toBeInTheDocument();
       expect(screen.getByText('Second Version')).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('VersionHistoryPanel', () => {
   it('shows empty state when no versions exist', async () => {
     (storage.getVersions as jest.Mock).mockResolvedValue([]);
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('No version history yet')).toBeInTheDocument();
     });
@@ -75,7 +75,7 @@ describe('VersionHistoryPanel', () => {
 
   it('displays version labels when present', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Auto-save')).toBeInTheDocument();
     });
@@ -83,7 +83,7 @@ describe('VersionHistoryPanel', () => {
 
   it('shows relative time for recent versions', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('1 min ago')).toBeInTheDocument();
       expect(screen.getByText('1 hour ago')).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe('VersionHistoryPanel', () => {
 
   it('calls onClose when close button is clicked', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('First Version')).toBeInTheDocument();
     });
@@ -106,14 +106,14 @@ describe('VersionHistoryPanel', () => {
 
   it('calls onRestore when restore button is clicked', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('First Version')).toBeInTheDocument();
     });
 
     const restoreButtons = screen.getAllByTitle('Restore this version');
     fireEvent.click(restoreButtons[0]);
-    
+
     expect(window.confirm).toHaveBeenCalled();
     expect(defaultProps.onRestore).toHaveBeenCalledWith(mockVersions[0]);
   });
@@ -121,27 +121,27 @@ describe('VersionHistoryPanel', () => {
   it('does not restore if confirm is cancelled', async () => {
     window.confirm = jest.fn(() => false);
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('First Version')).toBeInTheDocument();
     });
 
     const restoreButtons = screen.getAllByTitle('Restore this version');
     fireEvent.click(restoreButtons[0]);
-    
+
     expect(defaultProps.onRestore).not.toHaveBeenCalled();
   });
 
   it('calls deleteVersion when delete button is clicked', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('First Version')).toBeInTheDocument();
     });
 
     const deleteButtons = screen.getAllByTitle('Delete this version');
     fireEvent.click(deleteButtons[0]);
-    
+
     expect(window.confirm).toHaveBeenCalled();
     expect(storage.deleteVersion).toHaveBeenCalledWith('version-1');
   });
@@ -149,20 +149,20 @@ describe('VersionHistoryPanel', () => {
   it('does not delete if confirm is cancelled', async () => {
     window.confirm = jest.fn(() => false);
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('First Version')).toBeInTheDocument();
     });
 
     const deleteButtons = screen.getAllByTitle('Delete this version');
     fireEvent.click(deleteButtons[0]);
-    
+
     expect(storage.deleteVersion).not.toHaveBeenCalled();
   });
 
   it('extracts preview text from version content', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('Hello world')).toBeInTheDocument();
       expect(screen.getByText('Updated content here')).toBeInTheDocument();
@@ -176,7 +176,7 @@ describe('VersionHistoryPanel', () => {
 
   it('highlights selected version', async () => {
     render(<VersionHistoryPanel {...defaultProps} />);
-    
+
     await waitFor(() => {
       expect(screen.getByText('First Version')).toBeInTheDocument();
     });
