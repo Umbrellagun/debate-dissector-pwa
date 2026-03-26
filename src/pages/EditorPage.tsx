@@ -265,6 +265,7 @@ export const EditorPage: React.FC = () => {
     } else {
       setHiddenAnnotationIds({ fallacyIds: [], rhetoricIds: [], structuralIds: [] });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDoc?.id]);
 
   // Persist hidden annotation IDs back to document when they change
@@ -1107,6 +1108,7 @@ export const EditorPage: React.FC = () => {
         text?: string;
         fallacyMarks?: { fallacyId: string; appliedAt?: number }[];
         rhetoricMarks?: { rhetoricId: string; appliedAt?: number }[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         structuralMarks?: { markupId: string; metadata?: any }[];
       };
 

@@ -878,6 +878,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
 
     const renderLeaf = useCallback(
       (props: RenderLeafProps) => <Leaf {...props} />,
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [onFallacyClick, onRhetoricClick, onStructuralClick]
     );
     const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, []);

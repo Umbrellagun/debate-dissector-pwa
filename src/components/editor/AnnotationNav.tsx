@@ -19,6 +19,7 @@ export const AnnotationNav: React.FC<AnnotationNavProps> = ({
 
   const annotationCounts = useMemo(() => {
     return countAnnotationsByFallacy(editor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor.children]);
 
   const totalAnnotations = useMemo(() => {

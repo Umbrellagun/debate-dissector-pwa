@@ -145,6 +145,7 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
         isInitializing.current = false;
       }, 0);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStructuralId, selectedStructuralMetadata, structuralClickNonce, lastPopulatedKey]);
 
   // Auto-save citation changes with debounce - only when user has edited
@@ -235,6 +236,7 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
         setShowCitationForm(true);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controlledTab, selectedFallacyId, selectedRhetoricId, selectedStructuralId]);
 
   return (

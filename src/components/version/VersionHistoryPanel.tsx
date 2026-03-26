@@ -97,6 +97,7 @@ export const VersionHistoryPanel: React.FC<VersionHistoryPanelProps> = ({
 
   useEffect(() => {
     loadVersions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId]);
 
   const loadVersions = async () => {

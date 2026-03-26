@@ -62,6 +62,7 @@ export async function getShare(id: string): Promise<SharedDebate | null> {
   try {
     const record = await pb.collection('shared_debates').getOne(id);
     return record as unknown as SharedDebate;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error.status === 404) {
       return null;
