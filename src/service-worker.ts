@@ -48,8 +48,7 @@ registerRoute(
 
 // Cache CSS and JavaScript files
 registerRoute(
-  ({ request }) => request.destination === 'style' ||
-    request.destination === 'script',
+  ({ request }) => request.destination === 'style' || request.destination === 'script',
   new StaleWhileRevalidate({
     cacheName: 'static-resources',
     plugins: [
