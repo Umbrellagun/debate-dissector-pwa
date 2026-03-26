@@ -26,17 +26,22 @@ const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 let globalDeferredPrompt: BeforeInstallPromptEvent | null = null;
 
 export const useInstallPrompt = (): InstallPromptState => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(globalDeferredPrompt);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(
+    globalDeferredPrompt
+  );
   const [isInstalled, setIsInstalled] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
 
   // Check if running on iOS
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window & { MSStream?: unknown }).MSStream;
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+    !(window as Window & { MSStream?: unknown }).MSStream;
 
   // Check if app is installed (standalone mode)
   useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsInstalled(isStandalone);
   }, []);
 
@@ -59,7 +64,7 @@ export const useInstallPrompt = (): InstallPromptState => {
       const prompt = e as BeforeInstallPromptEvent;
       globalDeferredPrompt = prompt; // Store globally
       setDeferredPrompt(prompt);
-      
+
       // Check if we should show the prompt
       const dismissedAt = localStorage.getItem(DISMISS_KEY);
       if (!dismissedAt) {
@@ -102,11 +107,11 @@ export const useInstallPrompt = (): InstallPromptState => {
 
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
+
     if (outcome === 'accepted') {
       setIsInstalled(true);
     }
-    
+
     globalDeferredPrompt = null; // Clear global reference after use
     setDeferredPrompt(null);
     setShowPrompt(false);

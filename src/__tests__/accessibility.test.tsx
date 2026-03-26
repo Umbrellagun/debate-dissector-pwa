@@ -26,7 +26,8 @@ async function checkA11y(container: Element) {
 }
 
 function getFocusableElements(container: Element): HTMLElement[] {
-  const selectors = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  const selectors =
+    'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
   return Array.from(container.querySelectorAll(selectors));
 }
 
@@ -72,7 +73,7 @@ describe('Accessibility Tests', () => {
     it('should have accessible menu button', () => {
       const onMenuClick = jest.fn();
       render(<Header onMenuClick={onMenuClick} />);
-      
+
       const menuButton = screen.getByLabelText('Toggle menu');
       expect(menuButton).toBeInTheDocument();
       expect(menuButton).toHaveAttribute('aria-label');
@@ -81,7 +82,7 @@ describe('Accessibility Tests', () => {
     it('should have accessible back button', () => {
       const onBackClick = jest.fn();
       render(<Header onBackClick={onBackClick} />);
-      
+
       const backButton = screen.getByLabelText('Go back');
       expect(backButton).toBeInTheDocument();
     });
@@ -89,11 +90,11 @@ describe('Accessibility Tests', () => {
     it('menu button should be keyboard accessible', () => {
       const onMenuClick = jest.fn();
       render(<Header onMenuClick={onMenuClick} />);
-      
+
       const menuButton = screen.getByLabelText('Toggle menu');
       menuButton.focus();
       expect(document.activeElement).toBe(menuButton);
-      
+
       // Native buttons respond to click, which is triggered by keyboard in browsers
       fireEvent.click(menuButton);
       expect(onMenuClick).toHaveBeenCalled();
@@ -109,46 +110,38 @@ describe('Accessibility Tests', () => {
     });
 
     it('should have accessible search input', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const searchInput = screen.getByPlaceholderText('Search annotations...');
       expect(searchInput).toBeInTheDocument();
       expect(searchInput.tagName).toBe('INPUT');
     });
 
     it('should have accessible tab buttons', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const fallaciesTab = screen.getByText('Fallacies');
       const rhetoricTab = screen.getByText('Rhetoric');
-      
+
       expect(fallaciesTab.closest('button')).toBeInTheDocument();
       expect(rhetoricTab.closest('button')).toBeInTheDocument();
     });
 
     it('tabs should be keyboard navigable', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const fallaciesTab = screen.getByText('Fallacies').closest('button');
-      
+
       fallaciesTab?.focus();
       expect(document.activeElement).toBe(fallaciesTab);
-      
+
       // Tab buttons should be focusable and clickable
       expect(fallaciesTab).toBeInTheDocument();
     });
 
     it('hint dismiss button should be accessible', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const dismissButton = screen.getByLabelText('Dismiss hint');
       expect(dismissButton).toBeInTheDocument();
     });
@@ -156,32 +149,30 @@ describe('Accessibility Tests', () => {
 
   describe('FallacyPanel Component', () => {
     it('should have no axe violations', async () => {
-      const { container } = customRender(
-        <FallacyPanel fallacies={mockFallacies} />
-      );
+      const { container } = customRender(<FallacyPanel fallacies={mockFallacies} />);
       await checkA11y(container);
     });
 
     it('should have accessible search input', () => {
       customRender(<FallacyPanel fallacies={mockFallacies} />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search fallacies...');
       expect(searchInput).toBeInTheDocument();
     });
 
     it('category buttons should be keyboard accessible', () => {
       customRender(<FallacyPanel fallacies={mockFallacies} />);
-      
+
       const categoryButton = screen.getByText('Red Herring Fallacies');
       expect(categoryButton.closest('button')).toBeInTheDocument();
-      
+
       categoryButton.closest('button')?.focus();
       fireEvent.keyDown(categoryButton, { key: 'Enter' });
     });
 
     it('fallacy items should be focusable', () => {
       customRender(<FallacyPanel fallacies={mockFallacies} />);
-      
+
       const fallacyButton = screen.getByText('Ad Hominem');
       expect(fallacyButton.closest('button')).toBeInTheDocument();
     });
@@ -189,26 +180,24 @@ describe('Accessibility Tests', () => {
 
   describe('RhetoricPanel Component', () => {
     it('should have no axe violations', async () => {
-      const { container } = customRender(
-        <RhetoricPanel rhetoric={mockRhetoric} />
-      );
+      const { container } = customRender(<RhetoricPanel rhetoric={mockRhetoric} />);
       await checkA11y(container);
     });
 
     it('should have accessible search input', () => {
       customRender(<RhetoricPanel rhetoric={mockRhetoric} />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search rhetoric...');
       expect(searchInput).toBeInTheDocument();
     });
 
     it('rhetoric items should be focusable', () => {
       customRender(<RhetoricPanel rhetoric={mockRhetoric} />);
-      
+
       // Find and click the Ethos category button
       const categoryButton = screen.getByText('Ethos (Credibility)').closest('button');
       expect(categoryButton).toBeInTheDocument();
-      
+
       categoryButton?.focus();
       expect(document.activeElement).toBe(categoryButton);
     });
@@ -219,10 +208,10 @@ describe('Accessibility Tests', () => {
       const { container } = customRender(
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
-      
+
       const focusableElements = getFocusableElements(container);
       expect(focusableElements.length).toBeGreaterThan(0);
-      
+
       // First focusable should be search input
       expect(focusableElements[0].tagName).toBe('INPUT');
     });
@@ -232,11 +221,11 @@ describe('Accessibility Tests', () => {
       const { container } = customRender(
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
-      
+
       const focusableElements = getFocusableElements(container);
-      
+
       // All focusable elements should be able to receive focus
-      focusableElements.forEach((element) => {
+      focusableElements.forEach(element => {
         element.focus();
         expect(document.activeElement).toBe(element);
       });
@@ -245,10 +234,8 @@ describe('Accessibility Tests', () => {
 
   describe('ARIA Labels', () => {
     it('Header should have proper ARIA labels', () => {
-      const { container } = render(
-        <Header onMenuClick={() => {}} onBackClick={() => {}} />
-      );
-      
+      const { container } = render(<Header onMenuClick={() => {}} onBackClick={() => {}} />);
+
       const { valid, issues } = checkAriaLabels(container);
       if (!valid) {
         console.warn('ARIA issues in Header:', issues);
@@ -261,12 +248,12 @@ describe('Accessibility Tests', () => {
       const { container } = customRender(
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
-      
+
       const { valid, issues } = checkAriaLabels(container);
       if (!valid) {
         console.warn('ARIA issues in AnnotationPanel:', issues);
       }
-      
+
       // Search input should have placeholder as accessible name
       expect(screen.getByPlaceholderText('Search annotations...')).toBeInTheDocument();
     });
@@ -274,20 +261,16 @@ describe('Accessibility Tests', () => {
 
   describe('Form Inputs', () => {
     it('search inputs should be properly labeled', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const searchInput = screen.getByPlaceholderText('Search annotations...');
       expect(searchInput).toHaveAttribute('type', 'text');
       expect(searchInput).toHaveAttribute('placeholder');
     });
 
     it('search inputs should be focusable', () => {
-      customRender(
-        <FallacyPanel fallacies={mockFallacies} />
-      );
-      
+      customRender(<FallacyPanel fallacies={mockFallacies} />);
+
       const searchInput = screen.getByPlaceholderText('Search fallacies...');
       searchInput.focus();
       expect(document.activeElement).toBe(searchInput);
@@ -299,7 +282,7 @@ describe('Accessibility Tests', () => {
       const { container } = customRender(
         <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
       );
-      
+
       // Check that text elements exist with proper styling
       const textElements = container.querySelectorAll('[class*="text-gray"]');
       expect(textElements.length).toBeGreaterThan(0);
@@ -308,10 +291,8 @@ describe('Accessibility Tests', () => {
 
   describe('ARIA Expanded States', () => {
     it('accordion buttons should have aria-expanded attribute', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const fallaciesButton = screen.getByText('Fallacies').closest('button');
       expect(fallaciesButton).toHaveAttribute('aria-expanded');
       expect(fallaciesButton).toHaveAttribute('aria-controls', 'fallacies-panel');
@@ -319,7 +300,7 @@ describe('Accessibility Tests', () => {
 
     it('category buttons in FallacyPanel should have aria-expanded', () => {
       customRender(<FallacyPanel fallacies={mockFallacies} />);
-      
+
       const categoryButton = screen.getByText('Red Herring Fallacies').closest('button');
       expect(categoryButton).toHaveAttribute('aria-expanded');
       expect(categoryButton).toHaveAttribute('aria-controls');
@@ -327,22 +308,20 @@ describe('Accessibility Tests', () => {
 
     it('category buttons in RhetoricPanel should have aria-expanded', () => {
       customRender(<RhetoricPanel rhetoric={mockRhetoric} />);
-      
+
       const categoryButton = screen.getByText('Ethos (Credibility)').closest('button');
       expect(categoryButton).toHaveAttribute('aria-expanded');
       expect(categoryButton).toHaveAttribute('aria-controls');
     });
 
     it('aria-expanded should toggle when clicking accordion', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const fallaciesButton = screen.getByText('Fallacies').closest('button');
       const initialState = fallaciesButton?.getAttribute('aria-expanded');
-      
+
       fireEvent.click(fallaciesButton!);
-      
+
       const newState = fallaciesButton?.getAttribute('aria-expanded');
       expect(newState).not.toBe(initialState);
     });
@@ -351,14 +330,14 @@ describe('Accessibility Tests', () => {
   describe('Live Regions', () => {
     it('FallacyPanel should have aria-live region for search results', () => {
       const { container } = customRender(<FallacyPanel fallacies={mockFallacies} />);
-      
+
       const liveRegion = container.querySelector('[role="status"][aria-live="polite"]');
       expect(liveRegion).toBeInTheDocument();
     });
 
     it('RhetoricPanel should have aria-live region for search results', () => {
       const { container } = customRender(<RhetoricPanel rhetoric={mockRhetoric} />);
-      
+
       const liveRegion = container.querySelector('[role="status"][aria-live="polite"]');
       expect(liveRegion).toBeInTheDocument();
     });
@@ -366,10 +345,8 @@ describe('Accessibility Tests', () => {
 
   describe('Search Input Accessibility', () => {
     it('search inputs should have aria-label attribute', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const searchInput = screen.getByPlaceholderText('Search annotations...');
       expect(searchInput).toHaveAttribute('aria-label');
       expect(searchInput).toHaveAttribute('role', 'searchbox');
@@ -377,7 +354,7 @@ describe('Accessibility Tests', () => {
 
     it('FallacyPanel search should have proper accessibility attributes', () => {
       customRender(<FallacyPanel fallacies={mockFallacies} />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search fallacies...');
       expect(searchInput).toHaveAttribute('aria-label', 'Search fallacies');
       expect(searchInput).toHaveAttribute('role', 'searchbox');
@@ -385,7 +362,7 @@ describe('Accessibility Tests', () => {
 
     it('RhetoricPanel search should have proper accessibility attributes', () => {
       customRender(<RhetoricPanel rhetoric={mockRhetoric} />);
-      
+
       const searchInput = screen.getByPlaceholderText('Search rhetoric...');
       expect(searchInput).toHaveAttribute('aria-label', 'Search rhetoric');
       expect(searchInput).toHaveAttribute('role', 'searchbox');
@@ -472,32 +449,28 @@ describe('Accessibility Tests', () => {
 
   describe('Focus Management', () => {
     it('should maintain focus after interaction', async () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       const searchInput = screen.getByPlaceholderText('Search annotations...');
       searchInput.focus();
-      
+
       // Type in search
       fireEvent.change(searchInput, { target: { value: 'test' } });
-      
+
       // Focus should remain on input
       expect(document.activeElement).toBe(searchInput);
     });
 
     it('clicking tab should update content but maintain interactivity', () => {
-      customRender(
-        <AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />
-      );
-      
+      customRender(<AnnotationPanel fallacies={mockFallacies} rhetoric={mockRhetoric} />);
+
       // Find the Rhetoric section header button (collapsed by default)
       const rhetoricHeader = screen.getByText('Rhetoric').closest('button');
       expect(rhetoricHeader).toBeInTheDocument();
-      
+
       // Click to expand
       fireEvent.click(rhetoricHeader!);
-      
+
       // New content should be focusable
       rhetoricHeader?.focus();
       expect(document.activeElement).toBe(rhetoricHeader);
@@ -520,9 +493,33 @@ const mockStatsPopulated: AnnotationStats = {
   structuralCount: 1,
   totalAnnotations: 4,
   breakdown: [
-    { id: 'straw-man', name: 'Straw Man', color: '#EF4444', count: 2, charCount: 100, category: 'informal', type: 'fallacy' },
-    { id: 'appeal-to-authority', name: 'Appeal to Authority', color: '#3B82F6', count: 1, charCount: 75, category: 'ethos', type: 'rhetoric' },
-    { id: 'claim', name: 'Claim', color: '#8B5CF6', count: 1, charCount: 25, category: 'structural', type: 'structural' },
+    {
+      id: 'straw-man',
+      name: 'Straw Man',
+      color: '#EF4444',
+      count: 2,
+      charCount: 100,
+      category: 'informal',
+      type: 'fallacy',
+    },
+    {
+      id: 'appeal-to-authority',
+      name: 'Appeal to Authority',
+      color: '#3B82F6',
+      count: 1,
+      charCount: 75,
+      category: 'ethos',
+      type: 'rhetoric',
+    },
+    {
+      id: 'claim',
+      name: 'Claim',
+      color: '#8B5CF6',
+      count: 1,
+      charCount: 25,
+      category: 'structural',
+      type: 'structural',
+    },
   ],
   speakerStats: [],
 };
@@ -597,9 +594,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
     });
 
     it('tab buttons should be focusable', () => {
-      render(
-        <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />
-      );
+      render(<AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />);
 
       const overviewTab = screen.getByText('Overview');
       const breakdownTab = screen.getByText('Breakdown');
@@ -645,14 +640,28 @@ describe('AnnotationStatsPanel Accessibility', () => {
       const statsWithSpeakers = {
         ...mockStatsPopulated,
         speakerStats: [
-          { id: 's1', name: 'Speaker A', color: '#3B82F6', charCount: 300, annotatedCharacters: 100, coveragePercent: 33, paragraphCount: 3, annotationCount: 2, annotationBreakdown: [
-            { id: 'straw-man', name: 'Straw Man', color: '#EF4444', type: 'fallacy' as const, count: 2 },
-          ] },
+          {
+            id: 's1',
+            name: 'Speaker A',
+            color: '#3B82F6',
+            charCount: 300,
+            annotatedCharacters: 100,
+            coveragePercent: 33,
+            paragraphCount: 3,
+            annotationCount: 2,
+            annotationBreakdown: [
+              {
+                id: 'straw-man',
+                name: 'Straw Man',
+                color: '#EF4444',
+                type: 'fallacy' as const,
+                count: 2,
+              },
+            ],
+          },
         ],
       };
-      render(
-        <AnnotationStatsPanel stats={statsWithSpeakers} documentTitle="Test" />
-      );
+      render(<AnnotationStatsPanel stats={statsWithSpeakers} documentTitle="Test" />);
 
       expect(screen.getByText('Speaker A')).toBeInTheDocument();
       expect(screen.getByText('By Speaker')).toBeInTheDocument();

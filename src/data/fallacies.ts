@@ -5,7 +5,7 @@ export const FALLACIES: Fallacy[] = [
   {
     id: 'straw-man',
     name: 'Straw Man',
-    description: 'Misrepresenting someone\'s argument to make it easier to attack.',
+    description: "Misrepresenting someone's argument to make it easier to attack.",
     category: 'informal',
     color: '#EF4444',
     examples: [
@@ -18,9 +18,7 @@ export const FALLACIES: Fallacy[] = [
     description: 'Attacking the person making the argument rather than the argument itself.',
     category: 'informal',
     color: '#F87171',
-    examples: [
-      'You can\'t trust John\'s opinion on climate change - he\'s not even a scientist.',
-    ],
+    examples: ["You can't trust John's opinion on climate change - he's not even a scientist."],
   },
   {
     id: 'false-dilemma',
@@ -29,7 +27,7 @@ export const FALLACIES: Fallacy[] = [
     category: 'informal',
     color: '#FB923C',
     examples: [
-      'You\'re either with us or against us.',
+      "You're either with us or against us.",
       'Either we ban all cars or the planet will be destroyed.',
     ],
   },
@@ -43,7 +41,8 @@ export const FALLACIES: Fallacy[] = [
   {
     id: 'appeal-to-authority',
     name: 'Appeal to Authority',
-    description: 'Using an authority figure\'s opinion as evidence when they lack relevant expertise.',
+    description:
+      "Using an authority figure's opinion as evidence when they lack relevant expertise.",
     category: 'informal',
     color: '#FCD34D',
   },
@@ -59,7 +58,7 @@ export const FALLACIES: Fallacy[] = [
   {
     id: 'tu-quoque',
     name: 'Tu Quoque',
-    description: 'Deflecting criticism by pointing out the critic\'s similar behavior.',
+    description: "Deflecting criticism by pointing out the critic's similar behavior.",
     category: 'red-herring',
     color: '#EA580C',
   },
@@ -98,7 +97,8 @@ export const FALLACIES: Fallacy[] = [
   {
     id: 'cherry-picking',
     name: 'Cherry Picking',
-    description: 'Selecting only evidence that supports your conclusion while ignoring contradicting evidence.',
+    description:
+      'Selecting only evidence that supports your conclusion while ignoring contradicting evidence.',
     category: 'faulty-generalization',
     color: '#FDE047',
   },
@@ -148,7 +148,7 @@ export const FALLACIES: Fallacy[] = [
   {
     id: 'circular-reasoning',
     name: 'Circular Reasoning',
-    description: 'The argument\'s conclusion is used as one of its premises.',
+    description: "The argument's conclusion is used as one of its premises.",
     category: 'conditional',
     color: '#FECACA',
   },

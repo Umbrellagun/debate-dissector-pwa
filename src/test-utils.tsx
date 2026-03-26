@@ -13,17 +13,13 @@ interface WrapperProps {
 const AllTheProviders: React.FC<WrapperProps> = ({ children }) => {
   return (
     <BrowserRouter>
-      <AppProvider>
-        {children}
-      </AppProvider>
+      <AppProvider>{children}</AppProvider>
     </BrowserRouter>
   );
 };
 
-const customRender = (
-  ui: React.ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options });
+const customRender = (ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  render(ui, { wrapper: AllTheProviders, ...options });
 
 // Accessibility testing utilities
 export const axe = configureAxe({
@@ -60,7 +56,7 @@ export function checkAriaLabels(container: Element): {
   issues: string[];
 } {
   const issues: string[] = [];
-  
+
   const buttons = container.querySelectorAll('button');
   buttons.forEach((button, index) => {
     const hasLabel =
@@ -68,7 +64,7 @@ export function checkAriaLabels(container: Element): {
       button.getAttribute('aria-label') ||
       button.getAttribute('aria-labelledby') ||
       button.getAttribute('title');
-    
+
     if (!hasLabel) {
       issues.push(`Button ${index + 1} has no accessible name`);
     }
@@ -82,7 +78,7 @@ export function checkAriaLabels(container: Element): {
       input.getAttribute('aria-labelledby') ||
       input.getAttribute('placeholder') ||
       (id && container.querySelector(`label[for="${id}"]`));
-    
+
     if (!hasLabel) {
       issues.push(`Input ${index + 1} has no accessible label`);
     }

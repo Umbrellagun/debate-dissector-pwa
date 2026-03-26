@@ -7,6 +7,18 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.7.0',
+    date: 'March 25, 2026',
+    title: 'Annotation Visibility Controls',
+    changes: [
+      'Toggle visibility of individual fallacy, rhetoric, and structural annotations in the editor',
+      'Toggles eye icons for individual items, subcategory headers, and section headers',
+      'Bulk show/hide all annotations per section (Fallacies, Rhetoric, Claims & Evidence)',
+      'Bulk show/hide by subcategory (e.g., all Red Herring Fallacies, all Ethos rhetoric)',
+      'Visibility state persisted per document',
+    ],
+  },
+  {
     version: '1.6.0',
     date: 'March 25, 2026',
     title: 'Comments System & UX Improvements',
@@ -90,5 +102,5 @@ export const CHANGELOG: VersionEntry[] = [
 
 export const getLatestVersion = (): VersionEntry | undefined => CHANGELOG[0];
 
-export const getVersionByNumber = (version: string): VersionEntry | undefined => 
+export const getVersionByNumber = (version: string): VersionEntry | undefined =>
   CHANGELOG.find(v => v.version === version);

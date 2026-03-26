@@ -54,14 +54,14 @@ describe('RhetoricPanel', () => {
   it('toggles category expansion when clicked', () => {
     render(<RhetoricPanel {...defaultProps} />);
     const kairosCategory = screen.getByText('Kairos (Timing)');
-    
+
     // Kairos is not expanded by default
     expect(screen.queryByText('Kairos Example')).not.toBeInTheDocument();
-    
+
     // Click to expand
     fireEvent.click(kairosCategory);
     expect(screen.getByText('Kairos Example')).toBeInTheDocument();
-    
+
     // Click to collapse
     fireEvent.click(kairosCategory);
     expect(screen.queryByText('Kairos Example')).not.toBeInTheDocument();
@@ -69,7 +69,7 @@ describe('RhetoricPanel', () => {
 
   it('shows rhetoric in expanded categories', () => {
     render(<RhetoricPanel {...defaultProps} />);
-    
+
     // Ethos category is expanded by default
     expect(screen.getByText('Ethos')).toBeInTheDocument();
   });
@@ -77,32 +77,32 @@ describe('RhetoricPanel', () => {
   it('calls onRhetoricSelect when rhetoric button is clicked', () => {
     const onRhetoricSelect = jest.fn();
     render(<RhetoricPanel {...defaultProps} onRhetoricSelect={onRhetoricSelect} />);
-    
+
     fireEvent.click(screen.getByText('Ethos'));
-    
+
     expect(onRhetoricSelect).toHaveBeenCalledWith(mockRhetoric[0]);
   });
 
   it('highlights selected rhetoric', () => {
     render(<RhetoricPanel {...defaultProps} selectedRhetoricId="ethos" />);
-    
+
     const rhetoricButton = screen.getByText('Ethos').closest('button');
-    expect(rhetoricButton).toHaveClass('bg-blue-50');
+    expect(rhetoricButton?.parentElement).toHaveClass('bg-blue-50');
   });
 
   it('filters rhetoric based on search query', () => {
     render(<RhetoricPanel {...defaultProps} searchQuery="emotion" />);
-    
+
     expect(screen.getByText('Pathos')).toBeInTheDocument();
     expect(screen.queryByText('Ethos')).not.toBeInTheDocument();
     expect(screen.queryByText('Logos')).not.toBeInTheDocument();
   });
 
   it('filters by name as well as description', () => {
-    render(<RhetoricPanel {...defaultProps} searchQuery="Logos" />);
-    
-    expect(screen.getByText('Logos')).toBeInTheDocument();
-    expect(screen.queryByText('Ethos')).not.toBeInTheDocument();
+    render(<RhetoricPanel {...defaultProps} searchQuery="Ethos" />);
+
+    expect(screen.getByText('Ethos')).toBeInTheDocument();
+    expect(screen.queryByText('Pathos')).not.toBeInTheDocument();
   });
 
   it('shows internal search when no external searchQuery provided', () => {
@@ -117,7 +117,7 @@ describe('RhetoricPanel', () => {
 
   it('displays rhetoric color indicators', () => {
     render(<RhetoricPanel {...defaultProps} />);
-    
+
     const ethosButton = screen.getByText('Ethos').closest('button');
     const colorIndicator = ethosButton?.querySelector('span');
     expect(colorIndicator).toHaveStyle({ backgroundColor: '#3182CE' });

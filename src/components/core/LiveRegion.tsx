@@ -22,12 +22,7 @@ export const LiveRegion: React.FC<LiveRegionProps> = ({
   }, [message, clearAfter]);
 
   return (
-    <div
-      role="status"
-      aria-live={politeness}
-      aria-atomic="true"
-      className="sr-only"
-    >
+    <div role="status" aria-live={politeness} aria-atomic="true" className="sr-only">
       {announcement}
     </div>
   );

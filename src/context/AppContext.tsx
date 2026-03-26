@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
 import { Descendant } from 'slate';
-import { DebateDocument, DocumentListItem, UserPreferences, DEFAULT_USER_PREFERENCES, Speaker } from '../models';
+import {
+  DebateDocument,
+  DocumentListItem,
+  UserPreferences,
+  DEFAULT_USER_PREFERENCES,
+  Speaker,
+} from '../models';
 import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 import {
   listDocuments,
@@ -15,7 +21,7 @@ import {
 // Count total annotations (fallacy + rhetoric marks) in content
 const countAnnotationsInContent = (content: Descendant[]): number => {
   let count = 0;
-  
+
   const traverse = (nodes: Descendant[]) => {
     for (const node of nodes) {
       if ('text' in node) {
@@ -32,7 +38,7 @@ const countAnnotationsInContent = (content: Descendant[]): number => {
       }
     }
   };
-  
+
   traverse(content);
   return count;
 };
@@ -80,14 +86,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'UPDATE_DOCUMENT':
       return {
         ...state,
-        documents: state.documents.map((doc) =>
+        documents: state.documents.map(doc =>
           doc.id === action.payload.id ? action.payload : doc
         ),
       };
     case 'REMOVE_DOCUMENT':
       return {
         ...state,
-        documents: state.documents.filter((doc) => doc.id !== action.payload),
+        documents: state.documents.filter(doc => doc.id !== action.payload),
       };
     default:
       return state;
@@ -98,7 +104,11 @@ interface AppContextValue {
   state: AppState;
   loadDocuments: () => Promise<DocumentListItem[]>;
   loadDocument: (id: string) => Promise<DebateDocument | null>;
-  createDocument: (title: string, content?: Descendant[], speakers?: Speaker[]) => Promise<DebateDocument>;
+  createDocument: (
+    title: string,
+    content?: Descendant[],
+    speakers?: Speaker[]
+  ) => Promise<DebateDocument>;
   saveDocument: (doc: DebateDocument) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
@@ -112,10 +122,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   useEffect(() => {
     const init = async () => {
       try {
-        const [documents, preferences] = await Promise.all([
-          listDocuments(),
-          getPreferences(),
-        ]);
+        const [documents, preferences] = await Promise.all([listDocuments(), getPreferences()]);
         dispatch({ type: 'SET_DOCUMENTS', payload: documents });
         dispatch({ type: 'SET_PREFERENCES', payload: preferences });
       } catch (err) {

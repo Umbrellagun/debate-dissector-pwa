@@ -19,6 +19,7 @@ export const AnnotationNav: React.FC<AnnotationNavProps> = ({
 
   const annotationCounts = useMemo(() => {
     return countAnnotationsByFallacy(editor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor.children]);
 
   const totalAnnotations = useMemo(() => {
@@ -26,7 +27,7 @@ export const AnnotationNav: React.FC<AnnotationNavProps> = ({
   }, [annotationCounts]);
 
   const annotatedFallacies = useMemo(() => {
-    return fallacies.filter((f) => annotationCounts[f.id] > 0);
+    return fallacies.filter(f => annotationCounts[f.id] > 0);
   }, [fallacies, annotationCounts]);
 
   const handlePrevious = () => {
@@ -68,7 +69,12 @@ export const AnnotationNav: React.FC<AnnotationNavProps> = ({
             title="Previous annotation"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
           <button
@@ -85,10 +91,12 @@ export const AnnotationNav: React.FC<AnnotationNavProps> = ({
 
       {annotatedFallacies.length > 0 && (
         <div className="px-3 pb-2 flex flex-wrap gap-1">
-          {annotatedFallacies.map((fallacy) => (
+          {annotatedFallacies.map(fallacy => (
             <button
               key={fallacy.id}
-              onClick={() => onFilterChange?.(filterFallacyId === fallacy.id ? undefined : fallacy.id)}
+              onClick={() =>
+                onFilterChange?.(filterFallacyId === fallacy.id ? undefined : fallacy.id)
+              }
               className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full transition-colors ${
                 filterFallacyId === fallacy.id
                   ? 'ring-2 ring-offset-1 ring-gray-400'
@@ -97,9 +105,7 @@ export const AnnotationNav: React.FC<AnnotationNavProps> = ({
               style={{ backgroundColor: fallacy.color, color: '#fff' }}
             >
               <span>{fallacy.name}</span>
-              <span className="bg-white/30 px-1 rounded">
-                {annotationCounts[fallacy.id]}
-              </span>
+              <span className="bg-white/30 px-1 rounded">{annotationCounts[fallacy.id]}</span>
             </button>
           ))}
         </div>

@@ -1,8 +1,4 @@
-export type RhetoricCategory =
-  | 'ethos'
-  | 'pathos'
-  | 'logos'
-  | 'kairos';
+export type RhetoricCategory = 'ethos' | 'pathos' | 'logos' | 'kairos';
 
 export interface Rhetoric {
   id: string;

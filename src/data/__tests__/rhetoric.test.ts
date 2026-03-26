@@ -23,7 +23,7 @@ describe('RHETORIC_TECHNIQUES data', () => {
 
     it('should have valid categories for all rhetoric techniques', () => {
       const validCategories: RhetoricCategory[] = ['ethos', 'pathos', 'logos', 'kairos'];
-      
+
       for (const rhetoric of RHETORIC_TECHNIQUES) {
         expect(validCategories).toContain(rhetoric.category);
       }
@@ -31,7 +31,7 @@ describe('RHETORIC_TECHNIQUES data', () => {
 
     it('should have valid hex color codes for all rhetoric techniques', () => {
       const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
-      
+
       for (const rhetoric of RHETORIC_TECHNIQUES) {
         expect(rhetoric.color).toMatch(hexColorRegex);
       }

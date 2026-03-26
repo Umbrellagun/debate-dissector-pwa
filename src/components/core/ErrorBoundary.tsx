@@ -48,11 +48,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Something went wrong
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
             <p className="text-gray-600 mb-6">
-              An unexpected error occurred. Please try refreshing the page or return to the home page.
+              An unexpected error occurred. Please try refreshing the page or return to the home
+              page.
             </p>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <pre className="bg-gray-100 p-4 rounded-lg text-left text-xs text-red-600 overflow-auto mb-6 max-h-32">

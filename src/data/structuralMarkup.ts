@@ -1,6 +1,6 @@
 // Structural Markup Types for Claim & Evidence Analysis
 
-export type StructuralMarkupType = 
+export type StructuralMarkupType =
   | 'claim'
   | 'evidence'
   | 'unsupported'

@@ -33,13 +33,9 @@ export const AnnotationPopup: React.FC<AnnotationPopupProps> = ({
           className="w-3 h-3 rounded-full shrink-0"
           style={{ backgroundColor: selectedFallacy.color }}
         />
-        <span className="font-medium text-sm text-gray-900">
-          {selectedFallacy.name}
-        </span>
+        <span className="font-medium text-sm text-gray-900">{selectedFallacy.name}</span>
       </div>
-      <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-        {selectedFallacy.description}
-      </p>
+      <p className="text-xs text-gray-600 mb-3 line-clamp-2">{selectedFallacy.description}</p>
       <div className="flex gap-2">
         <button
           onClick={onApply}

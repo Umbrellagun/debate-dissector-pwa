@@ -58,9 +58,7 @@ export const FallacyDetailView: React.FC<FallacyDetailViewProps> = ({
 
         {fallacy.examples && fallacy.examples.length > 0 && (
           <div className="mb-4">
-            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">
-              Examples
-            </h4>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Examples</h4>
             <ul className="space-y-2">
               {fallacy.examples.map((example, index) => (
                 <li

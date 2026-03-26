@@ -4,6 +4,14 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Polyfill TextEncoder/TextDecoder for Jest environment (required by react-router v7)
+if (typeof global.TextEncoder === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { TextEncoder, TextDecoder } = require('util');
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
+}
+
 // Polyfill structuredClone for Jest environment
 if (typeof structuredClone === 'undefined') {
   (global as any).structuredClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));

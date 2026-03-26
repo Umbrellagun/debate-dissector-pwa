@@ -2,14 +2,19 @@ import { Descendant } from 'slate';
 
 // Copy of the function from EditorPage for testing
 // This function extracts unique fallacy and rhetoric IDs from document content
-const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; rhetoricIds: string[] } => {
+const extractUsedAnnotations = (
+  content: Descendant[]
+): { fallacyIds: string[]; rhetoricIds: string[] } => {
   const fallacyIds = new Set<string>();
   const rhetoricIds = new Set<string>();
-  
+
   const traverse = (nodes: Descendant[]) => {
     for (const node of nodes) {
       if ('text' in node) {
-        const textNode = node as { fallacyMarks?: Array<{ fallacyId: string }>; rhetoricMarks?: Array<{ rhetoricId: string }> };
+        const textNode = node as {
+          fallacyMarks?: Array<{ fallacyId: string }>;
+          rhetoricMarks?: Array<{ rhetoricId: string }>;
+        };
         if (textNode.fallacyMarks) {
           for (const mark of textNode.fallacyMarks) {
             fallacyIds.add(mark.fallacyId);
@@ -26,7 +31,7 @@ const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; 
       }
     }
   };
-  
+
   traverse(content);
   return { fallacyIds: Array.from(fallacyIds), rhetoricIds: Array.from(rhetoricIds) };
 };
@@ -35,7 +40,7 @@ describe('extractUsedAnnotations', () => {
   it('should return empty arrays for empty content', () => {
     const content: Descendant[] = [];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toEqual([]);
     expect(result.rhetoricIds).toEqual([]);
   });
@@ -48,7 +53,7 @@ describe('extractUsedAnnotations', () => {
       },
     ];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toEqual([]);
     expect(result.rhetoricIds).toEqual([]);
   });
@@ -59,15 +64,15 @@ describe('extractUsedAnnotations', () => {
         type: 'paragraph',
         children: [
           { text: 'Normal text' },
-          { 
-            text: 'Fallacy text', 
-            fallacyMarks: [{ fallacyId: 'straw-man' }] 
+          {
+            text: 'Fallacy text',
+            fallacyMarks: [{ fallacyId: 'straw-man' }],
           } as unknown as { text: string },
         ],
       },
     ];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toContain('straw-man');
     expect(result.rhetoricIds).toEqual([]);
   });
@@ -78,15 +83,15 @@ describe('extractUsedAnnotations', () => {
         type: 'paragraph',
         children: [
           { text: 'Normal text' },
-          { 
-            text: 'Rhetoric text', 
-            rhetoricMarks: [{ rhetoricId: 'ethos-appeal' }] 
+          {
+            text: 'Rhetoric text',
+            rhetoricMarks: [{ rhetoricId: 'ethos-appeal' }],
           } as unknown as { text: string },
         ],
       },
     ];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toEqual([]);
     expect(result.rhetoricIds).toContain('ethos-appeal');
   });
@@ -96,19 +101,19 @@ describe('extractUsedAnnotations', () => {
       {
         type: 'paragraph',
         children: [
-          { 
-            text: 'Fallacy text', 
-            fallacyMarks: [{ fallacyId: 'ad-hominem' }] 
+          {
+            text: 'Fallacy text',
+            fallacyMarks: [{ fallacyId: 'ad-hominem' }],
           } as unknown as { text: string },
-          { 
-            text: 'Rhetoric text', 
-            rhetoricMarks: [{ rhetoricId: 'pathos-fear' }] 
+          {
+            text: 'Rhetoric text',
+            rhetoricMarks: [{ rhetoricId: 'pathos-fear' }],
           } as unknown as { text: string },
         ],
       },
     ];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toContain('ad-hominem');
     expect(result.rhetoricIds).toContain('pathos-fear');
   });
@@ -118,19 +123,19 @@ describe('extractUsedAnnotations', () => {
       {
         type: 'paragraph',
         children: [
-          { 
-            text: 'First straw man', 
-            fallacyMarks: [{ fallacyId: 'straw-man' }] 
+          {
+            text: 'First straw man',
+            fallacyMarks: [{ fallacyId: 'straw-man' }],
           } as unknown as { text: string },
-          { 
-            text: 'Second straw man', 
-            fallacyMarks: [{ fallacyId: 'straw-man' }] 
+          {
+            text: 'Second straw man',
+            fallacyMarks: [{ fallacyId: 'straw-man' }],
           } as unknown as { text: string },
         ],
       },
     ];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toEqual(['straw-man']);
     expect(result.fallacyIds.length).toBe(1);
   });
@@ -140,18 +145,15 @@ describe('extractUsedAnnotations', () => {
       {
         type: 'paragraph',
         children: [
-          { 
-            text: 'Doubly annotated', 
-            fallacyMarks: [
-              { fallacyId: 'straw-man' },
-              { fallacyId: 'ad-hominem' }
-            ] 
+          {
+            text: 'Doubly annotated',
+            fallacyMarks: [{ fallacyId: 'straw-man' }, { fallacyId: 'ad-hominem' }],
           } as unknown as { text: string },
         ],
       },
     ];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toContain('straw-man');
     expect(result.fallacyIds).toContain('ad-hominem');
     expect(result.fallacyIds.length).toBe(2);
@@ -161,22 +163,20 @@ describe('extractUsedAnnotations', () => {
     const content: Descendant[] = [
       {
         type: 'paragraph',
-        children: [
-          { text: 'Normal text' },
-        ],
+        children: [{ text: 'Normal text' }],
       },
       {
         type: 'block-quote',
         children: [
-          { 
-            text: 'Nested fallacy', 
-            fallacyMarks: [{ fallacyId: 'false-dilemma' }] 
+          {
+            text: 'Nested fallacy',
+            fallacyMarks: [{ fallacyId: 'false-dilemma' }],
           } as unknown as { text: string },
         ],
       },
     ];
     const result = extractUsedAnnotations(content);
-    
+
     expect(result.fallacyIds).toContain('false-dilemma');
   });
 });

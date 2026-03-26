@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** March 25, 2026
+**Last Updated:** March 26, 2026
 
 ### Phase 1: Foundation
 Core app setup and infrastructure.
@@ -44,6 +44,10 @@ Enhanced editing capabilities.
 - [ ] Mark claims, rebuttals, and support points
 - [ ] Link related arguments
 - [ ] Argument flow visualization
+- [ ] Interactive tree view of argument flow (claims → rebuttals → supports)
+- [ ] Sunburst/radial diagram of debate topology
+- [ ] Click-to-navigate between tree nodes and editor text
+- [ ] Side-by-side view: editor + argument tree
 
 #### 3.3 Claim & Evidence Markup
 - [x] Mark claims, evidence, and unsupported assertions
@@ -74,10 +78,12 @@ Polish and usability improvements.
 - [x] Per-speaker annotation statistics and coverage
 
 #### 4.2 Annotation Visibility Controls
-- [ ] Toggle visibility of individual fallacy annotations in the editor
-- [ ] Toggle visibility of individual rhetoric annotations in the editor
-- [ ] Toggle visibility of individual claim & evidence markup types
-- [ ] Bulk show/hide all fallacies or all rhetoric
+- [x] Toggle visibility of individual fallacy annotations in the editor
+- [x] Toggle visibility of individual rhetoric annotations in the editor
+- [x] Toggle visibility of individual claim & evidence markup types
+- [x] Bulk show/hide all fallacies, rhetoric, or claims & evidence
+- [x] Bulk show/hide by subcategory
+- [x] Persist visibility preferences per document
 
 #### 4.3 Accessibility
 - [x] Keyboard navigation
@@ -110,43 +116,69 @@ Share debates with others.
 - [x] Import shared documents locally
 - [ ] "My Shared Links" management UI
 
-### Phase 6: Platform Features
+### Phase 6: Public Debate Library (Future)
+Browsable library of published analyses. ⚠️ Introduces UGC with major security/moderation/legal obligations.
+
+#### 6.1 Core Browsing
+- [ ] Public feed/gallery of published debate analyses
+- [ ] Search by title, topic, speaker, or annotation type
+- [ ] Category/topic tagging and sorting
+
+#### 6.2 Publishing & Attribution
+- [ ] "Publish" action (distinct from private sharing)
+- [ ] Author attribution and draft/published/unlisted status
+- [ ] Edit or unpublish after publishing
+
+#### 6.3 Security & Moderation ⚠️
+- [ ] User authentication (prerequisite)
+- [ ] Content moderation queue and admin review dashboard
+- [ ] Automated screening (profanity, spam)
+- [ ] Report/flag system and user banning
+- [ ] DMCA takedown process
+- [ ] **LEGAL:** Update Privacy Policy and ToS for UGC, public profiles, COPPA
+
+#### 6.4 Infrastructure
+- [ ] Evaluate database scalability (SQLite → PostgreSQL)
+- [ ] Full-text search indexing
+- [ ] Pagination, CDN caching for popular debates
+
+### Phase 7: Platform Features
 App-wide capabilities.
 
-#### 6.1 Roadmap & Changelog
+#### 7.1 Roadmap & Changelog
 - [x] Public Trello roadmap
 - [x] In-app changelog
 
-#### 6.2 Internationalization
+#### 7.2 Internationalization
 - [ ] Multi-language support
 - [ ] Translate fallacy definitions
 - [ ] RTL language support
 
-#### 6.3 Analytics
+#### 7.3 Analytics
 - [x] Privacy-friendly analytics (Umami)
 - [ ] Optional analytics opt-out
 - [ ] Analytics dashboard
 
-### Phase 7: Future Preparation
+### Phase 8: Future Preparation
 Groundwork for future features.
 
-#### 7.1 Authentication
+#### 8.1 Authentication
 - [ ] User accounts (placeholder)
 - [ ] Login/signup UI
 
-#### 7.2 Feature Flags
+#### 8.2 Feature Flags
 - [ ] Runtime feature toggles
 - [ ] Gradual feature rollout
 
-### Phase 8: Testing & Quality
+### Phase 9: Testing & Quality
 Ensure reliability and performance.
 
-#### 8.1 Automated Testing
+#### 9.1 Automated Testing
 - [x] Unit tests
 - [x] Component tests
 - [ ] End-to-end tests (Playwright)
 
-#### 8.2 Performance
+#### 9.2 Performance
 - [ ] Lighthouse CI audits
 - [ ] Bundle size optimization
 - [ ] Large document benchmarks

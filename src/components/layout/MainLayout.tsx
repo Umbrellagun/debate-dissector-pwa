@@ -89,14 +89,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {leftSidebar && (
         <>
           {/* Backdrop - closes sidebar when clicked */}
-          <div 
+          <div
             className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
               showLeftSidebar ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
             }`}
             onClick={onLeftSidebarClose}
           />
           {/* Sidebar - slides in from left on both mobile and desktop */}
-          <aside 
+          <aside
             ref={leftSidebarRef}
             className={`fixed inset-y-0 left-0 z-50 w-72 lg:w-64 border-r border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
               showLeftSidebar ? 'translate-x-0' : '-translate-x-full'
@@ -106,9 +106,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             aria-hidden={!showLeftSidebar}
           >
             <div className="h-full flex flex-col">
-              <div className="flex-1 overflow-y-auto">
-                {leftSidebar}
-              </div>
+              <div className="flex-1 overflow-y-auto">{leftSidebar}</div>
               {onLeftSidebarClose && (
                 <div className="border-t border-gray-200 p-2 flex justify-center">
                   <button
@@ -117,8 +115,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     title="Close panel"
                     aria-label="Close navigation panel"
                   >
-                    <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <svg
+                      className="w-5 h-5 text-violet-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -129,7 +138,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       )}
 
       {/* Main Content */}
-      <main id="main-content" className="flex-1 flex flex-col overflow-hidden min-w-0" tabIndex={-1}>
+      <main
+        id="main-content"
+        className="flex-1 flex flex-col overflow-hidden min-w-0"
+        tabIndex={-1}
+      >
         {children}
       </main>
 
@@ -137,14 +150,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {effectiveShowRightSidebar && effectiveRightSidebar && (
         <>
           {/* Backdrop - only visible and clickable on mobile (lg:hidden) */}
-          <div 
+          <div
             className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 lg:hidden ${
               rightSidebarExpanded ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
             }`}
             onClick={onRightSidebarToggle}
           />
           {/* Sidebar - slides in from right on both mobile and desktop */}
-          <aside 
+          <aside
             ref={rightSidebarRef}
             className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out lg:relative lg:z-auto ${
               rightSidebarExpanded ? 'translate-x-0' : 'translate-x-full lg:hidden'
@@ -154,9 +167,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             aria-hidden={!rightSidebarExpanded}
           >
             <div className="h-full flex flex-col">
-              <div className="flex-1 overflow-y-auto">
-                {effectiveRightSidebar}
-              </div>
+              <div className="flex-1 overflow-y-auto">{effectiveRightSidebar}</div>
               {onRightSidebarToggle && (
                 <div className="border-t border-gray-200 p-2 flex justify-center">
                   <button
@@ -165,8 +176,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     title="Close panel"
                     aria-label="Close annotation panel"
                   >
-                    <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className="w-5 h-5 text-violet-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </button>
                 </div>

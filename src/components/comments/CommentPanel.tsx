@@ -91,8 +91,18 @@ const ReplyRow: React.FC<{
       <div className="flex items-center justify-between mb-0.5">
         <div className="flex items-center gap-1.5">
           {reply.resolved && (
-            <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-3 h-3 text-green-500 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           )}
           <span className="text-[10px] text-gray-400">
@@ -103,7 +113,7 @@ const ReplyRow: React.FC<{
         {/* Actions menu - same as parent comments */}
         <div className="relative" ref={menuRef}>
           <button
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
               setShowMenu(!showMenu);
             }}
@@ -118,7 +128,7 @@ const ReplyRow: React.FC<{
           {showMenu && (
             <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1">
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   setIsEditing(true);
                   setEditText(reply.text);
@@ -129,7 +139,7 @@ const ReplyRow: React.FC<{
                 Edit
               </button>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onResolve?.(reply.id);
                   setShowMenu(false);
@@ -139,7 +149,7 @@ const ReplyRow: React.FC<{
                 {reply.resolved ? 'Unresolve' : 'Resolve'}
               </button>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   setIsReplying(true);
                   setShowMenu(false);
@@ -149,7 +159,7 @@ const ReplyRow: React.FC<{
                 Reply
               </button>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onDelete?.(reply.id);
                   setShowMenu(false);
@@ -165,12 +175,12 @@ const ReplyRow: React.FC<{
 
       {/* Reply body */}
       {isEditing ? (
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={e => e.stopPropagation()}>
           <textarea
             ref={editInputRef}
             value={editText}
-            onChange={(e) => setEditText(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={e => setEditText(e.target.value)}
+            onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSaveEdit();
@@ -196,19 +206,21 @@ const ReplyRow: React.FC<{
           </div>
         </div>
       ) : (
-        <p className={`text-[11px] leading-relaxed ${reply.resolved ? 'text-gray-400 line-through' : 'text-gray-600'}`}>
+        <p
+          className={`text-[11px] leading-relaxed ${reply.resolved ? 'text-gray-400 line-through' : 'text-gray-600'}`}
+        >
           {reply.text}
         </p>
       )}
 
       {/* Reply to reply input */}
       {isReplying && (
-        <div className="mt-1.5" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-1.5" onClick={e => e.stopPropagation()}>
           <textarea
             ref={replyInputRef}
             value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={e => setReplyText(e.target.value)}
+            onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSubmitReply();
@@ -231,7 +243,10 @@ const ReplyRow: React.FC<{
               Reply
             </button>
             <button
-              onClick={() => { setIsReplying(false); setReplyText(''); }}
+              onClick={() => {
+                setIsReplying(false);
+                setReplyText('');
+              }}
               className="px-2 py-0.5 text-[10px] font-medium text-gray-500 hover:text-gray-700"
             >
               Cancel
@@ -254,7 +269,17 @@ const CommentRow: React.FC<{
   onResolve?: (commentId: string) => void;
   onReply?: (parentId: string, text: string, selectedText: string) => void;
   onClick?: (commentId: string) => void;
-}> = ({ comment, isActive, replies, allComments, onEdit, onDelete, onResolve, onReply, onClick }) => {
+}> = ({
+  comment,
+  isActive,
+  replies,
+  allComments: _allComments,
+  onEdit,
+  onDelete,
+  onResolve,
+  onReply,
+  onClick,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(comment.text);
   const [isReplying, setIsReplying] = useState(false);
@@ -310,8 +335,8 @@ const CommentRow: React.FC<{
         comment.resolved
           ? 'border-green-300 bg-green-50/50'
           : isActive
-          ? 'border-amber-400 bg-amber-50'
-          : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50/30'
+            ? 'border-amber-400 bg-amber-50'
+            : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50/30'
       } rounded-r-lg transition-colors cursor-pointer`}
       onClick={() => !isEditing && onClick?.(comment.id)}
     >
@@ -320,8 +345,18 @@ const CommentRow: React.FC<{
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5">
             {comment.resolved && (
-              <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-3.5 h-3.5 text-green-500 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             )}
             <span className="text-[10px] text-gray-400">
@@ -333,7 +368,7 @@ const CommentRow: React.FC<{
           {/* Actions menu */}
           <div className="relative" ref={menuRef}>
             <button
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation();
                 setShowMenu(!showMenu);
               }}
@@ -348,7 +383,7 @@ const CommentRow: React.FC<{
             {showMenu && (
               <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1">
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     setIsEditing(true);
                     setEditText(comment.text);
@@ -359,7 +394,7 @@ const CommentRow: React.FC<{
                   Edit
                 </button>
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     onResolve?.(comment.id);
                     setShowMenu(false);
@@ -370,7 +405,7 @@ const CommentRow: React.FC<{
                 </button>
                 {!comment.parentId && (
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       setIsReplying(true);
                       setShowMenu(false);
@@ -381,7 +416,7 @@ const CommentRow: React.FC<{
                   </button>
                 )}
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     onDelete?.(comment.id);
                     setShowMenu(false);
@@ -404,12 +439,12 @@ const CommentRow: React.FC<{
 
         {/* Comment body */}
         {isEditing ? (
-          <div onClick={(e) => e.stopPropagation()}>
+          <div onClick={e => e.stopPropagation()}>
             <textarea
               ref={editInputRef}
               value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={e => setEditText(e.target.value)}
+              onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSaveEdit();
@@ -435,7 +470,9 @@ const CommentRow: React.FC<{
             </div>
           </div>
         ) : (
-          <p className={`text-xs leading-relaxed ${comment.resolved ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+          <p
+            className={`text-xs leading-relaxed ${comment.resolved ? 'text-gray-400 line-through' : 'text-gray-700'}`}
+          >
             {comment.text}
           </p>
         )}
@@ -459,12 +496,12 @@ const CommentRow: React.FC<{
 
         {/* Reply input */}
         {isReplying && (
-          <div className="mt-2 pl-3 border-l border-amber-300" onClick={(e) => e.stopPropagation()}>
+          <div className="mt-2 pl-3 border-l border-amber-300" onClick={e => e.stopPropagation()}>
             <textarea
               ref={replyInputRef}
               value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={e => setReplyText(e.target.value)}
+              onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmitReply();
@@ -540,9 +577,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
     .sort((a, b) => b.createdAt - a.createdAt);
 
   const getReplies = (parentId: string): Comment[] =>
-    commentEntries
-      .filter(c => c.parentId === parentId)
-      .sort((a, b) => a.createdAt - b.createdAt);
+    commentEntries.filter(c => c.parentId === parentId).sort((a, b) => a.createdAt - b.createdAt);
 
   const unresolvedCount = topLevelComments.filter(c => !c.resolved).length;
   const resolvedCount = topLevelComments.filter(c => c.resolved).length;
@@ -556,9 +591,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200 shrink-0">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">
-            Comments
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">Comments</h3>
           <div className="flex items-center gap-2">
             {resolvedCount > 0 && (
               <button
@@ -572,9 +605,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
                 {showResolved ? 'Hide' : 'Show'} resolved ({resolvedCount})
               </button>
             )}
-            <span className="text-xs text-gray-400">
-              {unresolvedCount} open
-            </span>
+            <span className="text-xs text-gray-400">{unresolvedCount} open</span>
           </div>
         </div>
       </div>
@@ -591,8 +622,8 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
             <textarea
               ref={textareaRef}
               value={newCommentText}
-              onChange={(e) => setNewCommentText(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={e => setNewCommentText(e.target.value)}
+              onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleAddComment();
@@ -638,14 +669,24 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
             {hasTextSelection ? (
               <span className="flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
                 Add comment to selection
               </span>
             ) : (
               <span className="flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-3 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 8h10M7 12h6m-3 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                  />
                 </svg>
                 Select text to add a comment
               </span>
@@ -658,8 +699,18 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
         {visibleComments.length === 0 ? (
           <div className="text-center py-8">
-            <svg className="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 8h10M7 12h6m-3 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            <svg
+              className="w-10 h-10 text-gray-300 mx-auto mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M7 8h10M7 12h6m-3 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+              />
             </svg>
             <p className="text-xs text-gray-400">
               {unresolvedCount === 0 && resolvedCount > 0

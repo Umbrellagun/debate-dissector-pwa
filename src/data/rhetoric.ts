@@ -8,9 +8,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Citing experts or authorities to support a claim.',
     category: 'ethos',
     color: '#3B82F6',
-    examples: [
-      'According to Dr. Smith, a leading expert in climate science...',
-    ],
+    examples: ['According to Dr. Smith, a leading expert in climate science...'],
   },
   {
     id: 'establishing-credibility',
@@ -18,9 +16,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Demonstrating expertise, experience, or trustworthiness.',
     category: 'ethos',
     color: '#6366F1',
-    examples: [
-      'As someone who has worked in this field for 20 years...',
-    ],
+    examples: ['As someone who has worked in this field for 20 years...'],
   },
   {
     id: 'shared-values',
@@ -28,9 +24,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Connecting with the audience through common beliefs or principles.',
     category: 'ethos',
     color: '#8B5CF6',
-    examples: [
-      'Like you, I believe in the importance of family and community.',
-    ],
+    examples: ['Like you, I believe in the importance of family and community.'],
   },
   {
     id: 'testimonial',
@@ -38,9 +32,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Using endorsements from respected individuals or groups.',
     category: 'ethos',
     color: '#A78BFA',
-    examples: [
-      'This product is recommended by 9 out of 10 dentists.',
-    ],
+    examples: ['This product is recommended by 9 out of 10 dentists.'],
   },
 
   // Pathos - Appeals to Emotion
@@ -50,9 +42,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Evoking feelings such as fear, hope, anger, or sympathy.',
     category: 'pathos',
     color: '#7C3AED',
-    examples: [
-      'Think of the children who will suffer if we don\'t act now.',
-    ],
+    examples: ["Think of the children who will suffer if we don't act now."],
   },
   {
     id: 'storytelling',
@@ -60,9 +50,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Using narratives to create emotional connection and engagement.',
     category: 'pathos',
     color: '#9333EA',
-    examples: [
-      'Let me tell you about Maria, a single mother who...',
-    ],
+    examples: ['Let me tell you about Maria, a single mother who...'],
   },
   {
     id: 'vivid-imagery',
@@ -70,9 +58,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Using descriptive language to paint pictures and evoke emotions.',
     category: 'pathos',
     color: '#A855F7',
-    examples: [
-      'Imagine waking up to the sound of birds singing, the smell of fresh coffee...',
-    ],
+    examples: ['Imagine waking up to the sound of birds singing, the smell of fresh coffee...'],
   },
   {
     id: 'appeal-to-fear',
@@ -80,9 +66,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Warning of negative consequences to motivate action.',
     category: 'pathos',
     color: '#C084FC',
-    examples: [
-      'If we don\'t address this issue now, the consequences could be catastrophic.',
-    ],
+    examples: ["If we don't address this issue now, the consequences could be catastrophic."],
   },
   {
     id: 'appeal-to-hope',
@@ -90,9 +74,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Inspiring optimism about positive outcomes.',
     category: 'pathos',
     color: '#D8B4FE',
-    examples: [
-      'Together, we can build a brighter future for the next generation.',
-    ],
+    examples: ['Together, we can build a brighter future for the next generation.'],
   },
 
   // Logos - Appeals to Logic
@@ -102,9 +84,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Using data and statistics to support claims.',
     category: 'logos',
     color: '#10B981',
-    examples: [
-      'Studies show that 78% of participants experienced improvement.',
-    ],
+    examples: ['Studies show that 78% of participants experienced improvement.'],
   },
   {
     id: 'logical-reasoning',
@@ -112,9 +92,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Using deductive or inductive reasoning to reach conclusions.',
     category: 'logos',
     color: '#14B8A6',
-    examples: [
-      'If A leads to B, and B leads to C, then A must lead to C.',
-    ],
+    examples: ['If A leads to B, and B leads to C, then A must lead to C.'],
   },
   {
     id: 'factual-evidence',
@@ -122,9 +100,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Presenting verifiable facts to support arguments.',
     category: 'logos',
     color: '#22C55E',
-    examples: [
-      'The Earth orbits the Sun at approximately 67,000 miles per hour.',
-    ],
+    examples: ['The Earth orbits the Sun at approximately 67,000 miles per hour.'],
   },
   {
     id: 'analogy',
@@ -132,9 +108,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Comparing similar situations to illustrate a point.',
     category: 'logos',
     color: '#34D399',
-    examples: [
-      'Just as a ship needs a captain, an organization needs strong leadership.',
-    ],
+    examples: ['Just as a ship needs a captain, an organization needs strong leadership.'],
   },
   {
     id: 'cause-and-effect',
@@ -142,9 +116,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Demonstrating how one event leads to another.',
     category: 'logos',
     color: '#4ADE80',
-    examples: [
-      'Reducing carbon emissions will lead to cleaner air and improved public health.',
-    ],
+    examples: ['Reducing carbon emissions will lead to cleaner air and improved public health.'],
   },
 
   // Kairos - Appeals to Timing
@@ -154,9 +126,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Emphasizing the need for immediate action.',
     category: 'kairos',
     color: '#0EA5E9',
-    examples: [
-      'Act now - this offer expires at midnight!',
-    ],
+    examples: ['Act now - this offer expires at midnight!'],
   },
   {
     id: 'timeliness',
@@ -164,9 +134,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Connecting arguments to current events or trends.',
     category: 'kairos',
     color: '#06B6D4',
-    examples: [
-      'In light of recent developments, it\'s more important than ever to...',
-    ],
+    examples: ["In light of recent developments, it's more important than ever to..."],
   },
   {
     id: 'historical-moment',
@@ -174,9 +142,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Framing the situation as a pivotal point in history.',
     category: 'kairos',
     color: '#38BDF8',
-    examples: [
-      'We stand at a crossroads that will define our generation.',
-    ],
+    examples: ['We stand at a crossroads that will define our generation.'],
   },
   {
     id: 'seasonal-appeal',
@@ -184,8 +150,6 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     description: 'Leveraging specific times, seasons, or contexts.',
     category: 'kairos',
     color: '#67E8F9',
-    examples: [
-      'As we enter the holiday season, let\'s remember those less fortunate.',
-    ],
+    examples: ["As we enter the holiday season, let's remember those less fortunate."],
   },
 ];

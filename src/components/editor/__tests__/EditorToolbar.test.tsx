@@ -5,9 +5,7 @@ import { createEditor, Descendant } from 'slate';
 import { withHistory } from 'slate-history';
 import { EditorToolbar } from '../EditorToolbar';
 
-const initialValue: Descendant[] = [
-  { type: 'paragraph', children: [{ text: 'Test content' }] },
-];
+const initialValue: Descendant[] = [{ type: 'paragraph', children: [{ text: 'Test content' }] }];
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const editor = React.useMemo(() => withHistory(withReact(createEditor())), []);
@@ -26,7 +24,7 @@ const renderWithSlate = (ui: React.ReactElement) => {
 describe('EditorToolbar', () => {
   it('renders formatting buttons', () => {
     renderWithSlate(<EditorToolbar />);
-    
+
     expect(screen.getByTitle('Bold (Ctrl+B)')).toBeInTheDocument();
     expect(screen.getByTitle('Italic (Ctrl+I)')).toBeInTheDocument();
     expect(screen.getByTitle('Underline (Ctrl+U)')).toBeInTheDocument();
@@ -35,7 +33,7 @@ describe('EditorToolbar', () => {
 
   it('renders block buttons', () => {
     renderWithSlate(<EditorToolbar />);
-    
+
     expect(screen.getByTitle('Heading 1')).toBeInTheDocument();
     expect(screen.getByTitle('Heading 2')).toBeInTheDocument();
     expect(screen.getByTitle('Block Quote')).toBeInTheDocument();
@@ -59,8 +57,8 @@ describe('EditorToolbar', () => {
   it('shows annotation apply button when annotation is selected and text is selected', () => {
     const selectedAnnotation = { name: 'Ad Hominem', color: '#E53E3E' };
     renderWithSlate(
-      <EditorToolbar 
-        selectedAnnotation={selectedAnnotation} 
+      <EditorToolbar
+        selectedAnnotation={selectedAnnotation}
         hasTextSelection={true}
         onApplyAnnotation={() => {}}
       />
@@ -71,8 +69,8 @@ describe('EditorToolbar', () => {
   it('does not show annotation button when text is not selected', () => {
     const selectedAnnotation = { name: 'Ad Hominem', color: '#E53E3E' };
     renderWithSlate(
-      <EditorToolbar 
-        selectedAnnotation={selectedAnnotation} 
+      <EditorToolbar
+        selectedAnnotation={selectedAnnotation}
         hasTextSelection={false}
         onApplyAnnotation={() => {}}
       />
@@ -84,13 +82,13 @@ describe('EditorToolbar', () => {
     const onApplyAnnotation = jest.fn();
     const selectedAnnotation = { name: 'Ad Hominem', color: '#E53E3E' };
     renderWithSlate(
-      <EditorToolbar 
-        selectedAnnotation={selectedAnnotation} 
+      <EditorToolbar
+        selectedAnnotation={selectedAnnotation}
         hasTextSelection={true}
         onApplyAnnotation={onApplyAnnotation}
       />
     );
-    
+
     const applyButton = screen.getByText('Ad Hominem').closest('button');
     if (applyButton) {
       fireEvent.mouseDown(applyButton);
@@ -101,13 +99,13 @@ describe('EditorToolbar', () => {
   it('applies annotation color to apply button', () => {
     const selectedAnnotation = { name: 'Ad Hominem', color: '#E53E3E' };
     renderWithSlate(
-      <EditorToolbar 
-        selectedAnnotation={selectedAnnotation} 
+      <EditorToolbar
+        selectedAnnotation={selectedAnnotation}
         hasTextSelection={true}
         onApplyAnnotation={() => {}}
       />
     );
-    
+
     const applyButton = screen.getByText('Ad Hominem').closest('button');
     expect(applyButton).toHaveStyle({ backgroundColor: '#E53E3E' });
   });
@@ -115,7 +113,7 @@ describe('EditorToolbar', () => {
   it('bold button triggers mark toggle on mousedown', () => {
     renderWithSlate(<EditorToolbar />);
     const boldButton = screen.getByTitle('Bold (Ctrl+B)');
-    
+
     // Should not throw when clicked
     fireEvent.mouseDown(boldButton);
   });
@@ -123,7 +121,7 @@ describe('EditorToolbar', () => {
   it('heading button triggers block toggle on mousedown', () => {
     renderWithSlate(<EditorToolbar />);
     const h1Button = screen.getByTitle('Heading 1');
-    
+
     // Should not throw when clicked
     fireEvent.mouseDown(h1Button);
   });
@@ -131,7 +129,7 @@ describe('EditorToolbar', () => {
   it('clear formatting button is clickable', () => {
     renderWithSlate(<EditorToolbar />);
     const clearButton = screen.getByTitle('Clear Formatting');
-    
+
     // Should not throw when clicked
     fireEvent.mouseDown(clearButton);
   });
@@ -139,7 +137,7 @@ describe('EditorToolbar', () => {
   it('remove highlights button is clickable', () => {
     renderWithSlate(<EditorToolbar />);
     const removeButton = screen.getByText('Remove ALL Highlights');
-    
+
     // Should not throw when clicked
     fireEvent.mouseDown(removeButton);
   });
@@ -151,31 +149,27 @@ describe('EditorToolbar', () => {
     ];
 
     it('renders pinned speaker buttons', () => {
-      renderWithSlate(
-        <EditorToolbar 
-          pinnedSpeakers={pinnedSpeakers}
-        />
-      );
-      
+      renderWithSlate(<EditorToolbar pinnedSpeakers={pinnedSpeakers} />);
+
       expect(screen.getByText('Speaker A')).toBeInTheDocument();
       expect(screen.getByText('Speaker B')).toBeInTheDocument();
     });
 
     it('does not render speaker section when no pinned speakers', () => {
       renderWithSlate(<EditorToolbar pinnedSpeakers={[]} />);
-      
+
       expect(screen.queryByText('Speaker A')).not.toBeInTheDocument();
     });
 
     it('calls onAssignPinnedSpeaker when speaker button clicked', () => {
       const onAssignPinnedSpeaker = jest.fn();
       renderWithSlate(
-        <EditorToolbar 
+        <EditorToolbar
           pinnedSpeakers={pinnedSpeakers}
           onAssignPinnedSpeaker={onAssignPinnedSpeaker}
         />
       );
-      
+
       const speakerButton = screen.getByText('Speaker A').closest('button');
       if (speakerButton) {
         fireEvent.mouseDown(speakerButton);
@@ -184,23 +178,15 @@ describe('EditorToolbar', () => {
     });
 
     it('applies speaker color to button', () => {
-      renderWithSlate(
-        <EditorToolbar 
-          pinnedSpeakers={pinnedSpeakers}
-        />
-      );
-      
+      renderWithSlate(<EditorToolbar pinnedSpeakers={pinnedSpeakers} />);
+
       const speakerButton = screen.getByText('Speaker A').closest('button');
       expect(speakerButton).toHaveStyle({ backgroundColor: '#3B82F6' });
     });
 
     it('shows speaker icon in button', () => {
-      renderWithSlate(
-        <EditorToolbar 
-          pinnedSpeakers={pinnedSpeakers}
-        />
-      );
-      
+      renderWithSlate(<EditorToolbar pinnedSpeakers={pinnedSpeakers} />);
+
       const speakerButton = screen.getByLabelText('Assign speaker Speaker A');
       expect(speakerButton).toBeInTheDocument();
     });

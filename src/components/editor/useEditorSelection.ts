@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Range } from 'slate';
-import { ReactEditor } from 'slate-react';
 import { CustomEditor } from './types';
-import { getSelectionText, hasSelection } from './utils';
+import { getSelectionText } from './utils';
 
 interface SelectionState {
   hasSelection: boolean;

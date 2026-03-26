@@ -87,7 +87,9 @@ describe('StructuralMarkupPanel', () => {
   describe('selected markup detail', () => {
     it('shows detail panel when a markup is selected', () => {
       render(<StructuralMarkupPanel selectedMarkupId="claim" />);
-      expect(screen.getByText('A statement or assertion being made that may require evidence.')).toBeInTheDocument();
+      expect(
+        screen.getByText('A statement or assertion being made that may require evidence.')
+      ).toBeInTheDocument();
     });
 
     it('shows apply button disabled when no selection', () => {
@@ -98,11 +100,7 @@ describe('StructuralMarkupPanel', () => {
 
     it('shows "Apply Markup" when text is selected and markup is not applied', () => {
       render(
-        <StructuralMarkupPanel 
-          selectedMarkupId="claim" 
-          hasSelection={true} 
-          appliedMarkupIds={[]} 
-        />
+        <StructuralMarkupPanel selectedMarkupId="claim" hasSelection={true} appliedMarkupIds={[]} />
       );
       expect(screen.getByText('Apply Markup')).toBeInTheDocument();
       expect(screen.getByText('Apply Markup')).toBeEnabled();
@@ -110,10 +108,10 @@ describe('StructuralMarkupPanel', () => {
 
     it('shows "Remove Markup" when text is selected and markup is already applied', () => {
       render(
-        <StructuralMarkupPanel 
-          selectedMarkupId="claim" 
-          hasSelection={true} 
-          appliedMarkupIds={['claim']} 
+        <StructuralMarkupPanel
+          selectedMarkupId="claim"
+          hasSelection={true}
+          appliedMarkupIds={['claim']}
         />
       );
       expect(screen.getByText('Remove Markup')).toBeInTheDocument();
@@ -122,10 +120,10 @@ describe('StructuralMarkupPanel', () => {
     it('calls onApplyMarkup when apply button is clicked', () => {
       const onApplyMarkup = jest.fn();
       render(
-        <StructuralMarkupPanel 
-          selectedMarkupId="evidence" 
-          hasSelection={true} 
-          onApplyMarkup={onApplyMarkup} 
+        <StructuralMarkupPanel
+          selectedMarkupId="evidence"
+          hasSelection={true}
+          onApplyMarkup={onApplyMarkup}
         />
       );
 
@@ -194,10 +192,10 @@ describe('StructuralMarkupPanel', () => {
     it('passes citation data when applying with source info', () => {
       const onApplyMarkup = jest.fn();
       render(
-        <StructuralMarkupPanel 
-          selectedMarkupId="evidence" 
-          hasSelection={true} 
-          onApplyMarkup={onApplyMarkup} 
+        <StructuralMarkupPanel
+          selectedMarkupId="evidence"
+          hasSelection={true}
+          onApplyMarkup={onApplyMarkup}
         />
       );
 

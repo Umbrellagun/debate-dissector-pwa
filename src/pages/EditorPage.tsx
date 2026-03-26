@@ -2,7 +2,22 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Descendant, Editor, Range, Transforms } from 'slate';
 import { MainLayout, Header } from '../components/layout';
-import { DebateEditor, DebateEditorHandle, applyFallacyMark, applyRhetoricMark, applyStructuralMark, applyCommentMark, removeCommentMark, getSelectionText, clearAllAnnotations, EditorLeftSidebar, DEFAULT_INITIAL_VALUE, PinnedAnnotation, assignSpeakerToSelection } from '../components/editor';
+import {
+  DebateEditor,
+  DebateEditorHandle,
+  applyFallacyMark,
+  applyRhetoricMark,
+  applyStructuralMark,
+  applyCommentMark,
+  removeCommentMark,
+  getSelectionText,
+  clearAllAnnotations,
+  EditorLeftSidebar,
+  DEFAULT_INITIAL_VALUE,
+  PinnedAnnotation,
+  assignSpeakerToSelection,
+  HiddenAnnotationIds,
+} from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { SpeakerPanel } from '../components/speakers';
 import { CommentPanel } from '../components/comments';
@@ -10,10 +25,23 @@ import { SourceCitation } from '../components/structural';
 import { STRUCTURAL_MARKUPS, StructuralMarkup } from '../data/structuralMarkup';
 import { VersionHistoryPanel } from '../components/version';
 import { createShare } from '../services/sharing';
-import { Fallacy, Rhetoric, Annotation, Comment, DebateDocument, DocumentListItem, DocumentVersion, Speaker, DEFAULT_SPEAKER_COLORS } from '../models';
+import {
+  Fallacy,
+  Rhetoric,
+  Annotation,
+  Comment,
+  DebateDocument,
+  DocumentVersion,
+  Speaker,
+} from '../models';
 import { FALLACIES } from '../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../data/rhetoric';
-import { EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT, EXAMPLE_SPEAKERS, DEFAULT_SPEAKERS } from '../data/exampleDocument';
+import {
+  EXAMPLE_DOCUMENT_TITLE,
+  EXAMPLE_DOCUMENT_CONTENT,
+  EXAMPLE_SPEAKERS,
+  DEFAULT_SPEAKERS,
+} from '../data/exampleDocument';
 import { useApp } from '../context';
 import { saveDocument as saveDoc, createVersion } from '../services/storage';
 import { SharedDebate } from '../services/sharing';
@@ -27,27 +55,45 @@ export interface SharedDocumentState {
 
 // Simple SVG icon component for History
 const HistoryIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
     <path d="M3 3v5h5" />
     <path d="M12 7v5l4 2" />
   </svg>
 );
 
-// Extract unique fallacy and rhetoric IDs from document content
-const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; rhetoricIds: string[] } => {
+// Extract unique fallacy, rhetoric, and structural IDs from document content
+const extractUsedAnnotations = (
+  content: Descendant[]
+): { fallacyIds: string[]; rhetoricIds: string[]; structuralIds: string[] } => {
   const fallacyIds = new Set<string>();
   const rhetoricIds = new Set<string>();
-  
+  const structuralIds = new Set<string>();
+
   const traverse = (nodes: Descendant[]) => {
     for (const node of nodes) {
       if ('text' in node) {
-        const textNode = node as { fallacyMarks?: { fallacyId: string }[]; rhetoricMarks?: { rhetoricId: string }[] };
+        const textNode = node as {
+          fallacyMarks?: { fallacyId: string }[];
+          rhetoricMarks?: { rhetoricId: string }[];
+          structuralMarks?: { markupId: string }[];
+        };
         if (textNode.fallacyMarks) {
           textNode.fallacyMarks.forEach(m => fallacyIds.add(m.fallacyId));
         }
         if (textNode.rhetoricMarks) {
           textNode.rhetoricMarks.forEach(m => rhetoricIds.add(m.rhetoricId));
+        }
+        if (textNode.structuralMarks) {
+          textNode.structuralMarks.forEach(m => structuralIds.add(m.markupId));
         }
       }
       if ('children' in node && Array.isArray((node as { children: Descendant[] }).children)) {
@@ -55,15 +101,19 @@ const extractUsedAnnotations = (content: Descendant[]): { fallacyIds: string[]; 
       }
     }
   };
-  
+
   traverse(content);
-  return { fallacyIds: Array.from(fallacyIds), rhetoricIds: Array.from(rhetoricIds) };
+  return {
+    fallacyIds: Array.from(fallacyIds),
+    rhetoricIds: Array.from(rhetoricIds),
+    structuralIds: Array.from(structuralIds),
+  };
 };
 
 // Extract structural markup statistics from document content
 const extractStructuralMarkupStats = (content: Descendant[]): Record<string, number> => {
   const stats: Record<string, number> = {};
-  
+
   const traverse = (nodes: Descendant[]) => {
     for (const node of nodes) {
       if ('text' in node) {
@@ -79,7 +129,7 @@ const extractStructuralMarkupStats = (content: Descendant[]): Record<string, num
       }
     }
   };
-  
+
   traverse(content);
   return stats;
 };
@@ -93,7 +143,8 @@ const normalizeEditorContent = (content: Descendant[] | undefined | null): Desce
   const isValid = content.every(node => {
     if (typeof node !== 'object' || node === null) return false;
     const element = node as { children?: unknown[] };
-    if (!element.children || !Array.isArray(element.children) || element.children.length === 0) return false;
+    if (!element.children || !Array.isArray(element.children) || element.children.length === 0)
+      return false;
     return element.children.every(child => {
       const textNode = child as { text?: string };
       return typeof textNode.text === 'string';
@@ -106,8 +157,16 @@ export const EditorPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { state, loadDocument, loadDocuments, createDocument, saveDocument, deleteDocument, updatePreferences } = useApp();
-  
+  const {
+    state,
+    loadDocument,
+    loadDocuments,
+    createDocument,
+    saveDocument,
+    deleteDocument,
+    updatePreferences,
+  } = useApp();
+
   // Check if viewing a shared document (passed via location state from SharedDebatePage)
   const sharedDocState = location.state as SharedDocumentState | null;
   const isViewingShared = !!sharedDocState?.sharedDebate;
@@ -119,12 +178,12 @@ export const EditorPage: React.FC = () => {
   const [showLeftSidebar, setShowLeftSidebar] = useState(false);
   const [rightSidebarExpanded, setRightSidebarExpanded] = useState(false);
   const [sidebarStatesSynced, setSidebarStatesSynced] = useState(false);
-  
+
   // Detect if on mobile (viewport width < 1024px which is lg breakpoint)
-  const [isMobile, setIsMobile] = useState(() => 
-    typeof window !== 'undefined' && window.innerWidth < 1024
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 1024
   );
-  
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', checkMobile);
@@ -141,24 +200,34 @@ export const EditorPage: React.FC = () => {
   const [sharePopup, setSharePopup] = useState<{ url: string; copied: boolean } | null>(null);
   const [showSpeakerPanel, setShowSpeakerPanel] = useState(false);
   const [showStatsPanel, setShowStatsPanel] = useState(false);
-  const [selectedStructuralMarkup, setSelectedStructuralMarkup] = useState<StructuralMarkup | null>(null);
-  const [selectedStructuralMetadata, setSelectedStructuralMetadata] = useState<{
-    sourceUrl?: string;
-    sourceAuthor?: string;
-    sourceDate?: string;
-    sourcePublication?: string;
-    verificationStatus?: 'unverified' | 'verified' | 'disputed';
-  } | undefined>(undefined);
+  const [selectedStructuralMarkup, setSelectedStructuralMarkup] = useState<StructuralMarkup | null>(
+    null
+  );
+  const [selectedStructuralMetadata, setSelectedStructuralMetadata] = useState<
+    | {
+        sourceUrl?: string;
+        sourceAuthor?: string;
+        sourceDate?: string;
+        sourcePublication?: string;
+        verificationStatus?: 'unverified' | 'verified' | 'disputed';
+      }
+    | undefined
+  >(undefined);
   const [storedSelection, setStoredSelection] = useState<Range | null>(null);
   const [structuralClickNonce, setStructuralClickNonce] = useState(0);
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
-  
+  const [hiddenAnnotationIds, setHiddenAnnotationIds] = useState<HiddenAnnotationIds>({
+    fallacyIds: [],
+    rhetoricIds: [],
+    structuralIds: [],
+  });
+
   // Cache share URLs per document to avoid creating duplicates
   const shareUrlCache = useRef<Record<string, string>>({});
-  
+
   // Sync sidebar states from preferences once loaded
   useEffect(() => {
     if (!isLoading && !sidebarStatesSynced) {
@@ -189,23 +258,58 @@ export const EditorPage: React.FC = () => {
     }
   }, [currentDoc?.id, currentDoc?.speakers]);
 
-  // Extract used annotations from current document content
-  const { usedFallacies, usedRhetoric } = useMemo(() => {
-    if (!currentDoc?.content) {
-      return { usedFallacies: [], usedRhetoric: [] };
+  // Restore hidden annotation IDs from document when document changes
+  useEffect(() => {
+    if (currentDoc?.hiddenAnnotationIds) {
+      setHiddenAnnotationIds(currentDoc.hiddenAnnotationIds);
+    } else {
+      setHiddenAnnotationIds({ fallacyIds: [], rhetoricIds: [], structuralIds: [] });
     }
-    const { fallacyIds, rhetoricIds } = extractUsedAnnotations(currentDoc.content);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDoc?.id]);
+
+  // Persist hidden annotation IDs back to document when they change
+  useEffect(() => {
+    if (!currentDoc || !isInitialized) return;
+    const hasHidden =
+      hiddenAnnotationIds.fallacyIds.length > 0 ||
+      hiddenAnnotationIds.rhetoricIds.length > 0 ||
+      hiddenAnnotationIds.structuralIds.length > 0;
+    const docHas = !!currentDoc.hiddenAnnotationIds;
+    // Only update if there's a meaningful change
+    if (hasHidden || docHas) {
+      setCurrentDoc(prev => {
+        if (!prev) return prev;
+        return { ...prev, hiddenAnnotationIds: hasHidden ? hiddenAnnotationIds : undefined };
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hiddenAnnotationIds]);
+
+  // Extract used annotations from current document content
+  const {
+    usedFallacies,
+    usedRhetoric,
+    usedStructural: _usedStructural,
+  } = useMemo(() => {
+    if (!currentDoc?.content) {
+      return { usedFallacies: [], usedRhetoric: [], usedStructural: [] };
+    }
+    const { fallacyIds, rhetoricIds, structuralIds } = extractUsedAnnotations(currentDoc.content);
     const usedFallacies = fallacyIds
       .map(id => FALLACIES.find(f => f.id === id))
       .filter((f): f is Fallacy => f !== undefined);
     const usedRhetoric = rhetoricIds
       .map(id => RHETORIC_TECHNIQUES.find(r => r.id === id))
       .filter((r): r is Rhetoric => r !== undefined);
-    return { usedFallacies, usedRhetoric };
+    const usedStructural = structuralIds
+      .map(id => STRUCTURAL_MARKUPS.find(s => s.id === id))
+      .filter((s): s is StructuralMarkup => s !== undefined);
+    return { usedFallacies, usedRhetoric, usedStructural };
   }, [currentDoc?.content]);
 
   // Extract structural markup statistics from current document content
-  const structuralMarkupStats = useMemo(() => {
+  const _structuralMarkupStats = useMemo(() => {
     if (!currentDoc?.content) return {};
     return extractStructuralMarkupStats(currentDoc.content);
   }, [currentDoc?.content]);
@@ -240,7 +344,7 @@ export const EditorPage: React.FC = () => {
   // Build list of pinned annotations for toolbar shortcuts
   const pinnedAnnotations = useMemo((): PinnedAnnotation[] => {
     const pinned: PinnedAnnotation[] = [];
-    
+
     // Add pinned fallacies
     (preferences.pinnedFallacies || []).forEach(id => {
       const fallacy = FALLACIES.find(f => f.id === id);
@@ -253,7 +357,7 @@ export const EditorPage: React.FC = () => {
         });
       }
     });
-    
+
     // Add pinned rhetoric
     (preferences.pinnedRhetoric || []).forEach(id => {
       const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === id);
@@ -266,7 +370,7 @@ export const EditorPage: React.FC = () => {
         });
       }
     });
-    
+
     return pinned;
   }, [preferences.pinnedFallacies, preferences.pinnedRhetoric]);
 
@@ -321,12 +425,16 @@ export const EditorPage: React.FC = () => {
           // Use localStorage flag to prevent duplicate example document creation
           const exampleCreated = localStorage.getItem('debate-dissector-example-created');
           const isFirstTime = freshDocs.length === 0 && !exampleCreated;
-          
+
           if (isFirstTime) {
             // Mark as created BEFORE creating to prevent race conditions
             localStorage.setItem('debate-dissector-example-created', 'true');
             // Create example document with pre-marked fallacies and speakers
-            doc = await createDocument(EXAMPLE_DOCUMENT_TITLE, EXAMPLE_DOCUMENT_CONTENT, EXAMPLE_SPEAKERS);
+            doc = await createDocument(
+              EXAMPLE_DOCUMENT_TITLE,
+              EXAMPLE_DOCUMENT_CONTENT,
+              EXAMPLE_SPEAKERS
+            );
           } else if (freshDocs.length > 0) {
             // Load the first existing document instead of creating a new one
             doc = await loadDocument(freshDocs[0].id);
@@ -349,7 +457,18 @@ export const EditorPage: React.FC = () => {
     };
 
     initDocument();
-  }, [id, isLoading, isInitialized, isViewingShared, sharedDebate, preferences.lastEditedDocumentId, loadDocument, loadDocuments, createDocument, updatePreferences]);
+  }, [
+    id,
+    isLoading,
+    isInitialized,
+    isViewingShared,
+    sharedDebate,
+    preferences.lastEditedDocumentId,
+    loadDocument,
+    loadDocuments,
+    createDocument,
+    updatePreferences,
+  ]);
 
   // Handler for importing a shared document as a local copy
   const handleImportAsCopy = useCallback(async () => {
@@ -360,7 +479,7 @@ export const EditorPage: React.FC = () => {
 
     // Create document first (without annotations)
     const newDoc = await createDocument(`${sharedDebate.title} (Copy)`, content);
-    
+
     // Then save with annotations
     await saveDocument({
       ...newDoc,
@@ -433,41 +552,44 @@ export const EditorPage: React.FC = () => {
     setSelectedRhetoric(null);
   }, []);
 
-  const handleStatsAnnotationClick = useCallback((id: string, type: 'fallacy' | 'rhetoric' | 'structural') => {
-    trackAnalyticsEvent('stats_breakdown_clicked', { type, id, name: id });
-    // Close stats panel
-    setShowStatsPanel(false);
-    // Open annotation sidebar
-    setRightSidebarExpanded(true);
-    updatePreferences({ rightSidebarOpen: true });
+  const handleStatsAnnotationClick = useCallback(
+    (id: string, type: 'fallacy' | 'rhetoric' | 'structural') => {
+      trackAnalyticsEvent('stats_breakdown_clicked', { type, id, name: id });
+      // Close stats panel
+      setShowStatsPanel(false);
+      // Open annotation sidebar
+      setRightSidebarExpanded(true);
+      updatePreferences({ rightSidebarOpen: true });
 
-    if (type === 'fallacy') {
-      const fallacy = FALLACIES.find(f => f.id === id);
-      if (fallacy) {
-        setAnnotationTab('fallacies');
-        setSelectedFallacy(fallacy);
-        setSelectedRhetoric(null);
-        setSelectedStructuralMarkup(null);
+      if (type === 'fallacy') {
+        const fallacy = FALLACIES.find(f => f.id === id);
+        if (fallacy) {
+          setAnnotationTab('fallacies');
+          setSelectedFallacy(fallacy);
+          setSelectedRhetoric(null);
+          setSelectedStructuralMarkup(null);
+        }
+      } else if (type === 'rhetoric') {
+        const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === id);
+        if (rhetoric) {
+          setAnnotationTab('rhetoric');
+          setSelectedRhetoric(rhetoric);
+          setSelectedFallacy(null);
+          setSelectedStructuralMarkup(null);
+        }
+      } else if (type === 'structural') {
+        const markup = STRUCTURAL_MARKUPS.find(m => m.id === id);
+        if (markup) {
+          setAnnotationTab('structural');
+          setSelectedStructuralMarkup(markup);
+          setSelectedStructuralMetadata(undefined);
+          setSelectedFallacy(null);
+          setSelectedRhetoric(null);
+        }
       }
-    } else if (type === 'rhetoric') {
-      const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === id);
-      if (rhetoric) {
-        setAnnotationTab('rhetoric');
-        setSelectedRhetoric(rhetoric);
-        setSelectedFallacy(null);
-        setSelectedStructuralMarkup(null);
-      }
-    } else if (type === 'structural') {
-      const markup = STRUCTURAL_MARKUPS.find(m => m.id === id);
-      if (markup) {
-        setAnnotationTab('structural');
-        setSelectedStructuralMarkup(markup);
-        setSelectedStructuralMetadata(undefined);
-        setSelectedFallacy(null);
-        setSelectedRhetoric(null);
-      }
-    }
-  }, [updatePreferences]);
+    },
+    [updatePreferences]
+  );
 
   const handleLeftSidebarToggle = useCallback(() => {
     const newValue = !showLeftSidebar;
@@ -481,100 +603,130 @@ export const EditorPage: React.FC = () => {
     updatePreferences({ rightSidebarOpen: newValue });
   }, [rightSidebarExpanded, updatePreferences]);
 
-  const handleFallacyApply = useCallback((fallacy: Fallacy) => {
-    const editor = editorRef.current?.getEditor();
-    if (!editor || !currentDoc) return;
+  const handleFallacyApply = useCallback(
+    (fallacy: Fallacy) => {
+      const editor = editorRef.current?.getEditor();
+      if (!editor || !currentDoc) return;
 
-    const result = applyFallacyMark(editor, fallacy.id, fallacy.color);
-    if (result) {
-      const annotationId = `ann_${Date.now()}`;
-      const now = Date.now();
-      const newAnnotation: Annotation = {
-        id: annotationId,
-        fallacyId: fallacy.id,
-        fallacyCategory: fallacy.category,
-        color: fallacy.color,
-        createdAt: now,
-        updatedAt: now,
-      };
-      setCurrentDoc((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          annotations: { ...prev.annotations, [annotationId]: newAnnotation },
+      const result = applyFallacyMark(editor, fallacy.id, fallacy.color);
+      if (result) {
+        const annotationId = `ann_${Date.now()}`;
+        const now = Date.now();
+        const newAnnotation: Annotation = {
+          id: annotationId,
+          fallacyId: fallacy.id,
+          fallacyCategory: fallacy.category,
+          color: fallacy.color,
+          createdAt: now,
+          updatedAt: now,
         };
-      });
-      trackAnalyticsEvent('annotation_applied', { type: 'fallacy', id: fallacy.id, name: fallacy.name });
-    }
-  }, [currentDoc]);
+        setCurrentDoc(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            annotations: { ...prev.annotations, [annotationId]: newAnnotation },
+          };
+        });
+        trackAnalyticsEvent('annotation_applied', {
+          type: 'fallacy',
+          id: fallacy.id,
+          name: fallacy.name,
+        });
+      }
+    },
+    [currentDoc]
+  );
 
-  const handleRhetoricApply = useCallback((rhetoric: Rhetoric) => {
-    const editor = editorRef.current?.getEditor();
-    if (!editor || !currentDoc) return;
+  const handleRhetoricApply = useCallback(
+    (rhetoric: Rhetoric) => {
+      const editor = editorRef.current?.getEditor();
+      if (!editor || !currentDoc) return;
 
-    const result = applyRhetoricMark(editor, rhetoric.id, rhetoric.color);
-    if (result) {
-      trackAnalyticsEvent('annotation_applied', { type: 'rhetoric', id: rhetoric.id, name: rhetoric.name });
-    }
-  }, [currentDoc]);
+      const result = applyRhetoricMark(editor, rhetoric.id, rhetoric.color);
+      if (result) {
+        trackAnalyticsEvent('annotation_applied', {
+          type: 'rhetoric',
+          id: rhetoric.id,
+          name: rhetoric.name,
+        });
+      }
+    },
+    [currentDoc]
+  );
 
-  const handleClearAnnotations = useCallback(() => {
+  const _handleClearAnnotations = useCallback(() => {
     const editor = editorRef.current?.getEditor();
     if (!editor) return;
     clearAllAnnotations(editor);
   }, []);
 
-  const handleApplyPinnedAnnotation = useCallback((annotation: PinnedAnnotation) => {
-    if (annotation.type === 'fallacy') {
-      const fallacy = FALLACIES.find(f => f.id === annotation.id);
-      if (fallacy) {
-        handleFallacyApply(fallacy);
+  const handleApplyPinnedAnnotation = useCallback(
+    (annotation: PinnedAnnotation) => {
+      if (annotation.type === 'fallacy') {
+        const fallacy = FALLACIES.find(f => f.id === annotation.id);
+        if (fallacy) {
+          handleFallacyApply(fallacy);
+        }
+      } else {
+        const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === annotation.id);
+        if (rhetoric) {
+          handleRhetoricApply(rhetoric);
+        }
       }
-    } else {
-      const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === annotation.id);
-      if (rhetoric) {
-        handleRhetoricApply(rhetoric);
+      // Close sidebar on mobile after applying
+      if (isMobile) {
+        setRightSidebarExpanded(false);
       }
-    }
-    // Close sidebar on mobile after applying
-    if (isMobile) {
-      setRightSidebarExpanded(false);
-    }
-  }, [handleFallacyApply, handleRhetoricApply, isMobile]);
+    },
+    [handleFallacyApply, handleRhetoricApply, isMobile]
+  );
 
   // Speaker handlers
-  const handleSpeakerAdd = useCallback((speaker: Speaker) => {
-    if (!currentDoc) return;
-    const updatedSpeakers = [...(currentDoc.speakers || []), speaker];
-    setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
-    trackAnalyticsEvent('speaker_created', { speakerName: speaker.name });
-  }, [currentDoc]);
+  const handleSpeakerAdd = useCallback(
+    (speaker: Speaker) => {
+      if (!currentDoc) return;
+      const updatedSpeakers = [...(currentDoc.speakers || []), speaker];
+      setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+      trackAnalyticsEvent('speaker_created', { speakerName: speaker.name });
+    },
+    [currentDoc]
+  );
 
-  const handleSpeakerUpdate = useCallback((speaker: Speaker) => {
-    if (!currentDoc) return;
-    const updatedSpeakers = (currentDoc.speakers || []).map(s => 
-      s.id === speaker.id ? speaker : s
-    );
-    setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
-    trackAnalyticsEvent('speaker_edited', { speakerId: speaker.id, speakerName: speaker.name });
-  }, [currentDoc]);
+  const handleSpeakerUpdate = useCallback(
+    (speaker: Speaker) => {
+      if (!currentDoc) return;
+      const updatedSpeakers = (currentDoc.speakers || []).map(s =>
+        s.id === speaker.id ? speaker : s
+      );
+      setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+      trackAnalyticsEvent('speaker_edited', { speakerId: speaker.id, speakerName: speaker.name });
+    },
+    [currentDoc]
+  );
 
-  const handleSpeakerDelete = useCallback((speakerId: string) => {
-    if (!currentDoc) return;
-    const updatedSpeakers = (currentDoc.speakers || []).filter(s => s.id !== speakerId);
-    setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
-    trackAnalyticsEvent('speaker_deleted', { speakerId });
-  }, [currentDoc]);
+  const handleSpeakerDelete = useCallback(
+    (speakerId: string) => {
+      if (!currentDoc) return;
+      const updatedSpeakers = (currentDoc.speakers || []).filter(s => s.id !== speakerId);
+      setCurrentDoc({ ...currentDoc, speakers: updatedSpeakers });
+      trackAnalyticsEvent('speaker_deleted', { speakerId });
+    },
+    [currentDoc]
+  );
 
-  const handleAssignSpeaker = useCallback((speakerId: string | null) => {
-    const editor = editorRef.current?.getEditor();
-    if (!editor) return;
-    assignSpeakerToSelection(editor, speakerId);
-    if (speakerId && currentDoc) {
-      const speaker = (currentDoc.speakers || []).find(s => s.id === speakerId);
-      if (speaker) trackAnalyticsEvent('speaker_assigned', { speakerId, speakerName: speaker.name });
-    }
-  }, [currentDoc]);
+  const handleAssignSpeaker = useCallback(
+    (speakerId: string | null) => {
+      const editor = editorRef.current?.getEditor();
+      if (!editor) return;
+      assignSpeakerToSelection(editor, speakerId);
+      if (speakerId && currentDoc) {
+        const speaker = (currentDoc.speakers || []).find(s => s.id === speakerId);
+        if (speaker)
+          trackAnalyticsEvent('speaker_assigned', { speakerId, speakerName: speaker.name });
+      }
+    },
+    [currentDoc]
+  );
 
   // Toggle version for pinned speaker buttons - removes speaker if already assigned
   const handleToggleAssignSpeaker = useCallback((speakerId: string) => {
@@ -584,173 +736,334 @@ export const EditorPage: React.FC = () => {
   }, []);
 
   const handleToggleSpeakerVisibility = useCallback((speakerId: string) => {
-    setHiddenSpeakerIds(prev => 
-      prev.includes(speakerId) 
-        ? prev.filter(id => id !== speakerId)
-        : [...prev, speakerId]
+    setHiddenSpeakerIds(prev =>
+      prev.includes(speakerId) ? prev.filter(id => id !== speakerId) : [...prev, speakerId]
     );
   }, []);
 
   const handleToggleSpeakerPin = useCallback((speakerId: string) => {
-    setPinnedSpeakerIds(prev => 
-      prev.includes(speakerId) 
-        ? prev.filter(id => id !== speakerId)
-        : [...prev, speakerId]
+    setPinnedSpeakerIds(prev =>
+      prev.includes(speakerId) ? prev.filter(id => id !== speakerId) : [...prev, speakerId]
     );
   }, []);
 
   // Comment handlers
-  const handleAddComment = useCallback((text: string, selectedText: string) => {
-    const editor = editorRef.current?.getEditor();
-    if (!editor || !currentDoc) return;
+  const handleAddComment = useCallback(
+    (text: string, selectedText: string) => {
+      const editor = editorRef.current?.getEditor();
+      if (!editor || !currentDoc) return;
 
-    const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const now = Date.now();
-    const newComment: Comment = {
-      id: commentId,
-      text,
-      selectedText,
-      resolved: false,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    // Apply comment mark to selected text
-    applyCommentMark(editor, commentId);
-
-    // Add comment to document
-    setCurrentDoc(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        comments: { ...(prev.comments || {}), [commentId]: newComment },
+      const commentId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const now = Date.now();
+      const newComment: Comment = {
+        id: commentId,
+        text,
+        selectedText,
+        resolved: false,
+        createdAt: now,
+        updatedAt: now,
       };
-    });
-    setActiveCommentId(commentId);
-    trackAnalyticsEvent('comment_created', { commentId });
-  }, [currentDoc]);
 
-  const handleEditComment = useCallback((commentId: string, text: string) => {
-    if (!currentDoc) return;
-    setCurrentDoc(prev => {
-      if (!prev || !prev.comments?.[commentId]) return prev;
-      return {
-        ...prev,
-        comments: {
-          ...prev.comments,
-          [commentId]: { ...prev.comments[commentId], text, updatedAt: Date.now() },
-        },
-      };
-    });
-    trackAnalyticsEvent('comment_edited', { commentId });
-  }, [currentDoc]);
+      // Apply comment mark to selected text
+      applyCommentMark(editor, commentId);
 
-  const handleDeleteComment = useCallback((commentId: string) => {
-    const editor = editorRef.current?.getEditor();
-    if (!editor || !currentDoc) return;
+      // Add comment to document
+      setCurrentDoc(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          comments: { ...(prev.comments || {}), [commentId]: newComment },
+        };
+      });
+      setActiveCommentId(commentId);
+      trackAnalyticsEvent('comment_created', { commentId });
+    },
+    [currentDoc]
+  );
 
-    // Remove comment mark from editor content
-    removeCommentMark(editor, commentId);
+  const handleEditComment = useCallback(
+    (commentId: string, text: string) => {
+      if (!currentDoc) return;
+      setCurrentDoc(prev => {
+        if (!prev || !prev.comments?.[commentId]) return prev;
+        return {
+          ...prev,
+          comments: {
+            ...prev.comments,
+            [commentId]: { ...prev.comments[commentId], text, updatedAt: Date.now() },
+          },
+        };
+      });
+      trackAnalyticsEvent('comment_edited', { commentId });
+    },
+    [currentDoc]
+  );
 
-    // Also delete any replies to this comment
-    const replies = Object.values(currentDoc.comments || {}).filter(c => c.parentId === commentId);
+  const handleDeleteComment = useCallback(
+    (commentId: string) => {
+      const editor = editorRef.current?.getEditor();
+      if (!editor || !currentDoc) return;
 
-    // Remove comment from document
-    setCurrentDoc(prev => {
-      if (!prev) return prev;
-      const updatedComments = { ...(prev.comments || {}) };
-      delete updatedComments[commentId];
-      // Delete replies too
-      for (const reply of replies) {
-        delete updatedComments[reply.id];
+      // Remove comment mark from editor content
+      removeCommentMark(editor, commentId);
+
+      // Also delete any replies to this comment
+      const replies = Object.values(currentDoc.comments || {}).filter(
+        c => c.parentId === commentId
+      );
+
+      // Remove comment from document
+      setCurrentDoc(prev => {
+        if (!prev) return prev;
+        const updatedComments = { ...(prev.comments || {}) };
+        delete updatedComments[commentId];
+        // Delete replies too
+        for (const reply of replies) {
+          delete updatedComments[reply.id];
+        }
+        return { ...prev, comments: updatedComments };
+      });
+
+      if (activeCommentId === commentId) {
+        setActiveCommentId(null);
       }
-      return { ...prev, comments: updatedComments };
-    });
+      trackAnalyticsEvent('comment_deleted', { commentId });
+    },
+    [currentDoc, activeCommentId]
+  );
 
-    if (activeCommentId === commentId) {
-      setActiveCommentId(null);
-    }
-    trackAnalyticsEvent('comment_deleted', { commentId });
-  }, [currentDoc, activeCommentId]);
+  const handleResolveComment = useCallback(
+    (commentId: string) => {
+      if (!currentDoc) return;
+      setCurrentDoc(prev => {
+        if (!prev || !prev.comments?.[commentId]) return prev;
+        const comment = prev.comments[commentId];
+        return {
+          ...prev,
+          comments: {
+            ...prev.comments,
+            [commentId]: { ...comment, resolved: !comment.resolved, updatedAt: Date.now() },
+          },
+        };
+      });
+      trackAnalyticsEvent('comment_resolved', { commentId });
+    },
+    [currentDoc]
+  );
 
-  const handleResolveComment = useCallback((commentId: string) => {
-    if (!currentDoc) return;
-    setCurrentDoc(prev => {
-      if (!prev || !prev.comments?.[commentId]) return prev;
-      const comment = prev.comments[commentId];
+  const handleReplyComment = useCallback(
+    (parentId: string, text: string, selectedText: string) => {
+      if (!currentDoc) return;
+      const replyId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const now = Date.now();
+      const reply: Comment = {
+        id: replyId,
+        text,
+        selectedText,
+        parentId,
+        resolved: false,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      setCurrentDoc(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          comments: { ...(prev.comments || {}), [replyId]: reply },
+        };
+      });
+      trackAnalyticsEvent('comment_replied', { commentId: replyId, parentId });
+    },
+    [currentDoc]
+  );
+
+  const handleCommentClick = useCallback(
+    (commentId: string) => {
+      setActiveCommentId(commentId === activeCommentId ? null : commentId);
+    },
+    [activeCommentId]
+  );
+
+  // Annotation visibility toggle handlers
+  const handleToggleFallacyVisibility = useCallback((id: string) => {
+    setHiddenAnnotationIds(prev => {
+      const hiding = !prev.fallacyIds.includes(id);
+      trackAnalyticsEvent('annotation_visibility_toggled', {
+        type: 'fallacy',
+        id,
+        action: hiding ? 'hide' : 'show',
+      });
       return {
         ...prev,
-        comments: {
-          ...prev.comments,
-          [commentId]: { ...comment, resolved: !comment.resolved, updatedAt: Date.now() },
-        },
+        fallacyIds: hiding ? [...prev.fallacyIds, id] : prev.fallacyIds.filter(x => x !== id),
       };
     });
-    trackAnalyticsEvent('comment_resolved', { commentId });
-  }, [currentDoc]);
+  }, []);
 
-  const handleReplyComment = useCallback((parentId: string, text: string, selectedText: string) => {
-    if (!currentDoc) return;
-    const replyId = `comment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const now = Date.now();
-    const reply: Comment = {
-      id: replyId,
-      text,
-      selectedText,
-      parentId,
-      resolved: false,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    setCurrentDoc(prev => {
-      if (!prev) return prev;
+  const handleToggleRhetoricVisibility = useCallback((id: string) => {
+    setHiddenAnnotationIds(prev => {
+      const hiding = !prev.rhetoricIds.includes(id);
+      trackAnalyticsEvent('annotation_visibility_toggled', {
+        type: 'rhetoric',
+        id,
+        action: hiding ? 'hide' : 'show',
+      });
       return {
         ...prev,
-        comments: { ...(prev.comments || {}), [replyId]: reply },
+        rhetoricIds: hiding ? [...prev.rhetoricIds, id] : prev.rhetoricIds.filter(x => x !== id),
       };
     });
-    trackAnalyticsEvent('comment_replied', { commentId: replyId, parentId });
-  }, [currentDoc]);
+  }, []);
 
-  const handleCommentClick = useCallback((commentId: string) => {
-    setActiveCommentId(commentId === activeCommentId ? null : commentId);
-  }, [activeCommentId]);
+  const handleToggleStructuralVisibility = useCallback((id: string) => {
+    setHiddenAnnotationIds(prev => {
+      const hiding = !prev.structuralIds.includes(id);
+      trackAnalyticsEvent('annotation_visibility_toggled', {
+        type: 'structural',
+        id,
+        action: hiding ? 'hide' : 'show',
+      });
+      return {
+        ...prev,
+        structuralIds: hiding
+          ? [...prev.structuralIds, id]
+          : prev.structuralIds.filter(x => x !== id),
+      };
+    });
+  }, []);
+
+  const handleBulkToggleFallacies = useCallback((hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', {
+      type: 'fallacy',
+      scope: 'section',
+      action: hide ? 'hide' : 'show',
+      count: FALLACIES.length,
+    });
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      fallacyIds: hide ? FALLACIES.map(f => f.id) : [],
+    }));
+  }, []);
+
+  const handleBulkToggleRhetoric = useCallback((hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', {
+      type: 'rhetoric',
+      scope: 'section',
+      action: hide ? 'hide' : 'show',
+      count: RHETORIC_TECHNIQUES.length,
+    });
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      rhetoricIds: hide ? RHETORIC_TECHNIQUES.map(r => r.id) : [],
+    }));
+  }, []);
+
+  const handleBulkToggleStructural = useCallback((hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', {
+      type: 'structural',
+      scope: 'section',
+      action: hide ? 'hide' : 'show',
+      count: STRUCTURAL_MARKUPS.length,
+    });
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      structuralIds: hide ? STRUCTURAL_MARKUPS.map(s => s.id) : [],
+    }));
+  }, []);
+
+  const handleBulkToggleFallacyIds = useCallback((ids: string[], hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', {
+      type: 'fallacy',
+      scope: 'subcategory',
+      action: hide ? 'hide' : 'show',
+      count: ids.length,
+    });
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      fallacyIds: hide
+        ? Array.from(new Set([...prev.fallacyIds, ...ids]))
+        : prev.fallacyIds.filter(x => !ids.includes(x)),
+    }));
+  }, []);
+
+  const handleBulkToggleRhetoricIds = useCallback((ids: string[], hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', {
+      type: 'rhetoric',
+      scope: 'subcategory',
+      action: hide ? 'hide' : 'show',
+      count: ids.length,
+    });
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      rhetoricIds: hide
+        ? Array.from(new Set([...prev.rhetoricIds, ...ids]))
+        : prev.rhetoricIds.filter(x => !ids.includes(x)),
+    }));
+  }, []);
+
+  const handleBulkToggleStructuralIds = useCallback((ids: string[], hide: boolean) => {
+    trackAnalyticsEvent('annotation_bulk_visibility_toggled', {
+      type: 'structural',
+      scope: 'subcategory',
+      action: hide ? 'hide' : 'show',
+      count: ids.length,
+    });
+    setHiddenAnnotationIds(prev => ({
+      ...prev,
+      structuralIds: hide
+        ? Array.from(new Set([...prev.structuralIds, ...ids]))
+        : prev.structuralIds.filter(x => !ids.includes(x)),
+    }));
+  }, []);
+
+  const handleShowAllAnnotations = useCallback(() => {
+    setHiddenAnnotationIds({ fallacyIds: [], rhetoricIds: [], structuralIds: [] });
+  }, []);
 
   // Get selected text for comment creation
   const currentSelectedText = useMemo(() => {
     const editor = editorRef.current?.getEditor();
     if (!editor || !hasTextSelection) return '';
     return getSelectionText(editor);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasTextSelection]);
 
-  const handleApplyStructuralMarkup = useCallback((markup: StructuralMarkup, citation?: SourceCitation) => {
-    const editor = editorRef.current?.getEditor();
-    if (!editor) return;
-    
-    // Restore stored selection if current selection is collapsed
-    if (storedSelection && (!editor.selection || Range.isCollapsed(editor.selection))) {
-      Transforms.select(editor, storedSelection);
-    }
-    
-    // Convert citation to metadata format if provided
-    const metadata = citation ? {
-      sourceUrl: citation.url,
-      sourceAuthor: citation.author,
-      sourceDate: citation.date,
-      sourcePublication: citation.publication,
-      verificationStatus: citation.verificationStatus,
-    } : undefined;
-    applyStructuralMark(editor, markup.id, markup.color, metadata);
-    trackAnalyticsEvent('annotation_applied', { type: 'structural', id: markup.id, name: markup.name });
-    
-    // Only clear stored selection if removing the annotation (no citation provided)
-    // Keep it for metadata updates so auto-save continues to work
-    if (!citation) {
-      setStoredSelection(null);
-    }
-  }, [storedSelection]);
+  const handleApplyStructuralMarkup = useCallback(
+    (markup: StructuralMarkup, citation?: SourceCitation) => {
+      const editor = editorRef.current?.getEditor();
+      if (!editor) return;
+
+      // Restore stored selection if current selection is collapsed
+      if (storedSelection && (!editor.selection || Range.isCollapsed(editor.selection))) {
+        Transforms.select(editor, storedSelection);
+      }
+
+      // Convert citation to metadata format if provided
+      const metadata = citation
+        ? {
+            sourceUrl: citation.url,
+            sourceAuthor: citation.author,
+            sourceDate: citation.date,
+            sourcePublication: citation.publication,
+            verificationStatus: citation.verificationStatus,
+          }
+        : undefined;
+      applyStructuralMark(editor, markup.id, markup.color, metadata);
+      trackAnalyticsEvent('annotation_applied', {
+        type: 'structural',
+        id: markup.id,
+        name: markup.name,
+      });
+
+      // Only clear stored selection if removing the annotation (no citation provided)
+      // Keep it for metadata updates so auto-save continues to work
+      if (!citation) {
+        setStoredSelection(null);
+      }
+    },
+    [storedSelection]
+  );
 
   // Keyboard shortcuts for structural markup (Alt + key)
   useEffect(() => {
@@ -758,19 +1071,19 @@ export const EditorPage: React.FC = () => {
       // Only handle Alt + key combinations when not in input fields
       if (!e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      
+
       const editor = editorRef.current?.getEditor();
       if (!editor || !hasTextSelection) return;
-      
+
       const key = e.key.toUpperCase();
       const markup = STRUCTURAL_MARKUPS.find(m => m.shortcut === key);
-      
+
       if (markup) {
         e.preventDefault();
         applyStructuralMark(editor, markup.id, markup.color);
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [hasTextSelection]);
@@ -781,25 +1094,26 @@ export const EditorPage: React.FC = () => {
       setHasTextSelection(false);
       return;
     }
-    
+
     // Check if there's actual text selected (not just a cursor position)
     const isTextSelected = !Range.isCollapsed(editor.selection);
     setHasTextSelection(isTextSelected);
-    
+
     // Get the leaf node at the current selection point
     const [start] = Range.edges(editor.selection);
-    
+
     try {
       const [node] = Editor.node(editor, start);
-      const leaf = node as { 
+      const leaf = node as {
         text?: string;
-        fallacyMarks?: { fallacyId: string; appliedAt?: number }[]; 
+        fallacyMarks?: { fallacyId: string; appliedAt?: number }[];
         rhetoricMarks?: { rhetoricId: string; appliedAt?: number }[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         structuralMarks?: { markupId: string; metadata?: any }[];
       };
-      
+
       if (!leaf || typeof leaf.text !== 'string') return;
-      
+
       // If a structural markup is selected, check if cursor text has matching metadata
       // Clear metadata if it doesn't, but don't switch tabs
       if (selectedStructuralMarkup) {
@@ -812,20 +1126,20 @@ export const EditorPage: React.FC = () => {
         }
         return;
       }
-      
+
       const fallacyMarks = leaf.fallacyMarks || [];
       const rhetoricMarks = leaf.rhetoricMarks || [];
       const hasFallacy = fallacyMarks.length > 0;
       const hasRhetoric = rhetoricMarks.length > 0;
-      
+
       // Find the most recently applied annotation across both types
       const lastFallacy = hasFallacy ? fallacyMarks[fallacyMarks.length - 1] : null;
       const lastRhetoric = hasRhetoric ? rhetoricMarks[rhetoricMarks.length - 1] : null;
-      
+
       // Determine which was applied last (matches displayed color)
       let selectFallacy = false;
       let selectRhetoric = false;
-      
+
       if (lastFallacy && lastRhetoric) {
         // Both exist - use whichever was applied last
         if ((lastFallacy.appliedAt || 0) > (lastRhetoric.appliedAt || 0)) {
@@ -838,7 +1152,7 @@ export const EditorPage: React.FC = () => {
       } else if (lastRhetoric) {
         selectRhetoric = true;
       }
-      
+
       // Switch tab and select the most recent annotation
       if (selectRhetoric && lastRhetoric) {
         setAnnotationTab('rhetoric');
@@ -859,14 +1173,14 @@ export const EditorPage: React.FC = () => {
   }, [selectedStructuralMarkup]);
 
   const handleContentChange = useCallback((value: Descendant[]) => {
-    setCurrentDoc((prev) => {
+    setCurrentDoc(prev => {
       if (!prev) return prev;
       return { ...prev, content: value, updatedAt: Date.now() };
     });
   }, []);
 
   const handleTitleChange = useCallback((title: string) => {
-    setCurrentDoc((prev) => {
+    setCurrentDoc(prev => {
       if (!prev) return prev;
       return { ...prev, title, updatedAt: Date.now() };
     });
@@ -880,58 +1194,75 @@ export const EditorPage: React.FC = () => {
     navigate(`/editor/${doc.id}`);
   }, [createDocument, updatePreferences, loadDocuments, navigate]);
 
-  const handleDocumentSelect = useCallback(async (docId: string) => {
-    if (docId === currentDoc?.id) return;
-    const doc = await loadDocument(docId);
-    if (doc) {
-      setCurrentDoc(doc);
-      await updatePreferences({ lastEditedDocumentId: doc.id });
-      navigate(`/editor/${doc.id}`);
-    }
-  }, [currentDoc?.id, loadDocument, updatePreferences, navigate]);
-
-  const handleDocumentDelete = useCallback(async (docId: string) => {
-    await deleteDocument(docId);
-    
-    // If we deleted the current document, switch to another one
-    if (docId === currentDoc?.id) {
-      const remainingDocs = documents.filter(d => d.id !== docId);
-      if (remainingDocs.length > 0) {
-        const nextDoc = await loadDocument(remainingDocs[0].id);
-        if (nextDoc) {
-          setCurrentDoc(nextDoc);
-          await updatePreferences({ lastEditedDocumentId: nextDoc.id });
-          navigate(`/editor/${nextDoc.id}`);
-        }
-      } else {
-        // No documents left, create a new one
-        const newDoc = await createDocument('Untitled Debate');
-        setCurrentDoc(newDoc);
-        await updatePreferences({ lastEditedDocumentId: newDoc.id });
-        navigate(`/editor/${newDoc.id}`);
+  const handleDocumentSelect = useCallback(
+    async (docId: string) => {
+      if (docId === currentDoc?.id) return;
+      const doc = await loadDocument(docId);
+      if (doc) {
+        setCurrentDoc(doc);
+        await updatePreferences({ lastEditedDocumentId: doc.id });
+        navigate(`/editor/${doc.id}`);
       }
-    }
-  }, [currentDoc?.id, documents, deleteDocument, loadDocument, createDocument, updatePreferences, navigate]);
+    },
+    [currentDoc?.id, loadDocument, updatePreferences, navigate]
+  );
 
-  const handleVersionRestore = useCallback(async (version: DocumentVersion) => {
-    if (!currentDoc) return;
-    
-    // Save current state as a version first
-    await createVersion(currentDoc, 'Before restore');
-    
-    // Restore the selected version's content
-    const restoredDoc: DebateDocument = {
-      ...currentDoc,
-      title: version.title,
-      content: version.content,
-      annotations: version.annotations,
-      updatedAt: Date.now(),
-    };
-    
-    setCurrentDoc(restoredDoc);
-    await saveDoc(restoredDoc, true); // Force create a version
-    setShowVersionHistory(false);
-  }, [currentDoc]);
+  const handleDocumentDelete = useCallback(
+    async (docId: string) => {
+      await deleteDocument(docId);
+
+      // If we deleted the current document, switch to another one
+      if (docId === currentDoc?.id) {
+        const remainingDocs = documents.filter(d => d.id !== docId);
+        if (remainingDocs.length > 0) {
+          const nextDoc = await loadDocument(remainingDocs[0].id);
+          if (nextDoc) {
+            setCurrentDoc(nextDoc);
+            await updatePreferences({ lastEditedDocumentId: nextDoc.id });
+            navigate(`/editor/${nextDoc.id}`);
+          }
+        } else {
+          // No documents left, create a new one
+          const newDoc = await createDocument('Untitled Debate');
+          setCurrentDoc(newDoc);
+          await updatePreferences({ lastEditedDocumentId: newDoc.id });
+          navigate(`/editor/${newDoc.id}`);
+        }
+      }
+    },
+    [
+      currentDoc?.id,
+      documents,
+      deleteDocument,
+      loadDocument,
+      createDocument,
+      updatePreferences,
+      navigate,
+    ]
+  );
+
+  const handleVersionRestore = useCallback(
+    async (version: DocumentVersion) => {
+      if (!currentDoc) return;
+
+      // Save current state as a version first
+      await createVersion(currentDoc, 'Before restore');
+
+      // Restore the selected version's content
+      const restoredDoc: DebateDocument = {
+        ...currentDoc,
+        title: version.title,
+        content: version.content,
+        annotations: version.annotations,
+        updatedAt: Date.now(),
+      };
+
+      setCurrentDoc(restoredDoc);
+      await saveDoc(restoredDoc, true); // Force create a version
+      setShowVersionHistory(false);
+    },
+    [currentDoc]
+  );
 
   useEffect(() => {
     if (!currentDoc || !isInitialized) return;
@@ -981,16 +1312,31 @@ export const EditorPage: React.FC = () => {
           onStructuralSelect={handleStructuralSelect}
           onStructuralApply={handleApplyStructuralMarkup}
           selectedStructuralId={selectedStructuralMarkup?.id}
-          selectedStructuralMetadata={selectedStructuralMetadata ? {
-            url: selectedStructuralMetadata.sourceUrl,
-            author: selectedStructuralMetadata.sourceAuthor,
-            date: selectedStructuralMetadata.sourceDate,
-            publication: selectedStructuralMetadata.sourcePublication,
-            verificationStatus: selectedStructuralMetadata.verificationStatus,
-          } : undefined}
+          selectedStructuralMetadata={
+            selectedStructuralMetadata
+              ? {
+                  url: selectedStructuralMetadata.sourceUrl,
+                  author: selectedStructuralMetadata.sourceAuthor,
+                  date: selectedStructuralMetadata.sourceDate,
+                  publication: selectedStructuralMetadata.sourcePublication,
+                  verificationStatus: selectedStructuralMetadata.verificationStatus,
+                }
+              : undefined
+          }
           structuralClickNonce={structuralClickNonce}
           activeTab={annotationTab}
           onTabChange={setAnnotationTab}
+          hiddenAnnotationIds={hiddenAnnotationIds}
+          onToggleFallacyVisibility={handleToggleFallacyVisibility}
+          onToggleRhetoricVisibility={handleToggleRhetoricVisibility}
+          onToggleStructuralVisibility={handleToggleStructuralVisibility}
+          onBulkToggleFallacies={handleBulkToggleFallacies}
+          onBulkToggleRhetoric={handleBulkToggleRhetoric}
+          onBulkToggleStructural={handleBulkToggleStructural}
+          onShowAllAnnotations={handleShowAllAnnotations}
+          onBulkToggleFallacyIds={handleBulkToggleFallacyIds}
+          onBulkToggleRhetoricIds={handleBulkToggleRhetoricIds}
+          onBulkToggleStructuralIds={handleBulkToggleStructuralIds}
         />
       }
       rightSidebarExpanded={rightSidebarExpanded}
@@ -998,19 +1344,6 @@ export const EditorPage: React.FC = () => {
     >
       <Header
         onMenuClick={isViewingShared ? () => navigate('/') : handleLeftSidebarToggle}
-        titleElement={
-          isViewingShared ? (
-            <h1 className="text-lg font-semibold text-gray-900">{currentDoc.title}</h1>
-          ) : (
-            <input
-              type="text"
-              value={currentDoc.title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              placeholder="Untitled Debate"
-              className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
-            />
-          )
-        }
         actions={
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Annotation tags - hidden on small screens */}
@@ -1086,7 +1419,12 @@ export const EditorPage: React.FC = () => {
                   <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                    />
                   </svg>
                 )}
               </button>
@@ -1110,8 +1448,18 @@ export const EditorPage: React.FC = () => {
                 }`}
                 title="Speakers"
               >
-                <svg className={`w-5 h-5 ${showSpeakerPanel ? 'text-cyan-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <svg
+                  className={`w-5 h-5 ${showSpeakerPanel ? 'text-cyan-600' : 'text-gray-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
                 </svg>
               </button>
             )}
@@ -1128,8 +1476,18 @@ export const EditorPage: React.FC = () => {
                 }`}
                 title="Statistics"
               >
-                <svg className={`w-5 h-5 ${showStatsPanel ? 'text-indigo-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h2v8H3zm6-4h2v12H9zm6-6h2v18h-2zm6 10h2v8h-2z" />
+                <svg
+                  className={`w-5 h-5 ${showStatsPanel ? 'text-indigo-600' : 'text-gray-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 13h2v8H3zm6-4h2v12H9zm6-6h2v18h-2zm6 10h2v8h-2z"
+                  />
                 </svg>
               </button>
             )}
@@ -1142,12 +1500,27 @@ export const EditorPage: React.FC = () => {
                 }`}
                 title="Comments"
               >
-                <svg className={`w-5 h-5 ${showCommentPanel ? 'text-amber-600' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-3 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                <svg
+                  className={`w-5 h-5 ${showCommentPanel ? 'text-amber-600' : 'text-gray-600'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 8h10M7 12h6m-3 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                  />
                 </svg>
-                {Object.values(currentDoc.comments || {}).filter(c => !c.parentId && !c.resolved).length > 0 && (
+                {Object.values(currentDoc.comments || {}).filter(c => !c.parentId && !c.resolved)
+                  .length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                    {Object.values(currentDoc.comments || {}).filter(c => !c.parentId && !c.resolved).length}
+                    {
+                      Object.values(currentDoc.comments || {}).filter(
+                        c => !c.parentId && !c.resolved
+                      ).length
+                    }
                   </span>
                 )}
               </button>
@@ -1158,13 +1531,37 @@ export const EditorPage: React.FC = () => {
               className="p-2 bg-violet-100 hover:bg-violet-200 rounded-lg transition-colors touch-manipulation"
               title="Annotations"
             >
-              <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              <svg
+                className="w-5 h-5 text-violet-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
               </svg>
             </button>
           </div>
         }
       />
+      {/* Document title bar */}
+      <div className="px-4 py-2 border-b border-gray-100 bg-white shrink-0">
+        {isViewingShared ? (
+          <h1 className="text-lg font-semibold text-gray-900 truncate">{currentDoc.title}</h1>
+        ) : (
+          <input
+            type="text"
+            value={currentDoc.title}
+            onChange={e => handleTitleChange(e.target.value)}
+            placeholder="Untitled Debate"
+            className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
+          />
+        )}
+      </div>
       <div className="flex-1 overflow-hidden bg-white flex flex-col relative">
         <div className="flex-1 overflow-hidden">
           <DebateEditor
@@ -1174,7 +1571,7 @@ export const EditorPage: React.FC = () => {
             onChange={isViewingShared ? () => {} : handleContentChange}
             onSelectionChange={handleSelectionChange}
             readOnly={isViewingShared}
-            onFallacyClick={(fallacyId) => {
+            onFallacyClick={fallacyId => {
               const fallacy = FALLACIES.find(f => f.id === fallacyId);
               if (fallacy) {
                 setAnnotationTab('fallacies');
@@ -1183,7 +1580,7 @@ export const EditorPage: React.FC = () => {
                 setSelectedStructuralMarkup(null);
               }
             }}
-            onRhetoricClick={(rhetoricId) => {
+            onRhetoricClick={rhetoricId => {
               const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
               if (rhetoric) {
                 setAnnotationTab('rhetoric');
@@ -1211,10 +1608,13 @@ export const EditorPage: React.FC = () => {
             }}
             placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
             selectedAnnotation={
-              selectedFallacy ? { name: selectedFallacy.name, color: selectedFallacy.color } :
-              selectedRhetoric ? { name: selectedRhetoric.name, color: selectedRhetoric.color } :
-              selectedStructuralMarkup ? { name: selectedStructuralMarkup.name, color: selectedStructuralMarkup.color } :
-              null
+              selectedFallacy
+                ? { name: selectedFallacy.name, color: selectedFallacy.color }
+                : selectedRhetoric
+                  ? { name: selectedRhetoric.name, color: selectedRhetoric.color }
+                  : selectedStructuralMarkup
+                    ? { name: selectedStructuralMarkup.name, color: selectedStructuralMarkup.color }
+                    : null
             }
             hasTextSelection={hasTextSelection}
             onApplyAnnotation={() => {
@@ -1233,10 +1633,11 @@ export const EditorPage: React.FC = () => {
             pinnedSpeakers={pinnedSpeakers}
             onAssignPinnedSpeaker={handleToggleAssignSpeaker}
             comments={currentDoc.comments || {}}
+            hiddenAnnotationIds={hiddenAnnotationIds}
           />
         </div>
       </div>
-      
+
       {showVersionHistory && (
         <VersionHistoryPanel
           documentId={currentDoc.id}
@@ -1248,14 +1649,14 @@ export const EditorPage: React.FC = () => {
       {/* Speaker Panel - Slide-over from right */}
       <>
         {/* Backdrop */}
-        <div 
+        <div
           className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
             showSpeakerPanel ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
           }`}
           onClick={() => setShowSpeakerPanel(false)}
         />
         {/* Panel */}
-        <aside 
+        <aside
           className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
             showSpeakerPanel ? 'translate-x-0' : 'translate-x-full'
           }`}
@@ -1285,8 +1686,19 @@ export const EditorPage: React.FC = () => {
                 title="Close panel"
                 aria-label="Close speaker panel"
               >
-                <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-violet-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
@@ -1297,14 +1709,14 @@ export const EditorPage: React.FC = () => {
       {/* Stats Panel - Slide-over from right */}
       <>
         {/* Backdrop */}
-        <div 
+        <div
           className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
             showStatsPanel ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
           }`}
           onClick={() => setShowStatsPanel(false)}
         />
         {/* Panel */}
-        <aside 
+        <aside
           className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
             showStatsPanel ? 'translate-x-0' : 'translate-x-full'
           }`}
@@ -1328,8 +1740,19 @@ export const EditorPage: React.FC = () => {
                 title="Close panel"
                 aria-label="Close statistics panel"
               >
-                <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-violet-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
@@ -1340,14 +1763,14 @@ export const EditorPage: React.FC = () => {
       {/* Comment Panel - Slide-over from right */}
       <>
         {/* Backdrop */}
-        <div 
+        <div
           className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
             showCommentPanel ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
           }`}
           onClick={() => setShowCommentPanel(false)}
         />
         {/* Panel */}
-        <aside 
+        <aside
           className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
             showCommentPanel ? 'translate-x-0' : 'translate-x-full'
           }`}
@@ -1377,8 +1800,19 @@ export const EditorPage: React.FC = () => {
                 title="Close panel"
                 aria-label="Close comment panel"
               >
-                <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-violet-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
@@ -1388,10 +1822,13 @@ export const EditorPage: React.FC = () => {
 
       {/* Share popup */}
       {sharePopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setSharePopup(null)}>
-          <div 
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          onClick={() => setSharePopup(null)}
+        >
+          <div
             className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4 animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Share Link</h3>
@@ -1400,18 +1837,23 @@ export const EditorPage: React.FC = () => {
                 className="p-1 text-gray-400 hover:text-gray-600 rounded"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 readOnly
                 value={sharePopup.url}
                 className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-700 select-all"
-                onClick={(e) => (e.target as HTMLInputElement).select()}
+                onClick={e => (e.target as HTMLInputElement).select()}
               />
               <button
                 onClick={handleCopyShareLink}
@@ -1424,7 +1866,12 @@ export const EditorPage: React.FC = () => {
                 {sharePopup.copied ? (
                   <span className="flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     Copied!
                   </span>
@@ -1433,7 +1880,7 @@ export const EditorPage: React.FC = () => {
                 )}
               </button>
             </div>
-            
+
             <p className="mt-3 text-xs text-gray-500">
               Anyone with this link can view this document.
             </p>
