@@ -33,7 +33,7 @@ export const SharedDebatePage: React.FC = () => {
         setPageState('ready');
         trackAnalyticsEvent('shared_doc_viewed', { shareId: id });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+      } catch (err: any) {
         setError(err.message || 'Failed to load shared document');
         setPageState('error');
       }
