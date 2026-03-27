@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** March 26, 2026
+**Last Updated:** March 27, 2026
 
 ### Phase 1: Foundation
 Core app setup and infrastructure.
@@ -97,10 +97,10 @@ Polish and usability improvements.
 - [ ] Cross-device testing
 
 #### 4.5 Floating Selection Toolbar
-- [ ] Floating action bar on text selection (desktop + mobile)
-- [ ] Quick actions: Comment, Fallacy, Rhetoric, Structural
-- [ ] Formatting actions: Bold, Italic, Underline
-- [ ] Auto-dismiss and smart positioning
+- [x] Floating action bar on text selection (desktop + mobile)
+- [x] Quick actions: Comment, pinned annotation shortcuts
+- [x] Formatting actions: Bold, Italic, Underline
+- [x] Auto-dismiss and smart positioning
 
 #### 4.6 Customization
 - [ ] Custom colors for fallacy annotations

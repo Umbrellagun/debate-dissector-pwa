@@ -31,6 +31,7 @@ import {
 import { Speaker, Comment } from '../../models';
 import { HiddenAnnotationIds } from './VisibilityControls';
 import { EditorToolbar, PinnedAnnotation, PinnedSpeaker } from './EditorToolbar';
+import { FloatingSelectionToolbar } from './FloatingSelectionToolbar';
 import { toggleMark } from './utils';
 import { MarkType } from './types';
 import { FALLACIES } from '../../data/fallacies';
@@ -402,6 +403,7 @@ interface DebateEditorProps {
   onAssignPinnedSpeaker?: (speakerId: string) => void;
   comments?: Record<string, Comment>;
   hiddenAnnotationIds?: HiddenAnnotationIds;
+  onRequestComment?: () => void;
 }
 
 // Context for annotation click handlers
@@ -845,6 +847,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       onAssignPinnedSpeaker,
       comments = {},
       hiddenAnnotationIds = { fallacyIds: [], rhetoricIds: [], structuralIds: [] },
+      onRequestComment,
     },
     ref
   ) => {
@@ -945,6 +948,15 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
                       onClick={handleClick}
                       spellCheck
                     />
+                    {!readOnly && (
+                      <FloatingSelectionToolbar
+                        onRequestComment={onRequestComment}
+                        selectedAnnotation={selectedAnnotation}
+                        onApplyAnnotation={onApplyAnnotation}
+                        pinnedAnnotations={pinnedAnnotations}
+                        onApplyPinnedAnnotation={onApplyPinnedAnnotation}
+                      />
+                    )}
                   </Slate>
                 </div>
               </HiddenAnnotationsContext.Provider>

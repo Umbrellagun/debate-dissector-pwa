@@ -7,6 +7,7 @@ import { StructuralPanel } from './StructuralPanel';
 import { StructuralMarkup, getStructuralMarkupById } from '../../data/structuralMarkup';
 import { SourceCitation } from '../structural';
 import { useApp } from '../../context';
+import { useAnalytics } from '../../hooks/useAnalytics';
 import { HiddenAnnotationIds } from '../editor/VisibilityControls';
 
 export type AnnotationTabType = 'fallacies' | 'rhetoric' | 'structural';
@@ -90,6 +91,7 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
     state: { preferences },
     updatePreferences,
   } = useApp();
+  const { trackEvent } = useAnalytics();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [fallaciesExpanded, setFallaciesExpanded] = useState(preferences.fallaciesExpanded ?? true);
@@ -570,12 +572,18 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
           const selectedFallacy = fallacies.find(f => f.id === selectedFallacyId);
           if (!selectedFallacy) return null;
           const isPinned = preferences.pinnedFallacies?.includes(selectedFallacy.id);
+          const isFallacyHidden = hiddenAnnotationIds.fallacyIds.includes(selectedFallacy.id);
           const handleTogglePin = () => {
             const current = preferences.pinnedFallacies || [];
             const updated = isPinned
               ? current.filter(id => id !== selectedFallacy.id)
               : [...current, selectedFallacy.id];
             updatePreferences({ pinnedFallacies: updated });
+            trackEvent(isPinned ? 'annotation_unpinned' : 'annotation_pinned', {
+              type: 'fallacy',
+              id: selectedFallacy.id,
+              name: selectedFallacy.name,
+            });
           };
           return (
             <div className="border-t border-gray-200 bg-gray-50 p-4 flex-shrink-0">
@@ -583,9 +591,13 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <span
                     className="w-4 h-4 rounded-full shrink-0"
-                    style={{ backgroundColor: selectedFallacy.color }}
+                    style={{ backgroundColor: isFallacyHidden ? '#d1d5db' : selectedFallacy.color }}
                   />
-                  <h3 className="font-semibold text-gray-900">{selectedFallacy.name}</h3>
+                  <h3
+                    className={`font-semibold ${isFallacyHidden ? 'text-gray-400' : 'text-gray-900'}`}
+                  >
+                    {selectedFallacy.name}
+                  </h3>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -604,6 +616,54 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                       <path d="M12 17v5M9 3h6a2 2 0 012 2v4l2 2v2H5v-2l2-2V5a2 2 0 012-2z" />
                     </svg>
                   </button>
+                  {onToggleFallacyVisibility && (
+                    <button
+                      onClick={() => onToggleFallacyVisibility(selectedFallacy.id)}
+                      className={`p-1.5 rounded transition-colors ${isFallacyHidden ? 'bg-orange-100 text-orange-500' : 'hover:bg-gray-200 text-emerald-500'}`}
+                      aria-label={
+                        isFallacyHidden
+                          ? `Show ${selectedFallacy.name} in editor`
+                          : `Hide ${selectedFallacy.name} in editor`
+                      }
+                      title={isFallacyHidden ? 'Show in editor' : 'Hide in editor'}
+                    >
+                      {isFallacyHidden ? (
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  )}
                   <button
                     onClick={() => onFallacySelect?.(null as unknown as Fallacy)}
                     className="p-1 hover:bg-gray-200 rounded transition-colors"
@@ -661,12 +721,18 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
           const selectedRhetoric = rhetoric.find(r => r.id === selectedRhetoricId);
           if (!selectedRhetoric) return null;
           const isPinned = preferences.pinnedRhetoric?.includes(selectedRhetoric.id);
+          const isRhetoricHidden = hiddenAnnotationIds.rhetoricIds.includes(selectedRhetoric.id);
           const handleTogglePin = () => {
             const current = preferences.pinnedRhetoric || [];
             const updated = isPinned
               ? current.filter(id => id !== selectedRhetoric.id)
               : [...current, selectedRhetoric.id];
             updatePreferences({ pinnedRhetoric: updated });
+            trackEvent(isPinned ? 'annotation_unpinned' : 'annotation_pinned', {
+              type: 'rhetoric',
+              id: selectedRhetoric.id,
+              name: selectedRhetoric.name,
+            });
           };
           return (
             <div className="border-t border-gray-200 bg-blue-50 p-4 flex-shrink-0">
@@ -674,9 +740,15 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <span
                     className="w-4 h-4 rounded-full shrink-0"
-                    style={{ backgroundColor: selectedRhetoric.color }}
+                    style={{
+                      backgroundColor: isRhetoricHidden ? '#d1d5db' : selectedRhetoric.color,
+                    }}
                   />
-                  <h3 className="font-semibold text-gray-900">{selectedRhetoric.name}</h3>
+                  <h3
+                    className={`font-semibold ${isRhetoricHidden ? 'text-gray-400' : 'text-gray-900'}`}
+                  >
+                    {selectedRhetoric.name}
+                  </h3>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -695,6 +767,54 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                       <path d="M12 17v5M9 3h6a2 2 0 012 2v4l2 2v2H5v-2l2-2V5a2 2 0 012-2z" />
                     </svg>
                   </button>
+                  {onToggleRhetoricVisibility && (
+                    <button
+                      onClick={() => onToggleRhetoricVisibility(selectedRhetoric.id)}
+                      className={`p-1.5 rounded transition-colors ${isRhetoricHidden ? 'bg-orange-100 text-orange-500' : 'hover:bg-gray-200 text-emerald-500'}`}
+                      aria-label={
+                        isRhetoricHidden
+                          ? `Show ${selectedRhetoric.name} in editor`
+                          : `Hide ${selectedRhetoric.name} in editor`
+                      }
+                      title={isRhetoricHidden ? 'Show in editor' : 'Hide in editor'}
+                    >
+                      {isRhetoricHidden ? (
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  )}
                   <button
                     onClick={() => onRhetoricSelect?.(null as unknown as Rhetoric)}
                     className="p-1 hover:bg-gray-200 rounded transition-colors"

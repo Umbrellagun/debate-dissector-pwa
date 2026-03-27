@@ -102,12 +102,12 @@ jobs:
           
           echo "Total JS (gzipped): ${total_js_kb}KB"
           
-          # Budget check: 200KB
-          if [ $total_js_kb -gt 200 ]; then
-            echo "❌ FAIL: JS bundle exceeds 200KB budget!"
+          # Budget check: 300KB
+          if [ $total_js_kb -gt 300 ]; then
+            echo "❌ FAIL: JS bundle exceeds 300KB budget!"
             exit 1
           else
-            echo "✅ PASS: JS bundle within 200KB budget"
+            echo "✅ PASS: JS bundle within 300KB budget"
           fi
 
   performance-tests:

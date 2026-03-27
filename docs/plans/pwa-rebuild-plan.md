@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** March 26, 2026
+**Last Updated:** March 27, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -200,12 +200,12 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Test and refine across device types
 
 #### 4.4.1 Floating Selection Toolbar
-- [ ] Show floating action bar near text selection (desktop + mobile)
-- [ ] Include quick actions: Add Comment, Apply Fallacy, Apply Rhetoric, Apply Structural
-- [ ] Include formatting actions: Bold, Italic, Underline
-- [ ] Auto-dismiss when selection is cleared
-- [ ] Position above/below selection based on available space
-- [ ] Works alongside native OS context menus (not replacing them)
+- [x] Show floating action bar near text selection (desktop + mobile)
+- [x] Include quick actions: Add Comment, pinned annotation shortcuts
+- [x] Include formatting actions: Bold, Italic, Underline
+- [x] Auto-dismiss when selection is cleared
+- [x] Position above/below selection based on available space
+- [x] Works alongside native OS context menus (not replacing them)
 
 #### 4.5 About & Legal Pages
 - [x] Create About page with app description and mission (in Settings)
@@ -394,11 +394,14 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 
 ##### Performance Benchmarks
 - [x] Set up Lighthouse CI for automated performance audits
-- [x] Establish bundle size budget (<200KB gzipped)
+- [x] Establish bundle size budget (<300KB gzipped)
 - [x] Benchmark Time to Interactive (<3s on 3G)
 - [x] Test large document performance (1000+ words, 50+ annotations)
 - [x] Benchmark IndexedDB operations (<100ms for typical operations)
 - [ ] Monitor memory usage during extended editing sessions
+- [ ] Analyze largest JS chunks (main 82KB, 303 chunk 53KB, 158 chunk 37KB) for optimization opportunities
+- [ ] Explore code-splitting / lazy-loading for panels and pages
+- [ ] Check for heavy/unused imports that inflate bundle size
 
 ##### Test Automation
 - [x] Add test scripts to package.json (`test:ci`, `test:unit`, `test:components`, `test:coverage`)

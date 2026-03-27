@@ -218,6 +218,7 @@ export const EditorPage: React.FC = () => {
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
+  const [requestCommentNonce, setRequestCommentNonce] = useState(0);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [hiddenAnnotationIds, setHiddenAnnotationIds] = useState<HiddenAnnotationIds>({
     fallacyIds: [],
@@ -1494,7 +1495,11 @@ export const EditorPage: React.FC = () => {
             {/* Comment panel toggle */}
             {!isViewingShared && (
               <button
-                onClick={() => setShowCommentPanel(!showCommentPanel)}
+                onClick={() => {
+                  const opening = !showCommentPanel;
+                  setShowCommentPanel(opening);
+                  if (opening) setRequestCommentNonce(n => n + 1);
+                }}
                 className={`relative p-2 rounded-lg transition-colors touch-manipulation ${
                   showCommentPanel ? 'bg-amber-100 hover:bg-amber-200' : 'hover:bg-gray-100'
                 }`}
@@ -1634,6 +1639,10 @@ export const EditorPage: React.FC = () => {
             onAssignPinnedSpeaker={handleToggleAssignSpeaker}
             comments={currentDoc.comments || {}}
             hiddenAnnotationIds={hiddenAnnotationIds}
+            onRequestComment={() => {
+              if (!showCommentPanel) setShowCommentPanel(true);
+              setRequestCommentNonce(n => n + 1);
+            }}
           />
         </div>
       </div>
@@ -1791,6 +1800,7 @@ export const EditorPage: React.FC = () => {
                 onCommentClick={handleCommentClick}
                 hasTextSelection={hasTextSelection}
                 selectedText={currentSelectedText}
+                requestAddNonce={requestCommentNonce}
               />
             </div>
             <div className="border-t border-gray-200 p-2 flex justify-center">
