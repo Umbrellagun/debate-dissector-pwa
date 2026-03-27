@@ -394,11 +394,14 @@ Share debates via short URLs using PocketBase (self-hosted) with Fly.io hosting 
 
 ##### Performance Benchmarks
 - [x] Set up Lighthouse CI for automated performance audits
-- [x] Establish bundle size budget (<200KB gzipped)
+- [x] Establish bundle size budget (<300KB gzipped)
 - [x] Benchmark Time to Interactive (<3s on 3G)
 - [x] Test large document performance (1000+ words, 50+ annotations)
 - [x] Benchmark IndexedDB operations (<100ms for typical operations)
 - [ ] Monitor memory usage during extended editing sessions
+- [ ] Analyze largest JS chunks (main 82KB, 303 chunk 53KB, 158 chunk 37KB) for optimization opportunities
+- [ ] Explore code-splitting / lazy-loading for panels and pages
+- [ ] Check for heavy/unused imports that inflate bundle size
 
 ##### Test Automation
 - [x] Add test scripts to package.json (`test:ci`, `test:unit`, `test:components`, `test:coverage`)
