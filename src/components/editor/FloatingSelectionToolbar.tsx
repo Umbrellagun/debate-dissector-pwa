@@ -6,7 +6,6 @@ import { isMarkActive, toggleMark } from './utils';
 import { PinnedAnnotation } from './EditorToolbar';
 
 interface FloatingSelectionToolbarProps {
-  onOpenAnnotations?: () => void;
   onRequestComment?: () => void;
   selectedAnnotation?: { name: string; color: string } | null;
   onApplyAnnotation?: () => void;
@@ -31,17 +30,6 @@ const ItalicIcon = () => (
 const UnderlineIcon = () => (
   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
     <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z" />
-  </svg>
-);
-
-const AnnotateIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-    />
   </svg>
 );
 
@@ -87,7 +75,6 @@ const FormatButton: React.FC<{
 // --- Main component ---
 
 export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> = ({
-  onOpenAnnotations,
   onRequestComment,
   selectedAnnotation,
   onApplyAnnotation,

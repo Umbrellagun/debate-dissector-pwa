@@ -403,7 +403,6 @@ interface DebateEditorProps {
   onAssignPinnedSpeaker?: (speakerId: string) => void;
   comments?: Record<string, Comment>;
   hiddenAnnotationIds?: HiddenAnnotationIds;
-  onOpenAnnotations?: () => void;
   onRequestComment?: () => void;
 }
 
@@ -848,7 +847,6 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
       onAssignPinnedSpeaker,
       comments = {},
       hiddenAnnotationIds = { fallacyIds: [], rhetoricIds: [], structuralIds: [] },
-      onOpenAnnotations,
       onRequestComment,
     },
     ref
@@ -952,7 +950,6 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
                     />
                     {!readOnly && (
                       <FloatingSelectionToolbar
-                        onOpenAnnotations={onOpenAnnotations}
                         onRequestComment={onRequestComment}
                         selectedAnnotation={selectedAnnotation}
                         onApplyAnnotation={onApplyAnnotation}

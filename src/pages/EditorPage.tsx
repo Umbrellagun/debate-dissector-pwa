@@ -1639,12 +1639,6 @@ export const EditorPage: React.FC = () => {
             onAssignPinnedSpeaker={handleToggleAssignSpeaker}
             comments={currentDoc.comments || {}}
             hiddenAnnotationIds={hiddenAnnotationIds}
-            onOpenAnnotations={() => {
-              if (!rightSidebarExpanded) {
-                setRightSidebarExpanded(true);
-                updatePreferences({ rightSidebarOpen: true });
-              }
-            }}
             onRequestComment={() => {
               if (!showCommentPanel) setShowCommentPanel(true);
               setRequestCommentNonce(n => n + 1);
