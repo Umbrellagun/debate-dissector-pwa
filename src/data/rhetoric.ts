@@ -1,13 +1,13 @@
 import { Rhetoric } from '../models';
 
 export const RHETORIC_TECHNIQUES: Rhetoric[] = [
-  // Ethos - Appeals to Credibility
+  // Ethos - Appeals to Credibility (sorted A–Z, gradient: green)
   {
     id: 'appeal-to-authority',
     name: 'Appeal to Authority',
     description: 'Citing experts or authorities to support a claim.',
     category: 'ethos',
-    color: '#3B82F6',
+    color: '#166534',
     examples: ['According to Dr. Smith, a leading expert in climate science...'],
   },
   {
@@ -15,7 +15,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Establishing Credibility',
     description: 'Demonstrating expertise, experience, or trustworthiness.',
     category: 'ethos',
-    color: '#6366F1',
+    color: '#15803D',
     examples: ['As someone who has worked in this field for 20 years...'],
   },
   {
@@ -23,7 +23,7 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Shared Values',
     description: 'Connecting with the audience through common beliefs or principles.',
     category: 'ethos',
-    color: '#8B5CF6',
+    color: '#16A34A',
     examples: ['Like you, I believe in the importance of family and community.'],
   },
   {
@@ -31,41 +31,17 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Testimonial',
     description: 'Using endorsements from respected individuals or groups.',
     category: 'ethos',
-    color: '#A78BFA',
+    color: '#22C55E',
     examples: ['This product is recommended by 9 out of 10 dentists.'],
   },
 
-  // Pathos - Appeals to Emotion
-  {
-    id: 'emotional-appeal',
-    name: 'Emotional Appeal',
-    description: 'Evoking feelings such as fear, hope, anger, or sympathy.',
-    category: 'pathos',
-    color: '#7C3AED',
-    examples: ["Think of the children who will suffer if we don't act now."],
-  },
-  {
-    id: 'storytelling',
-    name: 'Storytelling',
-    description: 'Using narratives to create emotional connection and engagement.',
-    category: 'pathos',
-    color: '#9333EA',
-    examples: ['Let me tell you about Maria, a single mother who...'],
-  },
-  {
-    id: 'vivid-imagery',
-    name: 'Vivid Imagery',
-    description: 'Using descriptive language to paint pictures and evoke emotions.',
-    category: 'pathos',
-    color: '#A855F7',
-    examples: ['Imagine waking up to the sound of birds singing, the smell of fresh coffee...'],
-  },
+  // Pathos - Appeals to Emotion (sorted A–Z, gradient: teal)
   {
     id: 'appeal-to-fear',
     name: 'Appeal to Fear',
     description: 'Warning of negative consequences to motivate action.',
     category: 'pathos',
-    color: '#C084FC',
+    color: '#115E59',
     examples: ["If we don't address this issue now, the consequences could be catastrophic."],
   },
   {
@@ -73,41 +49,41 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Appeal to Hope',
     description: 'Inspiring optimism about positive outcomes.',
     category: 'pathos',
-    color: '#D8B4FE',
+    color: '#0F766E',
     examples: ['Together, we can build a brighter future for the next generation.'],
   },
-
-  // Logos - Appeals to Logic
   {
-    id: 'statistical-evidence',
-    name: 'Statistical Evidence',
-    description: 'Using data and statistics to support claims.',
-    category: 'logos',
-    color: '#10B981',
-    examples: ['Studies show that 78% of participants experienced improvement.'],
+    id: 'emotional-appeal',
+    name: 'Emotional Appeal',
+    description: 'Evoking feelings such as fear, hope, anger, or sympathy.',
+    category: 'pathos',
+    color: '#0D9488',
+    examples: ["Think of the children who will suffer if we don't act now."],
   },
   {
-    id: 'logical-reasoning',
-    name: 'Logical Reasoning',
-    description: 'Using deductive or inductive reasoning to reach conclusions.',
-    category: 'logos',
+    id: 'storytelling',
+    name: 'Storytelling',
+    description: 'Using narratives to create emotional connection and engagement.',
+    category: 'pathos',
     color: '#14B8A6',
-    examples: ['If A leads to B, and B leads to C, then A must lead to C.'],
+    examples: ['Let me tell you about Maria, a single mother who...'],
   },
   {
-    id: 'factual-evidence',
-    name: 'Factual Evidence',
-    description: 'Presenting verifiable facts to support arguments.',
-    category: 'logos',
-    color: '#22C55E',
-    examples: ['The Earth orbits the Sun at approximately 67,000 miles per hour.'],
+    id: 'vivid-imagery',
+    name: 'Vivid Imagery',
+    description: 'Using descriptive language to paint pictures and evoke emotions.',
+    category: 'pathos',
+    color: '#2DD4BF',
+    examples: ['Imagine waking up to the sound of birds singing, the smell of fresh coffee...'],
   },
+
+  // Logos - Appeals to Logic (sorted A–Z, gradient: blue)
   {
     id: 'analogy',
     name: 'Analogy',
     description: 'Comparing similar situations to illustrate a point.',
     category: 'logos',
-    color: '#34D399',
+    color: '#1E40AF',
     examples: ['Just as a ship needs a captain, an organization needs strong leadership.'],
   },
   {
@@ -115,33 +91,41 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Cause and Effect',
     description: 'Demonstrating how one event leads to another.',
     category: 'logos',
-    color: '#4ADE80',
+    color: '#1D4ED8',
     examples: ['Reducing carbon emissions will lead to cleaner air and improved public health.'],
   },
+  {
+    id: 'factual-evidence',
+    name: 'Factual Evidence',
+    description: 'Presenting verifiable facts to support arguments.',
+    category: 'logos',
+    color: '#2563EB',
+    examples: ['The Earth orbits the Sun at approximately 67,000 miles per hour.'],
+  },
+  {
+    id: 'logical-reasoning',
+    name: 'Logical Reasoning',
+    description: 'Using deductive or inductive reasoning to reach conclusions.',
+    category: 'logos',
+    color: '#3B82F6',
+    examples: ['If A leads to B, and B leads to C, then A must lead to C.'],
+  },
+  {
+    id: 'statistical-evidence',
+    name: 'Statistical Evidence',
+    description: 'Using data and statistics to support claims.',
+    category: 'logos',
+    color: '#60A5FA',
+    examples: ['Studies show that 78% of participants experienced improvement.'],
+  },
 
-  // Kairos - Appeals to Timing
-  {
-    id: 'urgency',
-    name: 'Urgency',
-    description: 'Emphasizing the need for immediate action.',
-    category: 'kairos',
-    color: '#0EA5E9',
-    examples: ['Act now - this offer expires at midnight!'],
-  },
-  {
-    id: 'timeliness',
-    name: 'Timeliness',
-    description: 'Connecting arguments to current events or trends.',
-    category: 'kairos',
-    color: '#06B6D4',
-    examples: ["In light of recent developments, it's more important than ever to..."],
-  },
+  // Kairos - Appeals to Timing (sorted A–Z, gradient: purple)
   {
     id: 'historical-moment',
     name: 'Historical Moment',
     description: 'Framing the situation as a pivotal point in history.',
     category: 'kairos',
-    color: '#38BDF8',
+    color: '#5B21B6',
     examples: ['We stand at a crossroads that will define our generation.'],
   },
   {
@@ -149,7 +133,23 @@ export const RHETORIC_TECHNIQUES: Rhetoric[] = [
     name: 'Seasonal/Contextual Appeal',
     description: 'Leveraging specific times, seasons, or contexts.',
     category: 'kairos',
-    color: '#67E8F9',
+    color: '#6D28D9',
     examples: ["As we enter the holiday season, let's remember those less fortunate."],
+  },
+  {
+    id: 'timeliness',
+    name: 'Timeliness',
+    description: 'Connecting arguments to current events or trends.',
+    category: 'kairos',
+    color: '#7C3AED',
+    examples: ["In light of recent developments, it's more important than ever to..."],
+  },
+  {
+    id: 'urgency',
+    name: 'Urgency',
+    description: 'Emphasizing the need for immediate action.',
+    category: 'kairos',
+    color: '#8B5CF6',
+    examples: ['Act now - this offer expires at midnight!'],
   },
 ];
