@@ -16,7 +16,6 @@ export const CHANGELOG: VersionEntry[] = [
       'Pin/unpin annotations directly from list rows in Fallacy and Rhetoric panels',
       'Show/hide visibility toggle added to annotation detail views',
       'Comment input auto-opens and auto-focuses when the comment button is pressed',
-      'Saved candidate rhetoric techniques to docs for future reference',
     ],
   },
   {
