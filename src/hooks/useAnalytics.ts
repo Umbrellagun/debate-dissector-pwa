@@ -52,7 +52,9 @@ export type AnalyticsEvent =
   | 'comment_resolved'
   | 'comment_replied'
   | 'annotation_visibility_toggled'
-  | 'annotation_bulk_visibility_toggled';
+  | 'annotation_bulk_visibility_toggled'
+  | 'annotation_pinned'
+  | 'annotation_unpinned';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -99,6 +101,8 @@ export interface AnalyticsEventData {
     action: 'show' | 'hide';
     count: number;
   };
+  annotation_pinned: { type: 'fallacy' | 'rhetoric'; id: string; name: string };
+  annotation_unpinned: { type: 'fallacy' | 'rhetoric'; id: string; name: string };
 }
 
 /**

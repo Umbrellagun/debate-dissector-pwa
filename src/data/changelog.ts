@@ -7,6 +7,19 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.8.0',
+    date: 'March 27, 2026',
+    title: 'Floating Toolbar, Expanded Fallacies & UX Polish',
+    changes: [
+      'New floating selection toolbar with formatting buttons, comment shortcut, and pinned annotation quick-apply',
+      'Added 22 new fallacies (Motte and Bailey, Sunk Cost, Gish Gallop, and more)',
+      'Pin/unpin annotations directly from list rows in Fallacy and Rhetoric panels',
+      'Show/hide visibility toggle added to annotation detail views',
+      'Comment input auto-opens and auto-focuses when the comment button is pressed',
+      'Saved candidate rhetoric techniques to docs for future reference',
+    ],
+  },
+  {
     version: '1.7.0',
     date: 'March 25, 2026',
     title: 'Annotation Visibility Controls',

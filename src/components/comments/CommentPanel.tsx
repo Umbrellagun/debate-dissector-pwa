@@ -12,6 +12,7 @@ interface CommentPanelProps {
   onCommentClick?: (commentId: string) => void;
   hasTextSelection?: boolean;
   selectedText?: string;
+  requestAddNonce?: number;
 }
 
 // Helper to format relative time
@@ -551,17 +552,26 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
   onCommentClick,
   hasTextSelection = false,
   selectedText = '',
+  requestAddNonce = 0,
 }) => {
   const [newCommentText, setNewCommentText] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [showResolved, setShowResolved] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Auto-open the input when the nonce changes (e.g. comment button pressed).
+  // Using > 0 instead of ref-tracking so it survives React StrictMode double-fire.
+  // setTimeout(0) ensures focus happens after React commits the render, covering
+  // both fresh-mount (isAdding was false) and already-mounted (isAdding was true).
   useEffect(() => {
-    if (isAdding && textareaRef.current) {
-      textareaRef.current.focus();
+    if (requestAddNonce > 0) {
+      setIsAdding(true);
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [isAdding]);
+  }, [requestAddNonce]);
 
   const handleAddComment = useCallback(() => {
     if (!newCommentText.trim()) return;
@@ -621,6 +631,7 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
             )}
             <textarea
               ref={textareaRef}
+              autoFocus
               value={newCommentText}
               onChange={e => setNewCommentText(e.target.value)}
               onKeyDown={e => {

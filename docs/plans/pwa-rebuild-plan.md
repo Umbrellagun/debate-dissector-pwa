@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** March 26, 2026
+**Last Updated:** March 27, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -200,12 +200,12 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Test and refine across device types
 
 #### 4.4.1 Floating Selection Toolbar
-- [ ] Show floating action bar near text selection (desktop + mobile)
-- [ ] Include quick actions: Add Comment, Apply Fallacy, Apply Rhetoric, Apply Structural
-- [ ] Include formatting actions: Bold, Italic, Underline
-- [ ] Auto-dismiss when selection is cleared
-- [ ] Position above/below selection based on available space
-- [ ] Works alongside native OS context menus (not replacing them)
+- [x] Show floating action bar near text selection (desktop + mobile)
+- [x] Include quick actions: Add Comment, pinned annotation shortcuts
+- [x] Include formatting actions: Bold, Italic, Underline
+- [x] Auto-dismiss when selection is cleared
+- [x] Position above/below selection based on available space
+- [x] Works alongside native OS context menus (not replacing them)
 
 #### 4.5 About & Legal Pages
 - [x] Create About page with app description and mission (in Settings)

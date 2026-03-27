@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Rhetoric, RhetoricCategory, RHETORIC_CATEGORY_NAMES } from '../../models';
 import { useApp } from '../../context';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 interface RhetoricPanelProps {
   rhetoric: Rhetoric[];
@@ -27,6 +28,7 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
     state: { preferences },
     updatePreferences,
   } = useApp();
+  const { trackEvent } = useAnalytics();
 
   // Initialize from preferences
   const initialCategories = preferences.expandedRhetoricCategories ?? ['ethos', 'pathos'];
@@ -199,6 +201,7 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
                 >
                   {categoryRhetoric.map(item => {
                     const isHidden = hiddenIds.includes(item.id);
+                    const isPinned = preferences.pinnedRhetoric?.includes(item.id);
                     return (
                       <div
                         key={item.id}
@@ -219,57 +222,89 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
                             {item.name}
                           </span>
                         </button>
-                        {onToggleVisibility && (
+                        <div className="flex items-center mr-1">
                           <button
                             onClick={e => {
                               e.stopPropagation();
-                              onToggleVisibility(item.id);
+                              const current = preferences.pinnedRhetoric || [];
+                              const updated = isPinned
+                                ? current.filter(id => id !== item.id)
+                                : [...current, item.id];
+                              updatePreferences({ pinnedRhetoric: updated });
+                              trackEvent(isPinned ? 'annotation_unpinned' : 'annotation_pinned', {
+                                type: 'rhetoric',
+                                id: item.id,
+                                name: item.name,
+                              });
                             }}
-                            className="p-1.5 mr-2 rounded hover:bg-gray-200 transition-colors"
-                            title={isHidden ? 'Show in editor' : 'Hide in editor'}
+                            className={`p-1 rounded transition-colors ${isPinned ? 'text-amber-500' : 'text-gray-300 hover:text-gray-400'} hover:bg-gray-200`}
+                            title={isPinned ? 'Unpin from toolbar' : 'Pin to toolbar'}
                             aria-label={
-                              isHidden
-                                ? `Show ${item.name} in editor`
-                                : `Hide ${item.name} in editor`
+                              isPinned ? `Unpin ${item.name}` : `Pin ${item.name} to toolbar`
                             }
                           >
-                            {isHidden ? (
-                              <svg
-                                className="w-3.5 h-3.5 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                className="w-3.5 h-3.5 text-emerald-500"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                />
-                              </svg>
-                            )}
+                            <svg
+                              className="w-3.5 h-3.5"
+                              viewBox="0 0 24 24"
+                              fill={isPinned ? 'currentColor' : 'none'}
+                              stroke="currentColor"
+                              strokeWidth={2}
+                            >
+                              <path d="M12 17v5M9 3h6a2 2 0 012 2v4l2 2v2H5v-2l2-2V5a2 2 0 012-2z" />
+                            </svg>
                           </button>
-                        )}
+                          {onToggleVisibility && (
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                onToggleVisibility(item.id);
+                              }}
+                              className="p-1 rounded hover:bg-gray-200 transition-colors"
+                              title={isHidden ? 'Show in editor' : 'Hide in editor'}
+                              aria-label={
+                                isHidden
+                                  ? `Show ${item.name} in editor`
+                                  : `Hide ${item.name} in editor`
+                              }
+                            >
+                              {isHidden ? (
+                                <svg
+                                  className="w-3.5 h-3.5 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  className="w-3.5 h-3.5 text-emerald-500"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
