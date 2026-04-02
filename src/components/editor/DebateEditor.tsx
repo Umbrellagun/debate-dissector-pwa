@@ -29,6 +29,7 @@ import {
   BlockQuoteElement,
 } from './types';
 import { Speaker, Comment } from '../../models';
+import { useApp } from '../../context';
 import { HiddenAnnotationIds } from './VisibilityControls';
 import { EditorToolbar, PinnedAnnotation, PinnedSpeaker } from './EditorToolbar';
 import { FloatingSelectionToolbar } from './FloatingSelectionToolbar';
@@ -45,8 +46,9 @@ const getFallacyName = (fallacyId: string): string => {
   return fallacy?.name || fallacyId;
 };
 
-// Helper to get fallacy color from ID (dynamic lookup)
-const getFallacyColor = (fallacyId: string): string | undefined => {
+// Helper to get fallacy color from ID (dynamic lookup, with optional custom overrides)
+const getFallacyColor = (fallacyId: string, customColors?: Record<string, string>): string | undefined => {
+  if (customColors?.[fallacyId]) return customColors[fallacyId];
   const fallacy = FALLACIES.find(f => f.id === fallacyId);
   return fallacy?.color;
 };
@@ -57,8 +59,9 @@ const getRhetoricName = (rhetoricId: string): string => {
   return rhetoric?.name || rhetoricId;
 };
 
-// Helper to get rhetoric color from ID (dynamic lookup)
-const getRhetoricColor = (rhetoricId: string): string | undefined => {
+// Helper to get rhetoric color from ID (dynamic lookup, with optional custom overrides)
+const getRhetoricColor = (rhetoricId: string, customColors?: Record<string, string>): string | undefined => {
+  if (customColors?.[rhetoricId]) return customColors[rhetoricId];
   const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
   return rhetoric?.color;
 };
@@ -69,8 +72,9 @@ const getStructuralMarkupName = (markupId: string): string => {
   return markup?.name || markupId;
 };
 
-// Helper to get structural markup color from ID (dynamic lookup)
-const getStructuralMarkupColor = (markupId: string): string | undefined => {
+// Helper to get structural markup color from ID (dynamic lookup, with optional custom overrides)
+const getStructuralMarkupColor = (markupId: string, customColors?: Record<string, string>): string | undefined => {
+  if (customColors?.[markupId]) return customColors[markupId];
   const markup = getStructuralMarkupById(markupId);
   return markup?.color;
 };
@@ -99,6 +103,7 @@ interface AnnotationTooltipProps {
   onStructuralClick?: (markupId: string, metadata?: StructuralMark['metadata']) => void;
   selectLeafText?: (element: HTMLElement) => void;
   leafElement?: HTMLElement | null;
+  customColors?: Record<string, string>;
 }
 
 const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({
@@ -112,6 +117,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({
   onStructuralClick,
   selectLeafText,
   leafElement,
+  customColors,
 }) => {
   // Helper to check if a structural mark has a source citation
   const hasSourceCitation = (mark: StructuralMark) => {
@@ -211,7 +217,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  backgroundColor: getFallacyColor(mark.fallacyId) || mark.color,
+                  backgroundColor: getFallacyColor(mark.fallacyId, customColors) || mark.color,
                   flexShrink: 0,
                 }}
               />
@@ -260,7 +266,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  backgroundColor: getRhetoricColor(mark.rhetoricId) || mark.color,
+                  backgroundColor: getRhetoricColor(mark.rhetoricId, customColors) || mark.color,
                   flexShrink: 0,
                 }}
               />
@@ -320,7 +326,7 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    backgroundColor: getStructuralMarkupColor(mark.markupId) || mark.color,
+                    backgroundColor: getStructuralMarkupColor(mark.markupId, customColors) || mark.color,
                     flexShrink: 0,
                   }}
                 />
@@ -412,6 +418,7 @@ interface AnnotationClickContextType {
   onRhetoricClick?: (rhetoricId: string) => void;
   onStructuralClick?: (markupId: string, metadata?: StructuralMark['metadata']) => void;
   selectLeafText?: (element: HTMLElement) => void;
+  customColors?: Record<string, string>;
 }
 const AnnotationClickContext = React.createContext<AnnotationClickContextType>({});
 
@@ -438,7 +445,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const badgeRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const { onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText } =
+  const { onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText, customColors } =
     React.useContext(AnnotationClickContext);
   const spanRef = useRef<HTMLSpanElement>(null);
   const style: React.CSSProperties = {};
@@ -511,17 +518,17 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
       // Both exist - use whichever was applied last
       displayColor =
         (lastFallacy.appliedAt || 0) > (lastRhetoric.appliedAt || 0)
-          ? getFallacyColor(lastFallacy.fallacyId) || lastFallacy.color
-          : getRhetoricColor(lastRhetoric.rhetoricId) || lastRhetoric.color;
+          ? getFallacyColor(lastFallacy.fallacyId, customColors) || lastFallacy.color
+          : getRhetoricColor(lastRhetoric.rhetoricId, customColors) || lastRhetoric.color;
     } else if (lastFallacy) {
       // Dynamic lookup by ID, fallback to stored color
-      displayColor = getFallacyColor(lastFallacy.fallacyId) || lastFallacy.color;
+      displayColor = getFallacyColor(lastFallacy.fallacyId, customColors) || lastFallacy.color;
     } else if (lastRhetoric) {
       // Dynamic lookup by ID, fallback to stored color
-      displayColor = getRhetoricColor(lastRhetoric.rhetoricId) || lastRhetoric.color;
+      displayColor = getRhetoricColor(lastRhetoric.rhetoricId, customColors) || lastRhetoric.color;
     } else if (customLeaf.fallacyId) {
       // Legacy fallback - try dynamic lookup first
-      displayColor = getFallacyColor(customLeaf.fallacyId) || customLeaf.fallacyColor;
+      displayColor = getFallacyColor(customLeaf.fallacyId, customColors) || customLeaf.fallacyColor;
     }
 
     if (displayColor) {
@@ -547,7 +554,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
   if (hasStructural) {
     const lastStructural = structuralMarks[structuralCount - 1];
     const structuralColor =
-      getStructuralMarkupColor(lastStructural.markupId) || lastStructural.color;
+      getStructuralMarkupColor(lastStructural.markupId, customColors) || lastStructural.color;
 
     style.borderBottom = `2px dotted ${structuralColor}`;
     style.paddingBottom = '1px';
@@ -654,6 +661,7 @@ const Leaf: React.FC<RenderLeafProps> = ({ attributes, children, leaf }) => {
               onStructuralClick={onStructuralClick}
               selectLeafText={selectLeafText}
               leafElement={spanRef.current}
+              customColors={customColors}
             />
           )}
         </span>
@@ -852,6 +860,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
     ref
   ) => {
     const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+    const { state: { preferences: { customColors } } } = useApp();
 
     // Function to select the text of a leaf element in the editor
     const selectLeafText = useCallback(
@@ -871,8 +880,9 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
         onRhetoricClick,
         onStructuralClick,
         selectLeafText,
+        customColors,
       }),
-      [onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText]
+      [onFallacyClick, onRhetoricClick, onStructuralClick, selectLeafText, customColors]
     );
 
     useImperativeHandle(ref, () => ({
@@ -882,7 +892,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
     const renderLeaf = useCallback(
       (props: RenderLeafProps) => <Leaf {...props} />,
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [onFallacyClick, onRhetoricClick, onStructuralClick]
+      [onFallacyClick, onRhetoricClick, onStructuralClick, customColors]
     );
     const renderElement = useCallback((props: RenderElementProps) => <Element {...props} />, []);
 

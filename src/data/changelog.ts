@@ -7,6 +7,18 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.9.0',
+    date: 'April 2, 2026',
+    title: 'Speaker Color Customization',
+    changes: [
+      'Added "Speakers" tab to color customization settings',
+      'Customize the 8 default speaker colors used when creating new speakers',
+      'New speakers automatically receive colors from your custom palette',
+      'Reset individual speaker colors or all colors to defaults',
+      'Analytics tracking for color customization actions',
+    ],
+  },
+  {
     version: '1.8.0',
     date: 'March 27, 2026',
     title: 'Floating Toolbar, Expanded Fallacies & UX Polish',

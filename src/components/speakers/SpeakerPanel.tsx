@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Speaker, DEFAULT_SPEAKER_COLORS } from '../../models';
+import { useApp } from '../../context';
 
 interface SpeakerPanelProps {
   speakers: Speaker[];
@@ -21,16 +22,20 @@ const generateSpeakerId = (): string => {
   return `speaker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-// Get next available color
-const getNextColor = (speakers: Speaker[]): string => {
+// Get next available color, using custom palette if provided
+const getNextColor = (
+  speakers: Speaker[],
+  customSpeakerColors: Record<number, string> = {}
+): string => {
+  const palette = DEFAULT_SPEAKER_COLORS.map((c, i) => customSpeakerColors[i] || c);
   const usedColors = new Set(speakers.map(s => s.color));
-  for (const color of DEFAULT_SPEAKER_COLORS) {
+  for (const color of palette) {
     if (!usedColors.has(color)) {
       return color;
     }
   }
   // If all colors used, start over
-  return DEFAULT_SPEAKER_COLORS[speakers.length % DEFAULT_SPEAKER_COLORS.length];
+  return palette[speakers.length % palette.length];
 };
 
 export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
@@ -47,6 +52,13 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
   onToggleSpeakerVisibility,
   onToggleSpeakerPin,
 }) => {
+  const {
+    state: { preferences },
+  } = useApp();
+  const customSpeakerColors = useMemo(
+    () => preferences.customSpeakerColors ?? {},
+    [preferences.customSpeakerColors]
+  );
   const [isAdding, setIsAdding] = useState(false);
   const [newSpeakerName, setNewSpeakerName] = useState('');
   const [editingSpeakerId, setEditingSpeakerId] = useState<string | null>(null);
@@ -58,13 +70,13 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
     const newSpeaker: Speaker = {
       id: generateSpeakerId(),
       name: newSpeakerName.trim(),
-      color: getNextColor(speakers),
+      color: getNextColor(speakers, customSpeakerColors),
     };
 
     onSpeakerAdd?.(newSpeaker);
     setNewSpeakerName('');
     setIsAdding(false);
-  }, [newSpeakerName, speakers, onSpeakerAdd]);
+  }, [newSpeakerName, speakers, onSpeakerAdd, customSpeakerColors]);
 
   const handleStartEdit = useCallback((speaker: Speaker) => {
     setEditingSpeakerId(speaker.id);

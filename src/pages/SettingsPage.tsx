@@ -1,10 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MainLayout, Header } from '../components/layout';
 import { useApp } from '../context';
 import { useInstallPrompt } from '../hooks';
 import { getLatestVersion } from '../data/changelog';
+import { trackAnalyticsEvent } from '../hooks/useAnalytics';
+import { FALLACIES } from '../data/fallacies';
+import { RHETORIC_TECHNIQUES } from '../data/rhetoric';
+import { STRUCTURAL_MARKUPS } from '../data/structuralMarkup';
+import { DEFAULT_SPEAKER_COLORS } from '../models';
 import packageJson from '../../package.json';
+
+// --- Color Picker Row Component ---
+interface ColorPickerRowProps {
+  id: string;
+  name: string;
+  defaultColor: string;
+  currentColor: string;
+  isCustom: boolean;
+  onChange: (id: string, color: string) => void;
+  onReset: (id: string) => void;
+}
+
+const ColorPickerRow: React.FC<ColorPickerRowProps> = ({
+  id,
+  name,
+  defaultColor,
+  currentColor,
+  isCustom,
+  onChange,
+  onReset,
+}) => {
+  return (
+    <div className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors">
+      <label
+        htmlFor={`color-${id}`}
+        className="relative w-6 h-6 rounded-full border border-gray-300 cursor-pointer overflow-hidden shrink-0"
+        style={{ backgroundColor: currentColor }}
+      >
+        <input
+          id={`color-${id}`}
+          type="color"
+          value={currentColor}
+          onChange={e => onChange(id, e.target.value)}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+      </label>
+      <span className="text-xs text-gray-700 flex-1 truncate">{name}</span>
+      {isCustom && (
+        <button
+          onClick={() => onReset(id)}
+          className="shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
+          title={`Reset to default (${defaultColor})`}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+};
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +73,104 @@ export const SettingsPage: React.FC = () => {
   const { preferences } = state;
   const { isInstalled, isInstallable, promptInstall } = useInstallPrompt();
   const [emailCopied, setEmailCopied] = useState(false);
+  const [showColorCustomization, setShowColorCustomization] = useState(false);
+  const [colorSection, setColorSection] = useState<
+    'fallacies' | 'rhetoric' | 'structural' | 'speakers'
+  >('fallacies');
+
+  const customColors = useMemo(() => preferences.customColors ?? {}, [preferences.customColors]);
+  const customSpeakerColors = useMemo(
+    () => preferences.customSpeakerColors ?? {},
+    [preferences.customSpeakerColors]
+  );
+  const customColorCount = useMemo(
+    () => Object.keys(customColors).length + Object.keys(customSpeakerColors).length,
+    [customColors, customSpeakerColors]
+  );
+
+  const handleColorChange = useCallback(
+    (id: string, color: string) => {
+      updatePreferences({
+        customColors: { ...customColors, [id]: color },
+      });
+
+      // Track analytics
+      let type: 'fallacy' | 'rhetoric' | 'structural';
+      let name: string;
+      if (FALLACIES.find(f => f.id === id)) {
+        type = 'fallacy';
+        name = FALLACIES.find(f => f.id === id)!.name;
+      } else if (RHETORIC_TECHNIQUES.find(r => r.id === id)) {
+        type = 'rhetoric';
+        name = RHETORIC_TECHNIQUES.find(r => r.id === id)!.name;
+      } else {
+        type = 'structural';
+        name = STRUCTURAL_MARKUPS.find(m => m.id === id)!.name;
+      }
+      trackAnalyticsEvent('annotation_color_changed', { type, id, name });
+    },
+    [customColors, updatePreferences]
+  );
+
+  const handleResetColor = useCallback(
+    (id: string) => {
+      const { [id]: _, ...rest } = customColors;
+      updatePreferences({ customColors: rest });
+
+      // Track analytics
+      let type: 'fallacy' | 'rhetoric' | 'structural';
+      let name: string;
+      if (FALLACIES.find(f => f.id === id)) {
+        type = 'fallacy';
+        name = FALLACIES.find(f => f.id === id)!.name;
+      } else if (RHETORIC_TECHNIQUES.find(r => r.id === id)) {
+        type = 'rhetoric';
+        name = RHETORIC_TECHNIQUES.find(r => r.id === id)!.name;
+      } else {
+        type = 'structural';
+        name = STRUCTURAL_MARKUPS.find(m => m.id === id)!.name;
+      }
+      trackAnalyticsEvent('annotation_color_reset', { type, id, name });
+    },
+    [customColors, updatePreferences]
+  );
+
+  const handleSpeakerColorChange = useCallback(
+    (index: number, color: string) => {
+      updatePreferences({
+        customSpeakerColors: { ...customSpeakerColors, [index]: color },
+      });
+
+      // Track analytics
+      trackAnalyticsEvent('speaker_color_changed', { speakerIndex: index });
+    },
+    [customSpeakerColors, updatePreferences]
+  );
+
+  const handleResetSpeakerColor = useCallback(
+    (index: number) => {
+      const { [index]: _, ...rest } = customSpeakerColors;
+      updatePreferences({ customSpeakerColors: rest });
+
+      // Track analytics
+      trackAnalyticsEvent('speaker_color_reset', { speakerIndex: index });
+    },
+    [customSpeakerColors, updatePreferences]
+  );
+
+  const handleResetAllColors = useCallback(() => {
+    const annotationCount = Object.keys(customColors).length;
+    const speakerCount = Object.keys(customSpeakerColors).length;
+    updatePreferences({ customColors: {}, customSpeakerColors: {} });
+
+    // Track analytics
+    if (annotationCount > 0) {
+      trackAnalyticsEvent('annotation_colors_reset_all', { count: annotationCount });
+    }
+    if (speakerCount > 0) {
+      trackAnalyticsEvent('speaker_colors_reset_all', { count: speakerCount });
+    }
+  }, [customColors, customSpeakerColors, updatePreferences]);
 
   const handleCopyEmail = () => {
     const e = ['calebsundance3', 'gmail', 'com'].join('@').replace('@com', '.com');
@@ -288,29 +447,31 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="opacity-60">
+              <div>
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <label className="block text-sm font-medium text-gray-700">
-                        Markup & Speaker Colors
+                        Annotation Colors
                       </label>
-                      <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
-                        Coming Soon
-                      </span>
+                      {customColorCount > 0 && (
+                        <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-700 rounded-full">
+                          {customColorCount} customized
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       Customize the colors used for fallacies, rhetoric, structural markups, and
                       speakers.
                     </p>
                   </div>
                   <button
-                    disabled
-                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-400 bg-gray-100 border border-gray-200 rounded-lg cursor-not-allowed"
+                    onClick={() => setShowColorCustomization(!showColorCustomization)}
+                    className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors"
                   >
-                    Customize
+                    {showColorCustomization ? 'Close' : 'Customize'}
                     <svg
-                      className="w-3.5 h-3.5"
+                      className={`w-3.5 h-3.5 transition-transform ${showColorCustomization ? 'rotate-90' : ''}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -324,6 +485,129 @@ export const SettingsPage: React.FC = () => {
                     </svg>
                   </button>
                 </div>
+
+                {showColorCustomization && (
+                  <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+                    {/* Tab bar */}
+                    <div className="flex border-b border-gray-200 bg-gray-50">
+                      {(['fallacies', 'rhetoric', 'structural', 'speakers'] as const).map(tab => (
+                        <button
+                          key={tab}
+                          onClick={() => setColorSection(tab)}
+                          className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
+                            colorSection === tab
+                              ? 'bg-white text-indigo-600 border-b-2 border-indigo-500'
+                              : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                        >
+                          {tab === 'fallacies'
+                            ? 'Fallacies'
+                            : tab === 'rhetoric'
+                              ? 'Rhetoric'
+                              : tab === 'structural'
+                                ? 'Claims & Evidence'
+                                : 'Speakers'}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Color items */}
+                    <div className="max-h-64 overflow-y-auto">
+                      {colorSection === 'fallacies' && (
+                        <div className="divide-y divide-gray-100">
+                          {FALLACIES.map(fallacy => (
+                            <ColorPickerRow
+                              key={fallacy.id}
+                              id={fallacy.id}
+                              name={fallacy.name}
+                              defaultColor={fallacy.color}
+                              currentColor={customColors[fallacy.id] || fallacy.color}
+                              isCustom={fallacy.id in customColors}
+                              onChange={handleColorChange}
+                              onReset={handleResetColor}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {colorSection === 'rhetoric' && (
+                        <div className="divide-y divide-gray-100">
+                          {RHETORIC_TECHNIQUES.map(item => (
+                            <ColorPickerRow
+                              key={item.id}
+                              id={item.id}
+                              name={item.name}
+                              defaultColor={item.color}
+                              currentColor={customColors[item.id] || item.color}
+                              isCustom={item.id in customColors}
+                              onChange={handleColorChange}
+                              onReset={handleResetColor}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {colorSection === 'structural' && (
+                        <div className="divide-y divide-gray-100">
+                          {STRUCTURAL_MARKUPS.map(markup => (
+                            <ColorPickerRow
+                              key={markup.id}
+                              id={markup.id}
+                              name={markup.name}
+                              defaultColor={markup.color}
+                              currentColor={customColors[markup.id] || markup.color}
+                              isCustom={markup.id in customColors}
+                              onChange={handleColorChange}
+                              onReset={handleResetColor}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {colorSection === 'speakers' && (
+                        <div className="divide-y divide-gray-100">
+                          {DEFAULT_SPEAKER_COLORS.map((defaultColor, index) => (
+                            <ColorPickerRow
+                              key={`speaker-${index}`}
+                              id={String(index)}
+                              name={`Speaker ${index + 1} default`}
+                              defaultColor={defaultColor}
+                              currentColor={customSpeakerColors[index] || defaultColor}
+                              isCustom={index in customSpeakerColors}
+                              onChange={(id, color) => handleSpeakerColorChange(Number(id), color)}
+                              onReset={id => handleResetSpeakerColor(Number(id))}
+                            />
+                          ))}
+                          <div className="px-3 py-2 text-xs text-gray-400 italic">
+                            These colors are assigned to new speakers in order.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Reset all button */}
+                    {customColorCount > 0 && (
+                      <div className="border-t border-gray-200 bg-gray-50 px-3 py-2 flex justify-end">
+                        <button
+                          onClick={handleResetAllColors}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                          Reset All to Defaults
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </section>

@@ -54,7 +54,13 @@ export type AnalyticsEvent =
   | 'annotation_visibility_toggled'
   | 'annotation_bulk_visibility_toggled'
   | 'annotation_pinned'
-  | 'annotation_unpinned';
+  | 'annotation_unpinned'
+  | 'annotation_color_changed'
+  | 'annotation_color_reset'
+  | 'annotation_colors_reset_all'
+  | 'speaker_color_changed'
+  | 'speaker_color_reset'
+  | 'speaker_colors_reset_all';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -103,6 +109,12 @@ export interface AnalyticsEventData {
   };
   annotation_pinned: { type: 'fallacy' | 'rhetoric'; id: string; name: string };
   annotation_unpinned: { type: 'fallacy' | 'rhetoric'; id: string; name: string };
+  annotation_color_changed: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; name: string };
+  annotation_color_reset: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; name: string };
+  annotation_colors_reset_all: { count: number };
+  speaker_color_changed: { speakerIndex: number };
+  speaker_color_reset: { speakerIndex: number };
+  speaker_colors_reset_all: { count: number };
 }
 
 /**
