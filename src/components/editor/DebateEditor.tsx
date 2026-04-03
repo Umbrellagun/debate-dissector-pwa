@@ -47,7 +47,10 @@ const getFallacyName = (fallacyId: string): string => {
 };
 
 // Helper to get fallacy color from ID (dynamic lookup, with optional custom overrides)
-const getFallacyColor = (fallacyId: string, customColors?: Record<string, string>): string | undefined => {
+const getFallacyColor = (
+  fallacyId: string,
+  customColors?: Record<string, string>
+): string | undefined => {
   if (customColors?.[fallacyId]) return customColors[fallacyId];
   const fallacy = FALLACIES.find(f => f.id === fallacyId);
   return fallacy?.color;
@@ -60,7 +63,10 @@ const getRhetoricName = (rhetoricId: string): string => {
 };
 
 // Helper to get rhetoric color from ID (dynamic lookup, with optional custom overrides)
-const getRhetoricColor = (rhetoricId: string, customColors?: Record<string, string>): string | undefined => {
+const getRhetoricColor = (
+  rhetoricId: string,
+  customColors?: Record<string, string>
+): string | undefined => {
   if (customColors?.[rhetoricId]) return customColors[rhetoricId];
   const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
   return rhetoric?.color;
@@ -73,7 +79,10 @@ const getStructuralMarkupName = (markupId: string): string => {
 };
 
 // Helper to get structural markup color from ID (dynamic lookup, with optional custom overrides)
-const getStructuralMarkupColor = (markupId: string, customColors?: Record<string, string>): string | undefined => {
+const getStructuralMarkupColor = (
+  markupId: string,
+  customColors?: Record<string, string>
+): string | undefined => {
   if (customColors?.[markupId]) return customColors[markupId];
   const markup = getStructuralMarkupById(markupId);
   return markup?.color;
@@ -326,7 +335,8 @@ const AnnotationTooltip: React.FC<AnnotationTooltipProps> = ({
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    backgroundColor: getStructuralMarkupColor(mark.markupId, customColors) || mark.color,
+                    backgroundColor:
+                      getStructuralMarkupColor(mark.markupId, customColors) || mark.color,
                     flexShrink: 0,
                   }}
                 />
@@ -860,7 +870,11 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
     ref
   ) => {
     const editor = useMemo(() => withHistory(withReact(createEditor())), []);
-    const { state: { preferences: { customColors } } } = useApp();
+    const {
+      state: {
+        preferences: { customColors },
+      },
+    } = useApp();
 
     // Function to select the text of a leaf element in the editor
     const selectLeafText = useCallback(

@@ -591,7 +591,11 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <span
                     className="w-4 h-4 rounded-full shrink-0"
-                    style={{ backgroundColor: isFallacyHidden ? '#d1d5db' : (preferences.customColors?.[selectedFallacy.id] || selectedFallacy.color) }}
+                    style={{
+                      backgroundColor: isFallacyHidden
+                        ? '#d1d5db'
+                        : preferences.customColors?.[selectedFallacy.id] || selectedFallacy.color,
+                    }}
                   />
                   <h3
                     className={`font-semibold ${isFallacyHidden ? 'text-gray-400' : 'text-gray-900'}`}
@@ -707,7 +711,10 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
               <button
                 onClick={() => onFallacyApply?.(selectedFallacy)}
                 className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
-                style={{ backgroundColor: preferences.customColors?.[selectedFallacy.id] || selectedFallacy.color }}
+                style={{
+                  backgroundColor:
+                    preferences.customColors?.[selectedFallacy.id] || selectedFallacy.color,
+                }}
               >
                 Apply/Remove from Selected Text
               </button>
@@ -741,7 +748,9 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                   <span
                     className="w-4 h-4 rounded-full shrink-0"
                     style={{
-                      backgroundColor: isRhetoricHidden ? '#d1d5db' : (preferences.customColors?.[selectedRhetoric.id] || selectedRhetoric.color),
+                      backgroundColor: isRhetoricHidden
+                        ? '#d1d5db'
+                        : preferences.customColors?.[selectedRhetoric.id] || selectedRhetoric.color,
                     }}
                   />
                   <h3
@@ -851,7 +860,10 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
               <button
                 onClick={() => onRhetoricApply?.(selectedRhetoric)}
                 className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
-                style={{ backgroundColor: preferences.customColors?.[selectedRhetoric.id] || selectedRhetoric.color }}
+                style={{
+                  backgroundColor:
+                    preferences.customColors?.[selectedRhetoric.id] || selectedRhetoric.color,
+                }}
               >
                 Apply/Remove from Selected Text
               </button>
@@ -872,7 +884,11 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <span
                     className="w-4 h-4 rounded-full shrink-0"
-                    style={{ backgroundColor: preferences.customColors?.[selectedStructural.id] || selectedStructural.color }}
+                    style={{
+                      backgroundColor:
+                        preferences.customColors?.[selectedStructural.id] ||
+                        selectedStructural.color,
+                    }}
                   />
                   <h3 className="font-semibold text-gray-900">{selectedStructural.name}</h3>
                 </div>
@@ -1039,7 +1055,10 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
                   onStructuralApply?.(selectedStructural);
                 }}
                 className="w-full py-2 px-4 text-sm font-medium text-white rounded-lg transition-colors"
-                style={{ backgroundColor: preferences.customColors?.[selectedStructural.id] || selectedStructural.color }}
+                style={{
+                  backgroundColor:
+                    preferences.customColors?.[selectedStructural.id] || selectedStructural.color,
+                }}
               >
                 Apply/Remove {selectedStructural.name}
               </button>

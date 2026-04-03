@@ -124,7 +124,9 @@ describe('AnnotationStatsPanel', () => {
 
     it('renders close button when onClose is provided', () => {
       const onClose = jest.fn();
-      customRender(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" onClose={onClose} />);
+      customRender(
+        <AnnotationStatsPanel stats={emptyStats} documentTitle="Test" onClose={onClose} />
+      );
 
       const closeBtn = screen.getByLabelText('Close statistics');
       expect(closeBtn).toBeInTheDocument();

@@ -152,7 +152,9 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
   onClose,
   onAnnotationClick,
 }) => {
-  const { state: { preferences } } = useApp();
+  const {
+    state: { preferences },
+  } = useApp();
   const [activeTab, setActiveTab] = useState<'overview' | 'breakdown'>('overview');
 
   const handleTabSwitch = (tab: 'overview' | 'breakdown') => {

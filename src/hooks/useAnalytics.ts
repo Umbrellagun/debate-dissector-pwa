@@ -109,7 +109,11 @@ export interface AnalyticsEventData {
   };
   annotation_pinned: { type: 'fallacy' | 'rhetoric'; id: string; name: string };
   annotation_unpinned: { type: 'fallacy' | 'rhetoric'; id: string; name: string };
-  annotation_color_changed: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; name: string };
+  annotation_color_changed: {
+    type: 'fallacy' | 'rhetoric' | 'structural';
+    id: string;
+    name: string;
+  };
   annotation_color_reset: { type: 'fallacy' | 'rhetoric' | 'structural'; id: string; name: string };
   annotation_colors_reset_all: { count: number };
   speaker_color_changed: { speakerIndex: number };

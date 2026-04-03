@@ -8,14 +8,13 @@ export interface VersionEntry {
 export const CHANGELOG: VersionEntry[] = [
   {
     version: '1.9.0',
-    date: 'April 2, 2026',
-    title: 'Speaker Color Customization',
+    date: 'April 3, 2026',
+    title: 'Annotation Color Customization',
     changes: [
-      'Added "Speakers" tab to color customization settings',
-      'Customize the 8 default speaker colors used when creating new speakers',
-      'New speakers automatically receive colors from your custom palette',
-      'Reset individual speaker colors or all colors to defaults',
-      'Analytics tracking for color customization actions',
+      'Customize colors for fallacies, rhetoric techniques, and claim/evidence markup types',
+      'Customize the 8 default speaker colors assigned to new speakers',
+      'Color pickers available in Settings under "Customize Annotation Colors"',
+      'Reset individual colors or all colors to defaults with one click',
     ],
   },
   {
