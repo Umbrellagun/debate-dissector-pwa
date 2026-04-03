@@ -213,7 +213,11 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
                         >
                           <span
                             className="w-3 h-3 rounded-full shrink-0"
-                            style={{ backgroundColor: isHidden ? '#d1d5db' : fallacy.color }}
+                            style={{
+                              backgroundColor: isHidden
+                                ? '#d1d5db'
+                                : preferences.customColors?.[fallacy.id] || fallacy.color,
+                            }}
                             aria-hidden="true"
                           />
                           <span

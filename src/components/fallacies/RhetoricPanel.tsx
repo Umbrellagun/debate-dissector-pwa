@@ -213,7 +213,11 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
                         >
                           <span
                             className="w-3 h-3 rounded-full shrink-0"
-                            style={{ backgroundColor: isHidden ? '#d1d5db' : item.color }}
+                            style={{
+                              backgroundColor: isHidden
+                                ? '#d1d5db'
+                                : preferences.customColors?.[item.id] || item.color,
+                            }}
                             aria-hidden="true"
                           />
                           <span

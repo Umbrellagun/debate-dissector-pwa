@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** March 27, 2026
+**Last Updated:** April 2, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -164,11 +164,12 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Refine title editor and hamburger menu positioning (moved to header)
 
 #### 4.1.1 User Customization
-- [ ] Add color picker for fallacy annotations (per-fallacy or per-category)
-- [ ] Add color picker for rhetoric annotations (per-technique or per-category)
-- [ ] Add color picker for claim & evidence markup types
-- [ ] Persist custom colors in user preferences
-- [ ] Add "Reset to defaults" option for colors
+- [x] Add color picker for fallacy annotations (per-fallacy or per-category)
+- [x] Add color picker for rhetoric annotations (per-technique or per-category)
+- [x] Add color picker for claim & evidence markup types
+- [x] Add color picker for speaker default colors
+- [x] Persist custom colors in user preferences
+- [x] Add "Reset to defaults" option for colors
 
 #### 4.2 Annotation Statistics & Visualization
 - [x] Calculate text coverage percentage per fallacy/rhetoric type

@@ -1,7 +1,15 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, RenderOptions } from '@testing-library/react';
 import { AnnotationStatsPanel } from '../AnnotationStatsPanel';
 import { AnnotationStats } from '../../../utils/annotationStats';
+import { AppProvider } from '../../../context';
+
+const AllProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <AppProvider>{children}</AppProvider>
+);
+
+const customRender = (ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  render(ui, { wrapper: AllProviders, ...options });
 
 const emptyStats: AnnotationStats = {
   totalCharacters: 0,
@@ -110,13 +118,15 @@ const populatedStats: AnnotationStats = {
 describe('AnnotationStatsPanel', () => {
   describe('header', () => {
     it('renders the Statistics header', () => {
-      render(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
       expect(screen.getByText('Statistics')).toBeInTheDocument();
     });
 
     it('renders close button when onClose is provided', () => {
       const onClose = jest.fn();
-      render(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" onClose={onClose} />);
+      customRender(
+        <AnnotationStatsPanel stats={emptyStats} documentTitle="Test" onClose={onClose} />
+      );
 
       const closeBtn = screen.getByLabelText('Close statistics');
       expect(closeBtn).toBeInTheDocument();
@@ -125,20 +135,20 @@ describe('AnnotationStatsPanel', () => {
     });
 
     it('does not render close button when onClose is not provided', () => {
-      render(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
       expect(screen.queryByLabelText('Close statistics')).not.toBeInTheDocument();
     });
   });
 
   describe('tabs', () => {
     it('renders Overview and Breakdown tabs', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('Overview')).toBeInTheDocument();
       expect(screen.getByText('Breakdown')).toBeInTheDocument();
     });
 
     it('shows overview tab by default', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('Annotations')).toBeInTheDocument();
       // "Coverage" appears in pie chart center and summary card
       expect(screen.getAllByText('Coverage').length).toBeGreaterThanOrEqual(1);
@@ -146,7 +156,7 @@ describe('AnnotationStatsPanel', () => {
     });
 
     it('switches to breakdown tab when clicked', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       fireEvent.click(screen.getByText('Breakdown'));
 
       // Should show type headers
@@ -158,33 +168,33 @@ describe('AnnotationStatsPanel', () => {
 
   describe('empty state', () => {
     it('shows empty state when no content', () => {
-      render(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
       expect(screen.getByText('No content to analyze.')).toBeInTheDocument();
     });
   });
 
   describe('overview tab', () => {
     it('shows summary numbers', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('6')).toBeInTheDocument(); // totalAnnotations
       expect(screen.getByText('40%')).toBeInTheDocument(); // coverage
       expect(screen.getByText('1,000')).toBeInTheDocument(); // characters
     });
 
     it('shows coverage by type section', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('Coverage by Type')).toBeInTheDocument();
     });
 
     it('shows instance counts section', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('Instance Counts')).toBeInTheDocument();
     });
   });
 
   describe('breakdown tab', () => {
     it('shows all annotation types in breakdown', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       fireEvent.click(screen.getByText('Breakdown'));
 
       // Names may appear multiple times (main breakdown + speaker cards), use getAllByText
@@ -195,7 +205,7 @@ describe('AnnotationStatsPanel', () => {
     });
 
     it('shows instance counts per annotation', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       fireEvent.click(screen.getByText('Breakdown'));
 
       // Multiple items may share the same count text, so use getAllByText
@@ -210,7 +220,7 @@ describe('AnnotationStatsPanel', () => {
         ...emptyStats,
         totalCharacters: 100,
       };
-      render(<AnnotationStatsPanel stats={noAnnotations} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={noAnnotations} documentTitle="Test" />);
       fireEvent.click(screen.getByText('Breakdown'));
 
       expect(screen.getByText('No annotations yet.')).toBeInTheDocument();
@@ -218,7 +228,7 @@ describe('AnnotationStatsPanel', () => {
 
     it('calls onAnnotationClick when a breakdown item is clicked', () => {
       const onAnnotationClick = jest.fn();
-      render(
+      customRender(
         <AnnotationStatsPanel
           stats={populatedStats}
           documentTitle="Test"
@@ -234,7 +244,7 @@ describe('AnnotationStatsPanel', () => {
 
     it('calls onAnnotationClick with rhetoric type for rhetoric items', () => {
       const onAnnotationClick = jest.fn();
-      render(
+      customRender(
         <AnnotationStatsPanel
           stats={populatedStats}
           documentTitle="Test"
@@ -249,7 +259,7 @@ describe('AnnotationStatsPanel', () => {
 
     it('calls onAnnotationClick with structural type for structural items', () => {
       const onAnnotationClick = jest.fn();
-      render(
+      customRender(
         <AnnotationStatsPanel
           stats={populatedStats}
           documentTitle="Test"
@@ -264,7 +274,7 @@ describe('AnnotationStatsPanel', () => {
 
     it('shows chevron icons when onAnnotationClick is provided', () => {
       const onAnnotationClick = jest.fn();
-      const { container } = render(
+      const { container } = customRender(
         <AnnotationStatsPanel
           stats={populatedStats}
           documentTitle="Test"
@@ -281,18 +291,18 @@ describe('AnnotationStatsPanel', () => {
 
   describe('speaker stats', () => {
     it('shows speaker section when speakers exist', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('By Speaker')).toBeInTheDocument();
     });
 
     it('shows speaker names', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('Speaker A')).toBeInTheDocument();
       expect(screen.getByText('Speaker B')).toBeInTheDocument();
     });
 
     it('shows speaker character counts, coverage, and paragraph counts', () => {
-      render(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={populatedStats} documentTitle="Test" />);
       expect(screen.getByText('600 chars')).toBeInTheDocument();
       expect(screen.getByText('5 paragraphs')).toBeInTheDocument();
       expect(screen.getByText('400 chars')).toBeInTheDocument();
@@ -302,7 +312,7 @@ describe('AnnotationStatsPanel', () => {
     });
 
     it('does not show speaker section when no speakers', () => {
-      render(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={emptyStats} documentTitle="Test" />);
       expect(screen.queryByText('By Speaker')).not.toBeInTheDocument();
     });
   });

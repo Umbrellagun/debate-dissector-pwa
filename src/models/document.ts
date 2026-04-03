@@ -65,6 +65,10 @@ export interface UserPreferences {
   // Pinned annotations for quick access in toolbar
   pinnedFallacies: string[];
   pinnedRhetoric: string[];
+  // Custom annotation colors (annotation ID -> hex color)
+  customColors: Record<string, string>;
+  // Custom default speaker colors (index -> hex color, overrides DEFAULT_SPEAKER_COLORS)
+  customSpeakerColors: Record<number, string>;
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -86,6 +90,8 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   structuralExpanded: true,
   pinnedFallacies: [],
   pinnedRhetoric: [],
+  customColors: {},
+  customSpeakerColors: {},
 };
 
 export interface DocumentVersion {

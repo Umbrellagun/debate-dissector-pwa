@@ -104,18 +104,51 @@ Your app combines **in-document text annotation** with **fallacy detection, rhet
 
 ---
 
+### 7. Debate Arena (by Krue Software)
+- **URL**: debatearena.app / App Store / Google Play
+- **What it does**: Gamified mobile app where users debate AI opponents on current topics, learn to identify fallacies through quizzes, and get real-time AI feedback on argument quality. Supports British Parliamentary, World Schools, and Public Forum debate formats. Uses an "AI Coins" currency system for debates.
+- **Overlap**:
+  - Fallacy identification and education
+  - Rhetoric learning (gamified)
+  - Debate-focused platform
+- **Key differences**:
+  - **Practice/training tool**, not an analysis tool — you debate AI, not annotate existing transcripts
+  - No inline text annotation or markup
+  - No document persistence or transcript import
+  - No structural markup (claims/evidence), speaker assignment, or statistics
+  - AI-generated feedback rather than manual curation
+  - Mobile-first iOS app with in-app purchases, not a PWA
+  - Reviews note AI bias issues and restrictive coin/paywall system
+- **Similarity**: ★★☆☆☆ (shares debate + fallacy education domain, completely different approach — practice vs. analysis)
+
+---
+
 ## Summary Matrix
 
-| Feature | **Debate Dissector** | Kialo | Rationale | Fallacy Finder | Hypothesis |
-|---|---|---|---|---|---|
-| Inline text annotation | ✅ | ❌ | ❌ | ❌ | ✅ |
-| Fallacy identification | ✅ (manual taxonomy) | ❌ | ❌ | ✅ (AI) | ❌ |
-| Rhetoric identification | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Claims & evidence markup | ✅ | ✅ (tree) | ✅ (diagram) | ❌ | ❌ |
-| Speaker assignment | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Annotation statistics | ✅ | Partial | ❌ | ❌ | ❌ |
-| Visibility controls | ✅ | ❌ | ❌ | ❌ | Partial |
-| Offline PWA | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Collaboration/sharing | ✅ | ✅ | ❌ | ❌ | ✅ |
+| Feature | **Debate Dissector** | Kialo | Rationale | Fallacy Finder | Hypothesis | Debate Arena |
+|---|---|---|---|---|---|---|
+| **Debate Dissector strengths** | | | | | | |
+| Inline text annotation | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Fallacy identification | ✅ (manual taxonomy) | ❌ | ❌ | ✅ (AI) | ❌ | ✅ (gamified) |
+| Rhetoric identification | ✅ | ❌ | ❌ | ❌ | ❌ | Partial (training) |
+| Claims & evidence markup | ✅ | ✅ (tree) | ✅ (diagram) | ❌ | ❌ | ❌ |
+| Speaker assignment | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Annotation statistics | ✅ | Partial | ❌ | ❌ | ❌ | ❌ |
+| Visibility controls | ✅ | ❌ | ❌ | ❌ | Partial | ❌ |
+| Offline PWA | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Collaboration/sharing | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| **Competitor strengths** | | | | | | |
+| AI-powered auto-detection | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Visual argument mapping | ❌ | ✅ (tree) | ✅ (diagram) | ❌ | ❌ | ❌ |
+| Real-time collaboration | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Browser extension | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| PDF/video annotation | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Gamification & quizzes | ❌ | ❌ | ❌ | Partial (quiz) | ❌ | ✅ |
+| AI debate practice | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Debate format support (BP, WS, PF) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Native mobile app | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Real-time AI feedback | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 
 **Bottom line**: There's no direct competitor doing what Debate Dissector does. The closest tools either analyze arguments structurally (Kialo, Rationale) without inline annotation, or detect fallacies via AI (Fallacy Finder) without persistence or rich markup. Your combination of manual annotation taxonomy + inline text markup + statistics + offline PWA is a unique niche.
+
+**Gaps to consider**: The most common competitor advantages are AI-powered analysis, visual argument mapping, real-time collaboration, and gamification. These could inform future feature priorities.

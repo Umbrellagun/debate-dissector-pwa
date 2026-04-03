@@ -5,6 +5,7 @@ import {
   getCategoryLabel,
   StructuralMarkup,
 } from '../../data/structuralMarkup';
+import { useApp } from '../../context';
 
 // Markup statistics from document content
 export interface MarkupStats {
@@ -130,6 +131,9 @@ export const StructuralMarkupPanel: React.FC<StructuralMarkupPanelProps> = ({
   appliedMarkupIds = [],
   markupStats = {},
 }) => {
+  const {
+    state: { preferences },
+  } = useApp();
   const totalMarkups = Object.values(markupStats).reduce((sum, count) => sum + count, 0);
   const sourceNeededCount = markupStats['source-needed'] || 0;
   const unsupportedCount = markupStats['unsupported'] || 0;
@@ -257,7 +261,10 @@ export const StructuralMarkupPanel: React.FC<StructuralMarkupPanelProps> = ({
                     >
                       <span
                         className="flex items-center justify-center w-6 h-6 rounded"
-                        style={{ backgroundColor: `${markup.color}20`, color: markup.color }}
+                        style={{
+                          backgroundColor: `${preferences.customColors?.[markup.id] || markup.color}20`,
+                          color: preferences.customColors?.[markup.id] || markup.color,
+                        }}
                       >
                         <MarkupIcon type={markup.id} className="w-4 h-4" />
                       </span>
@@ -269,7 +276,10 @@ export const StructuralMarkupPanel: React.FC<StructuralMarkupPanelProps> = ({
                           {isApplied && (
                             <span
                               className="px-1.5 py-0.5 text-xs font-medium rounded"
-                              style={{ backgroundColor: `${markup.color}20`, color: markup.color }}
+                              style={{
+                                backgroundColor: `${preferences.customColors?.[markup.id] || markup.color}20`,
+                                color: preferences.customColors?.[markup.id] || markup.color,
+                              }}
                             >
                               Applied
                             </span>
@@ -280,7 +290,10 @@ export const StructuralMarkupPanel: React.FC<StructuralMarkupPanelProps> = ({
                         {markupStats[markup.id] > 0 && (
                           <span
                             className="text-xs font-medium px-1.5 py-0.5 rounded"
-                            style={{ backgroundColor: `${markup.color}15`, color: markup.color }}
+                            style={{
+                              backgroundColor: `${preferences.customColors?.[markup.id] || markup.color}15`,
+                              color: preferences.customColors?.[markup.id] || markup.color,
+                            }}
                           >
                             {markupStats[markup.id]}
                           </span>
@@ -306,8 +319,8 @@ export const StructuralMarkupPanel: React.FC<StructuralMarkupPanelProps> = ({
               <span
                 className="flex items-center justify-center w-8 h-8 rounded"
                 style={{
-                  backgroundColor: `${selectedMarkup.color}20`,
-                  color: selectedMarkup.color,
+                  backgroundColor: `${preferences.customColors?.[selectedMarkup.id] || selectedMarkup.color}20`,
+                  color: preferences.customColors?.[selectedMarkup.id] || selectedMarkup.color,
                 }}
               >
                 <MarkupIcon type={selectedMarkup.id} className="w-5 h-5" />
@@ -451,7 +464,14 @@ export const StructuralMarkupPanel: React.FC<StructuralMarkupPanelProps> = ({
                 ? 'text-white hover:opacity-90'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
-            style={hasSelection ? { backgroundColor: selectedMarkup.color } : undefined}
+            style={
+              hasSelection
+                ? {
+                    backgroundColor:
+                      preferences.customColors?.[selectedMarkup.id] || selectedMarkup.color,
+                  }
+                : undefined
+            }
           >
             {hasSelection
               ? appliedMarkupIds.includes(selectedMarkup.id)

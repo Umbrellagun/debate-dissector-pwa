@@ -353,7 +353,7 @@ export const EditorPage: React.FC = () => {
         pinned.push({
           id: fallacy.id,
           name: fallacy.name,
-          color: fallacy.color,
+          color: preferences.customColors?.[fallacy.id] || fallacy.color,
           type: 'fallacy',
         });
       }
@@ -366,14 +366,14 @@ export const EditorPage: React.FC = () => {
         pinned.push({
           id: rhetoric.id,
           name: rhetoric.name,
-          color: rhetoric.color,
+          color: preferences.customColors?.[rhetoric.id] || rhetoric.color,
           type: 'rhetoric',
         });
       }
     });
 
     return pinned;
-  }, [preferences.pinnedFallacies, preferences.pinnedRhetoric]);
+  }, [preferences.pinnedFallacies, preferences.pinnedRhetoric, preferences.customColors]);
 
   // Build list of pinned speakers for toolbar shortcuts
   const pinnedSpeakers = useMemo(() => {
@@ -441,8 +441,13 @@ export const EditorPage: React.FC = () => {
             doc = await loadDocument(freshDocs[0].id);
           } else {
             // Edge case: no docs exist but example was already created (shouldn't happen normally)
-            // Create a new untitled document with default speakers
-            doc = await createDocument('Untitled Debate', undefined, DEFAULT_SPEAKERS);
+            // Create a new untitled document with default speakers (apply custom palette)
+            const csc = preferences.customSpeakerColors ?? {};
+            const speakers = DEFAULT_SPEAKERS.map((s, i) => ({
+              ...s,
+              color: csc[i] || s.color,
+            }));
+            doc = await createDocument('Untitled Debate', undefined, speakers);
           }
         }
 
@@ -465,6 +470,7 @@ export const EditorPage: React.FC = () => {
     isViewingShared,
     sharedDebate,
     preferences.lastEditedDocumentId,
+    preferences.customSpeakerColors,
     loadDocument,
     loadDocuments,
     createDocument,
@@ -1614,11 +1620,23 @@ export const EditorPage: React.FC = () => {
             placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
             selectedAnnotation={
               selectedFallacy
-                ? { name: selectedFallacy.name, color: selectedFallacy.color }
+                ? {
+                    name: selectedFallacy.name,
+                    color: preferences.customColors?.[selectedFallacy.id] || selectedFallacy.color,
+                  }
                 : selectedRhetoric
-                  ? { name: selectedRhetoric.name, color: selectedRhetoric.color }
+                  ? {
+                      name: selectedRhetoric.name,
+                      color:
+                        preferences.customColors?.[selectedRhetoric.id] || selectedRhetoric.color,
+                    }
                   : selectedStructuralMarkup
-                    ? { name: selectedStructuralMarkup.name, color: selectedStructuralMarkup.color }
+                    ? {
+                        name: selectedStructuralMarkup.name,
+                        color:
+                          preferences.customColors?.[selectedStructuralMarkup.id] ||
+                          selectedStructuralMarkup.color,
+                      }
                     : null
             }
             hasTextSelection={hasTextSelection}

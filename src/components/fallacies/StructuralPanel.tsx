@@ -267,8 +267,12 @@ export const StructuralPanel: React.FC<StructuralPanelProps> = ({
                         <span
                           className="flex items-center justify-center w-6 h-6 rounded"
                           style={{
-                            backgroundColor: isHidden ? '#f3f4f6' : `${markup.color}20`,
-                            color: isHidden ? '#9ca3af' : markup.color,
+                            backgroundColor: isHidden
+                              ? '#f3f4f6'
+                              : `${preferences.customColors?.[markup.id] || markup.color}20`,
+                            color: isHidden
+                              ? '#9ca3af'
+                              : preferences.customColors?.[markup.id] || markup.color,
                           }}
                         >
                           <MarkupIcon type={markup.id} className="w-4 h-4" />

@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** March 27, 2026
+**Last Updated:** April 2, 2026
 
 ### Phase 1: Foundation
 Core app setup and infrastructure.
@@ -103,9 +103,10 @@ Polish and usability improvements.
 - [x] Auto-dismiss and smart positioning
 
 #### 4.6 Customization
-- [ ] Custom colors for fallacy annotations
-- [ ] Custom colors for rhetoric annotations
-- [ ] Custom colors for claim & evidence markup
+- [x] Custom colors for fallacy annotations
+- [x] Custom colors for rhetoric annotations
+- [x] Custom colors for claim & evidence markup
+- [x] Custom colors for speaker defaults
 
 ### Phase 5: Sharing & Collaboration
 Share debates with others.

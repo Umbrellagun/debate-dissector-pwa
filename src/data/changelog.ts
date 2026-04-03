@@ -7,6 +7,17 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.9.0',
+    date: 'April 3, 2026',
+    title: 'Annotation Color Customization',
+    changes: [
+      'Customize colors for fallacies, rhetoric techniques, and claim/evidence markup types',
+      'Customize the 8 default speaker colors assigned to new speakers',
+      'Color pickers available in Settings under "Customize Annotation Colors"',
+      'Reset individual colors or all colors to defaults with one click',
+    ],
+  },
+  {
     version: '1.8.0',
     date: 'March 27, 2026',
     title: 'Floating Toolbar, Expanded Fallacies & UX Polish',

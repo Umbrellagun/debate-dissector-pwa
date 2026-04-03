@@ -6,6 +6,7 @@ import {
   SpeakerAnnotationDetail,
 } from '../../utils/annotationStats';
 import { trackAnalyticsEvent } from '../../hooks/useAnalytics';
+import { useApp } from '../../context';
 
 interface AnnotationStatsPanelProps {
   stats: AnnotationStats;
@@ -151,6 +152,9 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
   onClose,
   onAnnotationClick,
 }) => {
+  const {
+    state: { preferences },
+  } = useApp();
   const [activeTab, setActiveTab] = useState<'overview' | 'breakdown'>('overview');
 
   const handleTabSwitch = (tab: 'overview' | 'breakdown') => {
@@ -181,9 +185,13 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
   const maxCharCount =
     stats.breakdown.length > 0 ? Math.max(...stats.breakdown.map(b => b.charCount)) : 0;
 
-  const fallacyBreakdown = stats.breakdown.filter(b => b.type === 'fallacy');
-  const rhetoricBreakdown = stats.breakdown.filter(b => b.type === 'rhetoric');
-  const structuralBreakdown = stats.breakdown.filter(b => b.type === 'structural');
+  // Resolve custom colors for breakdown items
+  const resolveColor = (item: AnnotationCount) => preferences.customColors?.[item.id] || item.color;
+  const resolvedBreakdown = stats.breakdown.map(b => ({ ...b, color: resolveColor(b) }));
+
+  const fallacyBreakdown = resolvedBreakdown.filter(b => b.type === 'fallacy');
+  const rhetoricBreakdown = resolvedBreakdown.filter(b => b.type === 'rhetoric');
+  const structuralBreakdown = resolvedBreakdown.filter(b => b.type === 'structural');
 
   return (
     <div className="h-full flex flex-col">

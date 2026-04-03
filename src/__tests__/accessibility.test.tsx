@@ -371,19 +371,19 @@ describe('Accessibility Tests', () => {
 
   describe('StructuralMarkupPanel Component', () => {
     it('should have no axe violations', async () => {
-      const { container } = render(<StructuralMarkupPanel />);
+      const { container } = customRender(<StructuralMarkupPanel />);
       await checkA11y(container);
     });
 
     it('should have no axe violations with selected markup', async () => {
-      const { container } = render(
+      const { container } = customRender(
         <StructuralMarkupPanel selectedMarkupId="evidence" hasSelection={true} />
       );
       await checkA11y(container);
     });
 
     it('category buttons should be keyboard accessible', () => {
-      render(<StructuralMarkupPanel />);
+      customRender(<StructuralMarkupPanel />);
 
       const assertionsButton = screen.getByText('Assertions').closest('button');
       expect(assertionsButton).toBeInTheDocument();
@@ -393,7 +393,7 @@ describe('Accessibility Tests', () => {
     });
 
     it('markup items should be focusable', () => {
-      render(<StructuralMarkupPanel />);
+      customRender(<StructuralMarkupPanel />);
 
       const claimButton = screen.getByText('Claim').closest('button');
       expect(claimButton).toBeInTheDocument();
@@ -403,7 +403,7 @@ describe('Accessibility Tests', () => {
     });
 
     it('all buttons should have accessible names', () => {
-      const { container } = render(<StructuralMarkupPanel selectedMarkupId="claim" />);
+      const { container } = customRender(<StructuralMarkupPanel selectedMarkupId="claim" />);
       const { valid, issues } = checkAriaLabels(container);
       if (!valid) {
         console.warn('ARIA issues in StructuralMarkupPanel:', issues);
@@ -411,13 +411,13 @@ describe('Accessibility Tests', () => {
     });
 
     it('close details button should have aria-label', () => {
-      render(<StructuralMarkupPanel selectedMarkupId="claim" />);
+      customRender(<StructuralMarkupPanel selectedMarkupId="claim" />);
       const closeButton = screen.getByLabelText('Close details');
       expect(closeButton).toBeInTheDocument();
     });
 
     it('citation form inputs should be accessible', () => {
-      render(<StructuralMarkupPanel selectedMarkupId="evidence" />);
+      customRender(<StructuralMarkupPanel selectedMarkupId="evidence" />);
 
       // Open citation form
       fireEvent.click(screen.getByText('Add source citation'));
@@ -435,13 +435,13 @@ describe('Accessibility Tests', () => {
     });
 
     it('should have logical focus order', () => {
-      const { container } = render(<StructuralMarkupPanel />);
+      const { container } = customRender(<StructuralMarkupPanel />);
       const focusableElements = getFocusableElements(container);
       expect(focusableElements.length).toBeGreaterThan(0);
     });
 
     it('apply button should be disabled with proper styling when no selection', () => {
-      render(<StructuralMarkupPanel selectedMarkupId="claim" hasSelection={false} />);
+      customRender(<StructuralMarkupPanel selectedMarkupId="claim" hasSelection={false} />);
       const applyButton = screen.getByText('Select text to apply');
       expect(applyButton).toBeDisabled();
     });
@@ -543,21 +543,21 @@ const mockStatsEmpty: AnnotationStats = {
 describe('AnnotationStatsPanel Accessibility', () => {
   describe('Automated a11y checks', () => {
     it('should have no axe violations with populated stats', async () => {
-      const { container } = render(
+      const { container } = customRender(
         <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />
       );
       await checkA11y(container);
     });
 
     it('should have no axe violations with empty stats', async () => {
-      const { container } = render(
+      const { container } = customRender(
         <AnnotationStatsPanel stats={mockStatsEmpty} documentTitle="Test" />
       );
       await checkA11y(container);
     });
 
     it('should have no axe violations on breakdown tab', async () => {
-      const { container } = render(
+      const { container } = customRender(
         <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />
       );
       fireEvent.click(screen.getByText('Breakdown'));
@@ -565,7 +565,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
     });
 
     it('should have no axe violations with clickable breakdown items', async () => {
-      const { container } = render(
+      const { container } = customRender(
         <AnnotationStatsPanel
           stats={mockStatsPopulated}
           documentTitle="Test"
@@ -580,7 +580,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
   describe('Interactive elements', () => {
     it('close button should be keyboard accessible', () => {
       const onClose = jest.fn();
-      render(
+      customRender(
         <AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" onClose={onClose} />
       );
 
@@ -594,7 +594,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
     });
 
     it('tab buttons should be focusable', () => {
-      render(<AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={mockStatsPopulated} documentTitle="Test" />);
 
       const overviewTab = screen.getByText('Overview');
       const breakdownTab = screen.getByText('Breakdown');
@@ -607,7 +607,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
     });
 
     it('breakdown items should be focusable buttons', () => {
-      render(
+      customRender(
         <AnnotationStatsPanel
           stats={mockStatsPopulated}
           documentTitle="Test"
@@ -623,7 +623,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
     });
 
     it('breakdown items should have descriptive titles', () => {
-      render(
+      customRender(
         <AnnotationStatsPanel
           stats={mockStatsPopulated}
           documentTitle="Test"
@@ -661,7 +661,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
           },
         ],
       };
-      render(<AnnotationStatsPanel stats={statsWithSpeakers} documentTitle="Test" />);
+      customRender(<AnnotationStatsPanel stats={statsWithSpeakers} documentTitle="Test" />);
 
       expect(screen.getByText('Speaker A')).toBeInTheDocument();
       expect(screen.getByText('By Speaker')).toBeInTheDocument();
@@ -670,7 +670,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
 
   describe('Keyboard Navigation', () => {
     it('all interactive elements should be keyboard-reachable', () => {
-      const { container } = render(
+      const { container } = customRender(
         <AnnotationStatsPanel
           stats={mockStatsPopulated}
           documentTitle="Test"
@@ -685,7 +685,7 @@ describe('AnnotationStatsPanel Accessibility', () => {
     });
 
     it('breakdown tab interactive elements should be keyboard-reachable', () => {
-      const { container } = render(
+      const { container } = customRender(
         <AnnotationStatsPanel
           stats={mockStatsPopulated}
           documentTitle="Test"
