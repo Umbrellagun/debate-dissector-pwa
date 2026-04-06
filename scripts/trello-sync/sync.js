@@ -37,6 +37,8 @@ const TRELLO_API = 'https://api.trello.com/1';
 
 /**
  * Parse the trello-roadmap.md file and extract sections with tasks
+ * Supports both old format (### Phase X: Name, #### X.X Section) and 
+ * new format (### Focus Area, #### Section Name)
  */
 function parsePlanFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
@@ -52,15 +54,17 @@ function parsePlanFile(filePath) {
     // Trim trailing whitespace but preserve leading
     const line = rawLine.trimEnd();
     
-    // Match phase headers (### Phase X: Name)
-    const phaseMatch = line.match(/^###\s+(Phase\s+\d+[:\s].*)$/i);
+    // Match focus area headers (### Name) - now descriptive, not numbered
+    // Examples: "### Foundation", "### Core Features", "### User Experience"
+    const phaseMatch = line.match(/^###\s+([^#].+)$/);
     if (phaseMatch) {
       currentPhase = phaseMatch[1].trim();
       continue;
     }
     
-    // Match section headers (#### X.X Name)
-    const sectionMatch = line.match(/^####\s+(\d+\.\d+\s+.*)$/);
+    // Match section headers (#### Name) - now descriptive, not numbered
+    // Examples: "#### Project Setup", "#### Debate Editor", "#### Annotation System"
+    const sectionMatch = line.match(/^####\s+([^#].+)$/);
     if (sectionMatch) {
       // Save previous section if it exists
       if (currentSection) {
@@ -70,7 +74,7 @@ function parsePlanFile(filePath) {
       currentSection = {
         name: sectionMatch[1].trim(),
         phase: currentPhase,
-        phaseLabel: currentPhase.split(':')[0].trim(), // "Phase 1", "Phase 2", etc.
+        phaseLabel: currentPhase, // Now just the descriptive name
         order: sectionOrder++,
         tasks: [],
         completedCount: 0,
@@ -141,15 +145,20 @@ async function trelloRequest(endpoint, method = 'GET', body = null) {
 /**
  * Get or create phase-based lists on the board
  */
-async function getOrCreatePhaseLists(phases) {
+async function getOrCreatePhaseLists(phases, sections) {
   const existingLists = await trelloRequest(`/boards/${TRELLO_BOARD_ID}/lists`);
   const listMap = {};
   
-  // Sort phases to ensure correct order
+  // Sort phases by their first appearance order in the document
+  const phaseOrder = {};
+  sections.forEach(s => {
+    if (!(s.phase in phaseOrder)) {
+      phaseOrder[s.phase] = s.order;
+    }
+  });
+  
   const sortedPhases = [...phases].sort((a, b) => {
-    const numA = parseInt(a.match(/\d+/)?.[0] || '0');
-    const numB = parseInt(b.match(/\d+/)?.[0] || '0');
-    return numA - numB;
+    return (phaseOrder[a] || 0) - (phaseOrder[b] || 0);
   });
   
   // Create lists in reverse order so they appear correctly (Trello adds to left)
@@ -259,7 +268,7 @@ async function syncToTrello(sections) {
   // Get or create phase-based lists
   const phaseLists = DRY_RUN 
     ? Object.fromEntries(phases.map(p => [p, `${p}_LIST`]))
-    : await getOrCreatePhaseLists(phases);
+    : await getOrCreatePhaseLists(phases, sections);
   
   // Get existing cards
   const existingCards = DRY_RUN ? [] : await getExistingCards();

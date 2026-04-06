@@ -1,6 +1,6 @@
-# Trello Sync for pwa-rebuild-plan.md
+# Trello Sync for trello-roadmap.md
 
-Automatically sync tasks from the project plan to a Trello board.
+Automatically sync tasks from the project roadmap to a Trello board.
 
 ## Setup
 
@@ -39,52 +39,43 @@ npm run sync
 npm run dry-run
 ```
 
+### Clean Sync (delete all cards first)
+```bash
+npm run sync -- --clean
+```
+
 ## How It Works
 
-1. **Parses** `docs/plans/pwa-rebuild-plan.md` for task items
+1. **Parses** `docs/plans/trello-roadmap.md` for sections and tasks
 2. **Extracts** task status from checkboxes (`- [ ]` = todo, `- [x]` = done)
 3. **Creates/updates** Trello cards with:
-   - Card name = task text
-   - Label = Phase (color-coded)
-   - List = To Do or Done based on status
+   - One card per section (e.g., "Project Setup", "Debate Editor")
+   - Checklist items for each task
+   - Cards organized into lists by focus area
 4. **Skips** `**LEGAL:**` notes (reminders, not tasks)
 
 ## Board Structure
 
-The script will create these lists if they don't exist:
-- **To Do** - Incomplete tasks
-- **In Progress** - (for manual use)
-- **Done** - Completed tasks
+The script creates one **list per focus area**:
+- Foundation
+- Core Features
+- Advanced Editor Features
+- User Experience
+- Sharing & Collaboration
+- Public Debate Library (Future)
+- Platform Features
+- Future Preparation
+- Testing & Quality
+
+Each **section** becomes a **card** with a **checklist** of tasks.
 
 ## GitHub Action
 
-To auto-sync when the plan changes, add this workflow:
+The workflow at `.github/workflows/trello-sync.yml` auto-syncs when `trello-roadmap.md` changes.
 
-```yaml
-# .github/workflows/trello-sync.yml
-name: Sync to Trello
+**Required GitHub Secrets:**
+- `TRELLO_API_KEY` - Your Trello API key
+- `TRELLO_TOKEN` - Your Trello authorization token
+- `TRELLO_BOARD_ID` - The ID of your Trello board
 
-on:
-  push:
-    paths:
-      - 'docs/plans/pwa-rebuild-plan.md'
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install dependencies
-        run: cd scripts/trello-sync && npm install
-      - name: Sync to Trello
-        env:
-          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
-          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
-          TRELLO_BOARD_ID: ${{ secrets.TRELLO_BOARD_ID }}
-        run: cd scripts/trello-sync && npm run sync
-```
-
-Add your Trello credentials as repository secrets in GitHub.
+Add these in: **Repository Settings → Secrets and variables → Actions → New repository secret**
