@@ -92,31 +92,56 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add speaker filtering (show/hide specific speakers)
 - [ ] Export with speaker formatting preserved (HTML/PDF)
 
-#### 3.5 Argument Mapping & Rebuttal Links
-- [ ] Define argument point data model (id, text range, label, type: claim/rebuttal/support)
-- [ ] Implement point selection and labeling UI (mark text as a "point")
-- [ ] Create link system to connect rebuttals to original points
-- [ ] Add visual link indicators in editor (subtle connectors, numbered references)
-- [ ] Build "Argument Map" alternative view mode
-- [ ] Implement tree/graph visualization of linked points (arrows, hierarchy)
-- [ ] Support multiple link types (rebuts, supports, references, concedes)
-- [ ] Add point navigation (click link to jump to connected point)
-- [ ] Create argument flow summary panel (condensed view of all points)
-- [ ] Color-code links by type or speaker
-- [ ] Export argument map as image or structured data
-- [ ] Add keyboard shortcuts for quick point marking and linking
+#### 3.5 Argument Map View
+**Design doc:** [argument-map-tree-design.md](argument-map-tree-design.md)
 
-##### Argument Visualization (inspired by Kialo)
-- [ ] Build interactive tree view of argument flow (claims → rebuttals → supports)
-- [ ] Add sunburst/radial diagram showing debate topology and depth
-- [ ] Argument strength/impact indicators (visual weight based on evidence count)
-- [ ] Filter tree view by speaker, annotation type, or claim category
-- [ ] Zoom/pan navigation for large debate trees
-- [ ] Click-to-navigate: select a node in the tree to jump to that text in the editor
-- [ ] Collapsible branches for managing complex debates
-- [ ] Color-code tree nodes by speaker or annotation type
-- [ ] Summary statistics overlay (total claims, rebuttals, unsupported assertions)
-- [ ] Side-by-side view: editor + argument tree
+##### 3.5.1 Timeline View (Complete)
+- [x] Build "Argument Map" alternative view mode (view switcher in title bar)
+- [x] Extract all marked-up text (fallacies, rhetoric, structural) as blocks
+- [x] Display blocks in linear document order with type-appropriate colors
+- [x] Show speaker badges on blocks
+- [x] Summary statistics bar (passage counts by markup category)
+- [x] Manual block linking with connect button and SVG arrows
+- [x] Speaker-colored connector arrows
+
+##### 3.5.2 Data Model — Link Types & Thesis Roots
+- [ ] Add `linkType` field to `ArgumentLink` (`supports | rebuts | ignores | unspecified`)
+- [ ] Add `thesisMarkIds` field to `DebateDocument`
+- [ ] Migrate existing links to `linkType: 'unspecified'`
+- [ ] Add link type selection popover after creating a link
+- [ ] Add cycle detection to prevent circular links
+- [ ] Add "Mark as thesis" action on block context menu
+- [ ] Batch categorization modal for uncategorized links
+
+##### 3.5.3 Tree View
+- [ ] Build graph traversal utilities (find roots, find children, detect shared nodes)
+- [ ] Create `ArgumentTreeView` component with recursive node rendering
+- [ ] Implement staging area panel for unattached blocks (collapsible, top of view)
+- [ ] Pro/Con column layout based on link types
+- [ ] Shared node ghost cards with cross-reference navigation
+- [ ] Collapse/expand per tree node
+- [ ] Drill-down navigation with breadcrumbs for deep trees
+- [ ] Wire into view switcher as sub-tab within Map view
+
+##### 3.5.4 Sunburst View
+- [ ] Build radial layout algorithm (arc positions, ring sizes based on descendant count)
+- [ ] Create `ArgumentSunburstView` component using SVG
+- [ ] Hover tooltips with block text preview, speaker, and markup tags
+- [ ] Click-to-drill-down with breadcrumbs
+- [ ] Multi-root center layout (divided center circle)
+- [ ] Shared-child chord connectors across arcs
+- [ ] Unattached block dots on outer ring
+- [ ] Color mode toggle (speaker / link type / markup type)
+- [ ] Wire into view switcher as sub-tab within Map view
+
+##### 3.5.5 Map View Polish
+- [ ] Drag-and-drop from staging area to tree nodes
+- [ ] Smooth animations for tree expand/collapse and sunburst drill-down
+- [ ] Keyboard navigation for tree view
+- [ ] Responsive layout for mobile (tree collapses to single-column, sunburst view-only)
+- [ ] Filter/group blocks by markup type or speaker
+- [ ] Export argument map as image or structured data
+- [ ] Zoom/pan navigation for large documents
 
 #### 3.6 Claim & Evidence Markup
 - [x] Define structural markup data model (id, text range, type, metadata)
@@ -506,5 +531,97 @@ A browsable library of published debate analyses. **Note:** This introduces soci
 - [ ] Add "Report" functionality for inappropriate content
 - [ ] **LEGAL:** Update ToS (content moderation policy, report handling)
 - [x] Create admin dashboard access via PocketBase UI
+
+### Phase 11: Freemium Monetization
+
+A freemium model where the core analysis experience remains free. Paid features target power users, teams, and professional use cases. **Design principle:** Self-education through manual interaction is a core goal of this app — AI should augment, not replace, critical thinking.
+
+#### 11.1 Export Options (Pro)
+Free tier: plain text export. Pro tier unlocks rich export formats.
+- [ ] Export document as PDF with speaker colors and annotation highlights preserved
+- [ ] Export document as annotated HTML
+- [ ] Export argument map as PNG/SVG image
+- [ ] Export argument map as structured data (JSON)
+- [ ] Export annotation statistics report as PDF
+- [ ] Add "Pro" badge/gate on export buttons for free users
+
+#### 11.2 Custom Markup Types (Pro)
+Allow paid users to define their own annotation categories beyond the built-in set.
+- [ ] Design custom markup type data model (name, color, icon, category)
+- [ ] Create UI for managing custom markup types in Settings
+- [ ] Integrate custom types into annotation toolbar and editor rendering
+- [ ] Persist custom types with user preferences
+- [ ] Support importing/exporting custom type definitions
+- [ ] **LEGAL:** Update ToS (user-created content, custom type ownership)
+
+#### 11.3 Password-Protected Documents (Pro)
+Extend existing sharing with stronger access controls.
+- [ ] Password protection for shared documents (existing basic support in Phase 7.1)
+- [ ] Configurable access permissions (view-only, can-comment, can-annotate)
+- [ ] Expiration controls with longer durations for Pro users
+- [ ] View analytics for shared documents (who viewed, when)
+- [ ] Revoke access to previously shared links
+
+#### 11.4 Team Workspaces (Pro)
+Collaborative annotation for teams, classrooms, or organizations.
+- [ ] Design team/workspace data model (members, roles, shared documents)
+- [ ] Create team creation and invitation flow
+- [ ] Implement shared document library within a workspace
+- [ ] Add role-based permissions (owner, editor, viewer)
+- [ ] Real-time or async collaborative annotation on shared documents
+- [ ] Team activity feed (who annotated what, recent changes)
+- [ ] Team-level annotation statistics and reports
+- [ ] **LEGAL:** Update Privacy Policy (team data sharing, member visibility)
+- [ ] **LEGAL:** Update ToS (team account terms, admin responsibilities)
+
+#### 11.5 AI-Assisted Analysis (Enterprise / Ad-Hoc Only)
+⚠️ **Not a standard product feature.** Offered on an ad-hoc basis for major business engagements only. Manual analysis is the intended user experience — AI should not undermine the educational value of learning to identify fallacies, rhetoric, and structural issues independently.
+- [ ] LLM-powered fallacy detection (suggest annotations on selected text)
+- [ ] Auto-generated debate summaries
+- [ ] Claim verification suggestions (flag unsupported assertions)
+- [ ] Available only via enterprise agreements, not self-serve
+- [ ] Clear UI messaging that AI suggestions are starting points, not authoritative
+
+#### 11.6 Billing & Account Infrastructure
+- [ ] Choose payment provider (Stripe, Lemon Squeezy, etc.)
+- [ ] Implement subscription management (monthly/annual plans)
+- [ ] Create Pro upgrade UI and pricing page
+- [ ] Add feature gating logic (check subscription status before Pro features)
+- [ ] Free trial period for Pro features (e.g., 14 days)
+- [ ] **LEGAL:** Update ToS (subscription terms, refund policy, auto-renewal)
+- [ ] **LEGAL:** Update Privacy Policy (payment data handling, third-party payment processor)
+
+### Phase 12: App Store Publishing
+
+Publish the PWA to app stores using wrapper tooling. All packages can be prepared and tested locally for free — store fees are only required at submission time.
+
+#### 12.1 Preparation
+- [ ] Verify PWA passes Lighthouse PWA audit (manifest, service worker, HTTPS)
+- [ ] Prepare store assets: app icon (512x512), screenshots, description, feature graphic
+- [ ] Decide on app name, short description, and category for store listings
+
+#### 12.2 Google Play Store (TWA)
+Cost: $25 one-time developer account fee (paid at submission).
+- [ ] Generate AAB package using PWABuilder or Bubblewrap (free)
+- [ ] Test locally with Android emulator or device
+- [ ] Create Google Play Developer account ($25)
+- [ ] Submit app for review and publish
+- [ ] Set up app signing with Play App Signing
+
+#### 12.3 Microsoft Store
+Cost: $19 one-time developer account fee (paid at submission).
+- [ ] Generate MSIX package using PWABuilder (free)
+- [ ] Test locally on Windows
+- [ ] Create Microsoft Partner Center account ($19)
+- [ ] Submit app for review and publish
+
+#### 12.4 Apple App Store (Optional)
+Cost: $99/year developer program (required for submission, not for local builds).
+- [ ] Generate Xcode project using PWABuilder or Capacitor (free)
+- [ ] Test locally with Xcode simulator (free Apple ID)
+- [ ] Evaluate if additional native functionality is needed to pass Apple review
+- [ ] Enroll in Apple Developer Program ($99/yr) when ready to submit
+- [ ] Submit app for review and publish
+- [ ] **LEGAL:** Review Apple's guidelines on PWA wrappers (risk of rejection for "thin" apps)
 
 ---

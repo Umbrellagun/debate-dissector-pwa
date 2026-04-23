@@ -13,10 +13,14 @@ jobs:
   lint-and-test:
     name: Lint & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,11 +39,59 @@ jobs:
         env:
           CI: true
 
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v4
-        if: github.event_name == 'push'
-        with:
-          fail_ci_if_error: false
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "## Test Coverage Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const c = require('./coverage/coverage-summary.json').total;
+              const fmt = (m) => m.pct + '%';
+              console.log('| Metric | Coverage |');
+              console.log('|--------|----------|');
+              console.log('| Statements | ' + fmt(c.statements) + ' |');
+              console.log('| Branches | ' + fmt(c.branches) + ' |');
+              console.log('| Functions | ' + fmt(c.functions) + ' |');
+              console.log('| Lines | ' + fmt(c.lines) + ' |');
+            " >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Update coverage history
+        if: always() && github.event_name == 'push'
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "No coverage data found, skipping history update"
+            exit 0
+          fi
+
+          HISTORY_FILE="docs/coverage-history.md"
+          mkdir -p docs
+
+          # Create file with header if it doesn't exist
+          if [ ! -f "$HISTORY_FILE" ]; then
+            echo "# Coverage History" > "$HISTORY_FILE"
+            echo "" >> "$HISTORY_FILE"
+            echo "| Date | Commit | Branch | Statements | Branches | Functions | Lines |" >> "$HISTORY_FILE"
+            echo "|------|--------|--------|------------|----------|-----------|-------|" >> "$HISTORY_FILE"
+          fi
+
+          # Append new row
+          ROW=$(node -e "
+            const c = require('./coverage/coverage-summary.json').total;
+            const date = new Date().toISOString().split('T')[0];
+            const sha = '${GITHUB_SHA}'.slice(0, 7);
+            const branch = '${GITHUB_REF_NAME}';
+            console.log('| ' + date + ' | ' + sha + ' | ' + branch + ' | ' + c.statements.pct + '% | ' + c.branches.pct + '% | ' + c.functions.pct + '% | ' + c.lines.pct + '% |');
+          ")
+          echo "$ROW" >> "$HISTORY_FILE"
+
+          # Commit the updated file
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$HISTORY_FILE"
+          git diff --cached --quiet || git commit -m "docs: update coverage history [skip ci]"
+          git push
 
   build:
     name: Build

@@ -17,6 +17,7 @@ import {
   PinnedAnnotation,
   assignSpeakerToSelection,
   HiddenAnnotationIds,
+  ArgumentMapView,
 } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { SpeakerPanel } from '../components/speakers';
@@ -217,6 +218,7 @@ export const EditorPage: React.FC = () => {
   const [structuralClickNonce, setStructuralClickNonce] = useState(0);
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
+  const [editorViewMode, setEditorViewMode] = useState<'editor' | 'map'>('editor');
   const [showCommentPanel, setShowCommentPanel] = useState(false);
   const [requestCommentNonce, setRequestCommentNonce] = useState(0);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
@@ -1560,28 +1562,82 @@ export const EditorPage: React.FC = () => {
         }
       />
       {/* Document title bar */}
-      <div className="px-4 py-2 border-b border-gray-100 bg-white shrink-0">
-        {isViewingShared ? (
-          <h1 className="text-lg font-semibold text-gray-900 truncate">{currentDoc.title}</h1>
-        ) : (
-          <input
-            type="text"
-            value={currentDoc.title}
-            onChange={e => handleTitleChange(e.target.value)}
-            placeholder="Untitled Debate"
-            className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
-          />
-        )}
+      <div className="px-4 py-2 border-b border-gray-100 bg-white shrink-0 flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          {isViewingShared ? (
+            <h1 className="text-lg font-semibold text-gray-900 truncate">{currentDoc.title}</h1>
+          ) : (
+            <input
+              type="text"
+              value={currentDoc.title}
+              onChange={e => handleTitleChange(e.target.value)}
+              placeholder="Untitled Debate"
+              className="w-full text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-gray-400"
+            />
+          )}
+        </div>
+        {/* View mode toggle */}
+        <div className="flex items-center bg-gray-100 rounded-lg p-0.5 shrink-0">
+          <button
+            onClick={() => setEditorViewMode('editor')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              editorViewMode === 'editor'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            title="Text Editor"
+          >
+            <span className="flex items-center gap-1.5">
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h12" />
+              </svg>
+              Editor
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              setEditorViewMode('map');
+              trackAnalyticsEvent('map_view_opened');
+            }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              editorViewMode === 'map'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            title="Argument Map"
+          >
+            <span className="flex items-center gap-1.5">
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+                />
+              </svg>
+              Map
+            </span>
+          </button>
+        </div>
       </div>
       <div className="flex-1 overflow-hidden bg-white flex flex-col relative">
-        <div className="flex-1 overflow-hidden">
-          <DebateEditor
-            key={currentDoc.id}
-            ref={editorRef}
-            initialValue={normalizeEditorContent(currentDoc.content)}
-            onChange={isViewingShared ? () => {} : handleContentChange}
-            onSelectionChange={handleSelectionChange}
-            readOnly={isViewingShared}
+        {editorViewMode === 'map' ? (
+          <ArgumentMapView
+            content={currentDoc.content}
+            speakers={currentDoc.speakers}
+            customColors={preferences.customColors}
+            argumentLinks={currentDoc.argumentLinks}
             onFallacyClick={fallacyId => {
               const fallacy = FALLACIES.find(f => f.id === fallacyId);
               if (fallacy) {
@@ -1589,6 +1645,7 @@ export const EditorPage: React.FC = () => {
                 setSelectedFallacy(fallacy);
                 setSelectedRhetoric(null);
                 setSelectedStructuralMarkup(null);
+                if (!rightSidebarExpanded) setRightSidebarExpanded(true);
               }
             }}
             onRhetoricClick={rhetoricId => {
@@ -1598,71 +1655,140 @@ export const EditorPage: React.FC = () => {
                 setSelectedRhetoric(rhetoric);
                 setSelectedFallacy(null);
                 setSelectedStructuralMarkup(null);
+                if (!rightSidebarExpanded) setRightSidebarExpanded(true);
               }
             }}
-            onStructuralClick={(markupId, metadata) => {
+            onStructuralClick={markupId => {
               const markup = STRUCTURAL_MARKUPS.find(m => m.id === markupId);
               if (markup) {
-                // Store the current selection before it gets lost
-                const editor = editorRef.current?.getEditor();
-                if (editor?.selection && !Range.isCollapsed(editor.selection)) {
-                  setStoredSelection(editor.selection);
-                }
                 setAnnotationTab('structural');
                 setSelectedStructuralMarkup(markup);
                 setSelectedFallacy(null);
                 setSelectedRhetoric(null);
-                // Store metadata for citation form pre-population
-                setSelectedStructuralMetadata(metadata);
-                setStructuralClickNonce(n => n + 1);
+                if (!rightSidebarExpanded) setRightSidebarExpanded(true);
               }
             }}
-            placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
-            selectedAnnotation={
-              selectedFallacy
-                ? {
-                    name: selectedFallacy.name,
-                    color: preferences.customColors?.[selectedFallacy.id] || selectedFallacy.color,
-                  }
-                : selectedRhetoric
-                  ? {
-                      name: selectedRhetoric.name,
-                      color:
-                        preferences.customColors?.[selectedRhetoric.id] || selectedRhetoric.color,
-                    }
-                  : selectedStructuralMarkup
-                    ? {
-                        name: selectedStructuralMarkup.name,
-                        color:
-                          preferences.customColors?.[selectedStructuralMarkup.id] ||
-                          selectedStructuralMarkup.color,
-                      }
-                    : null
-            }
-            hasTextSelection={hasTextSelection}
-            onApplyAnnotation={() => {
-              if (selectedFallacy) {
-                handleFallacyApply(selectedFallacy);
-              } else if (selectedRhetoric) {
-                handleRhetoricApply(selectedRhetoric);
-              } else if (selectedStructuralMarkup) {
-                handleApplyStructuralMarkup(selectedStructuralMarkup);
-              }
+            onCreateLink={(sourceMarkId, targetMarkId) => {
+              const newLink = {
+                id: `link_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                sourceMarkId,
+                targetMarkId,
+                createdAt: Date.now(),
+              };
+              setCurrentDoc(prev => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  argumentLinks: [...(prev.argumentLinks || []), newLink],
+                  updatedAt: Date.now(),
+                };
+              });
+              trackAnalyticsEvent('map_link_created', { sourceMarkId, targetMarkId });
             }}
-            pinnedAnnotations={pinnedAnnotations}
-            onApplyPinnedAnnotation={handleApplyPinnedAnnotation}
-            speakers={currentDoc.speakers || []}
-            hiddenSpeakerIds={hiddenSpeakerIds}
-            pinnedSpeakers={pinnedSpeakers}
-            onAssignPinnedSpeaker={handleToggleAssignSpeaker}
-            comments={currentDoc.comments || {}}
-            hiddenAnnotationIds={hiddenAnnotationIds}
-            onRequestComment={() => {
-              if (!showCommentPanel) setShowCommentPanel(true);
-              setRequestCommentNonce(n => n + 1);
+            onDeleteLink={linkId => {
+              setCurrentDoc(prev => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  argumentLinks: (prev.argumentLinks || []).filter(l => l.id !== linkId),
+                  updatedAt: Date.now(),
+                };
+              });
+              trackAnalyticsEvent('map_link_deleted', { linkId });
             }}
           />
-        </div>
+        ) : (
+          <div className="flex-1 overflow-hidden">
+            <DebateEditor
+              key={currentDoc.id}
+              ref={editorRef}
+              initialValue={normalizeEditorContent(currentDoc.content)}
+              onChange={isViewingShared ? () => {} : handleContentChange}
+              onSelectionChange={handleSelectionChange}
+              readOnly={isViewingShared}
+              onFallacyClick={fallacyId => {
+                const fallacy = FALLACIES.find(f => f.id === fallacyId);
+                if (fallacy) {
+                  setAnnotationTab('fallacies');
+                  setSelectedFallacy(fallacy);
+                  setSelectedRhetoric(null);
+                  setSelectedStructuralMarkup(null);
+                }
+              }}
+              onRhetoricClick={rhetoricId => {
+                const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
+                if (rhetoric) {
+                  setAnnotationTab('rhetoric');
+                  setSelectedRhetoric(rhetoric);
+                  setSelectedFallacy(null);
+                  setSelectedStructuralMarkup(null);
+                }
+              }}
+              onStructuralClick={(markupId, metadata) => {
+                const markup = STRUCTURAL_MARKUPS.find(m => m.id === markupId);
+                if (markup) {
+                  // Store the current selection before it gets lost
+                  const editor = editorRef.current?.getEditor();
+                  if (editor?.selection && !Range.isCollapsed(editor.selection)) {
+                    setStoredSelection(editor.selection);
+                  }
+                  setAnnotationTab('structural');
+                  setSelectedStructuralMarkup(markup);
+                  setSelectedFallacy(null);
+                  setSelectedRhetoric(null);
+                  // Store metadata for citation form pre-population
+                  setSelectedStructuralMetadata(metadata);
+                  setStructuralClickNonce(n => n + 1);
+                }
+              }}
+              placeholder="Start typing or paste debate text here. Select text and click a fallacy to annotate it."
+              selectedAnnotation={
+                selectedFallacy
+                  ? {
+                      name: selectedFallacy.name,
+                      color:
+                        preferences.customColors?.[selectedFallacy.id] || selectedFallacy.color,
+                    }
+                  : selectedRhetoric
+                    ? {
+                        name: selectedRhetoric.name,
+                        color:
+                          preferences.customColors?.[selectedRhetoric.id] || selectedRhetoric.color,
+                      }
+                    : selectedStructuralMarkup
+                      ? {
+                          name: selectedStructuralMarkup.name,
+                          color:
+                            preferences.customColors?.[selectedStructuralMarkup.id] ||
+                            selectedStructuralMarkup.color,
+                        }
+                      : null
+              }
+              hasTextSelection={hasTextSelection}
+              onApplyAnnotation={() => {
+                if (selectedFallacy) {
+                  handleFallacyApply(selectedFallacy);
+                } else if (selectedRhetoric) {
+                  handleRhetoricApply(selectedRhetoric);
+                } else if (selectedStructuralMarkup) {
+                  handleApplyStructuralMarkup(selectedStructuralMarkup);
+                }
+              }}
+              pinnedAnnotations={pinnedAnnotations}
+              onApplyPinnedAnnotation={handleApplyPinnedAnnotation}
+              speakers={currentDoc.speakers || []}
+              hiddenSpeakerIds={hiddenSpeakerIds}
+              pinnedSpeakers={pinnedSpeakers}
+              onAssignPinnedSpeaker={handleToggleAssignSpeaker}
+              comments={currentDoc.comments || {}}
+              hiddenAnnotationIds={hiddenAnnotationIds}
+              onRequestComment={() => {
+                if (!showCommentPanel) setShowCommentPanel(true);
+                setRequestCommentNonce(n => n + 1);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {showVersionHistory && (

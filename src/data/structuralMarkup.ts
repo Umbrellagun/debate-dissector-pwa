@@ -6,7 +6,8 @@ export type StructuralMarkupType =
   | 'unsupported'
   | 'statistic'
   | 'quote'
-  | 'anecdote';
+  | 'anecdote'
+  | 'unaddressed';
 
 export type VerificationStatus = 'unverified' | 'verified' | 'disputed';
 
@@ -68,6 +69,14 @@ export const STRUCTURAL_MARKUPS: StructuralMarkup[] = [
     icon: 'anecdote',
     shortcut: 'A',
   },
+  {
+    id: 'unaddressed',
+    name: 'Unaddressed',
+    description: 'A point or argument that the other speaker ignores or fails to respond to.',
+    color: '#F59E0B', // amber
+    icon: 'unaddressed',
+    shortcut: 'D',
+  },
 ];
 
 // Helper functions
@@ -79,7 +88,7 @@ export const getStructuralMarkupsByIds = (ids: string[]): StructuralMarkup[] =>
 
 // Category groupings for UI organization
 export const STRUCTURAL_MARKUP_CATEGORIES = {
-  assertions: ['claim', 'unsupported'],
+  assertions: ['claim', 'unsupported', 'unaddressed'],
   support: ['evidence', 'statistic', 'quote', 'anecdote'],
 };
 

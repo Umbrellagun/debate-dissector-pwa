@@ -22,6 +22,14 @@ export const DEFAULT_SPEAKER_COLORS = [
   '#F97316', // orange
 ];
 
+// Link between two markup blocks in the argument map
+export interface ArgumentLink {
+  id: string;
+  sourceMarkId: string; // The mark ID of the responding block
+  targetMarkId: string; // The mark ID of the block being responded to
+  createdAt: number;
+}
+
 export interface DebateDocument {
   id: string;
   title: string;
@@ -29,6 +37,7 @@ export interface DebateDocument {
   annotations: Record<string, Annotation>;
   comments?: Record<string, Comment>; // Comments linked to text ranges
   speakers?: Speaker[]; // List of speakers in this document
+  argumentLinks?: ArgumentLink[]; // Links between markup blocks in argument map
   hiddenAnnotationIds?: { fallacyIds: string[]; rhetoricIds: string[]; structuralIds: string[] };
   createdAt: number;
   updatedAt: number;

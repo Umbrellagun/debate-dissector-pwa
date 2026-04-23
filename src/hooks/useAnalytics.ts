@@ -60,7 +60,10 @@ export type AnalyticsEvent =
   | 'annotation_colors_reset_all'
   | 'speaker_color_changed'
   | 'speaker_color_reset'
-  | 'speaker_colors_reset_all';
+  | 'speaker_colors_reset_all'
+  | 'map_view_opened'
+  | 'map_link_created'
+  | 'map_link_deleted';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -119,6 +122,9 @@ export interface AnalyticsEventData {
   speaker_color_changed: { speakerIndex: number };
   speaker_color_reset: { speakerIndex: number };
   speaker_colors_reset_all: { count: number };
+  map_view_opened: Record<string, never>;
+  map_link_created: { sourceMarkId: string; targetMarkId: string };
+  map_link_deleted: { linkId: string };
 }
 
 /**

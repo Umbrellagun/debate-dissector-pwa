@@ -10,3 +10,4 @@ export { useEditorSelection } from './useEditorSelection';
 export * from './types';
 export * from './utils';
 export type { HiddenAnnotationIds } from './VisibilityControls';
+export { ArgumentMapView } from './ArgumentMapView';
