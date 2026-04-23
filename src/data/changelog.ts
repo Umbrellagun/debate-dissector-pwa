@@ -7,6 +7,16 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.10.0',
+    date: 'April 23, 2026',
+    title: 'Argument Map View with Manual Linking',
+    changes: [
+      'New Argument Map view mode: see all annotated passages as visual blocks',
+      'Manual block linking: connect related passages (e.g., rebuttals to claims) via connect buttons',
+      'Summary statistics bar showing passage counts by markup category',
+    ],
+  },
+  {
     version: '1.9.0',
     date: 'April 3, 2026',
     title: 'Annotation Color Customization',

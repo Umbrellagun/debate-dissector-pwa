@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** April 3, 2026
+**Last Updated:** April 23, 2026
 
 ### Foundation
 Core app setup and infrastructure.
@@ -40,14 +40,15 @@ Enhanced editing capabilities.
 - [x] Visual indicators for speaker turns
 - [x] Speaker management UI
 
-#### Argument Mapping
-- [ ] Mark claims, rebuttals, and support points
-- [ ] Link related arguments
-- [ ] Argument flow visualization
-- [ ] Interactive tree view of argument flow (claims → rebuttals → supports)
-- [ ] Sunburst/radial diagram of debate topology
-- [ ] Click-to-navigate between tree nodes and editor text
-- [ ] Side-by-side view: editor + argument tree
+#### Argument Map View
+- [x] Argument Map alternative view mode (view switcher)
+- [x] Extract and display all marked-up text as blocks
+- [x] Color-coded blocks with speaker badges and summary stats
+- [x] Visual link connectors between related blocks (manual linking + speaker-colored SVG arrows)
+- [ ] Link types (supports/rebuts) and thesis root markers
+- [ ] Tree view (hierarchical branching layout with staging area)
+- [ ] Sunburst view (radial argument structure visualization)
+- [ ] Filter/group by markup type or speaker
 
 #### Claim & Evidence Markup
 - [x] Mark claims, evidence, and unsupported assertions

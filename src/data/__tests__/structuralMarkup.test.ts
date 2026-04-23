@@ -77,6 +77,7 @@ describe('STRUCTURAL_MARKUPS data', () => {
       'statistic',
       'quote',
       'anecdote',
+      'unaddressed',
     ];
 
     it.each(expectedTypes)('should include %s markup', typeId => {

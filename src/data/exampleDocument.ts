@@ -26,7 +26,10 @@ export const EXAMPLE_DOCUMENT_CONTENT: Descendant[] = [
       {
         text: 'This example demonstrates how to identify fallacies, rhetoric, and claims in arguments. ',
       },
-      { text: 'Click on any highlighted text to see details in the sidebar.', italic: true },
+      {
+        text: 'Tap or click any highlighted text to see details. On mobile, open the sidebar using the panel button at the top right.',
+        italic: true,
+      },
     ],
   },
   {
