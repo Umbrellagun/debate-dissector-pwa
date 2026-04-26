@@ -1668,11 +1668,13 @@ export const EditorPage: React.FC = () => {
                 if (!rightSidebarExpanded) setRightSidebarExpanded(true);
               }
             }}
-            onCreateLink={(sourceMarkId, targetMarkId) => {
+            thesisMarkIds={currentDoc.thesisMarkIds}
+            onCreateLink={(sourceMarkId, targetMarkId, linkType) => {
               const newLink = {
                 id: `link_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                 sourceMarkId,
                 targetMarkId,
+                linkType,
                 createdAt: Date.now(),
               };
               setCurrentDoc(prev => {
@@ -1683,7 +1685,7 @@ export const EditorPage: React.FC = () => {
                   updatedAt: Date.now(),
                 };
               });
-              trackAnalyticsEvent('map_link_created', { sourceMarkId, targetMarkId });
+              trackAnalyticsEvent('map_link_created', { sourceMarkId, targetMarkId, linkType });
             }}
             onDeleteLink={linkId => {
               setCurrentDoc(prev => {
@@ -1695,6 +1697,16 @@ export const EditorPage: React.FC = () => {
                 };
               });
               trackAnalyticsEvent('map_link_deleted', { linkId });
+            }}
+            onToggleThesis={markId => {
+              setCurrentDoc(prev => {
+                if (!prev) return prev;
+                const current = prev.thesisMarkIds || [];
+                const updated = current.includes(markId)
+                  ? current.filter(id => id !== markId)
+                  : [...current, markId];
+                return { ...prev, thesisMarkIds: updated, updatedAt: Date.now() };
+              });
             }}
           />
         ) : (

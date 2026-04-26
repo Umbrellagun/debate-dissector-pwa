@@ -123,7 +123,7 @@ export interface AnalyticsEventData {
   speaker_color_reset: { speakerIndex: number };
   speaker_colors_reset_all: { count: number };
   map_view_opened: Record<string, never>;
-  map_link_created: { sourceMarkId: string; targetMarkId: string };
+  map_link_created: { sourceMarkId: string; targetMarkId: string; linkType: string };
   map_link_deleted: { linkId: string };
 }
 

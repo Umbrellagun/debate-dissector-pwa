@@ -105,6 +105,7 @@ const argumentLinks: ArgumentLink[] = [
     id: 'link-1',
     sourceMarkId: 'fm-3',
     targetMarkId: 'sm-1',
+    linkType: 'rebuts',
     createdAt: Date.now(),
   },
 ];
@@ -202,7 +203,7 @@ describe('ArgumentMapView', () => {
   });
 
   describe('link badges', () => {
-    it('shows link badges on linked blocks', () => {
+    it('shows link badges on linked blocks with link type label', () => {
       render(
         <ArgumentMapView
           content={mixedMarkupContent}
@@ -212,8 +213,10 @@ describe('ArgumentMapView', () => {
           onDeleteLink={jest.fn()}
         />
       );
-      // The source block (fm-3, "That is a red herring") should show an outgoing badge
-      // The target block (sm-1, "A claim with evidence") should show an incoming badge
+      // The link has linkType 'rebuts', so badges should show "Rebuts:" label
+      const rebutsLabels = screen.getAllByText(/Rebuts:/);
+      expect(rebutsLabels.length).toBeGreaterThan(0);
+      // Should also have directional arrows
       const outgoingBadges = screen.getAllByText(/→/);
       const incomingBadges = screen.getAllByText(/←/);
       expect(outgoingBadges.length).toBeGreaterThan(0);
@@ -248,6 +251,86 @@ describe('ArgumentMapView', () => {
       });
       fireEvent.click(tag);
       expect(onFallacyClick).toHaveBeenCalledWith('straw-man');
+    });
+  });
+
+  describe('thesis marking', () => {
+    it('shows thesis badge when block is in thesisMarkIds', () => {
+      render(
+        <ArgumentMapView
+          content={singleFallacyContent}
+          thesisMarkIds={['fm-1']}
+          onToggleThesis={jest.fn()}
+        />
+      );
+      expect(screen.getByText(/Thesis/)).toBeInTheDocument();
+    });
+
+    it('does not show thesis badge when block is not in thesisMarkIds', () => {
+      render(
+        <ArgumentMapView
+          content={singleFallacyContent}
+          thesisMarkIds={[]}
+          onToggleThesis={jest.fn()}
+        />
+      );
+      expect(screen.queryByText(/Thesis/)).not.toBeInTheDocument();
+    });
+
+    it('shows thesis toggle button when onToggleThesis is provided', () => {
+      render(<ArgumentMapView content={singleFallacyContent} onToggleThesis={jest.fn()} />);
+      expect(screen.getByTitle('Mark as thesis')).toBeInTheDocument();
+    });
+
+    it('calls onToggleThesis when thesis toggle is clicked', () => {
+      const onToggleThesis = jest.fn();
+      render(<ArgumentMapView content={singleFallacyContent} onToggleThesis={onToggleThesis} />);
+      fireEvent.click(screen.getByTitle('Mark as thesis'));
+      expect(onToggleThesis).toHaveBeenCalledWith('fm-1');
+    });
+  });
+
+  describe('link type popover', () => {
+    it('shows link type popover after clicking source then target block', () => {
+      render(
+        <ArgumentMapView
+          content={multiFallacyContent}
+          onCreateLink={jest.fn()}
+          onDeleteLink={jest.fn()}
+        />
+      );
+      // Click connect on first block
+      const connectButtons = screen.getAllByTitle('Connect to another block');
+      fireEvent.click(connectButtons[0]);
+      // Now click the second block (target)
+      const secondBlock = screen.getByText('This is ad hominem.').closest('[data-block-id]');
+      expect(secondBlock).toBeTruthy();
+      fireEvent.click(secondBlock!);
+      // Popover should appear
+      expect(screen.getByText('How does this relate?')).toBeInTheDocument();
+      expect(screen.getByText('Supports')).toBeInTheDocument();
+      expect(screen.getByText('Rebuts')).toBeInTheDocument();
+      expect(screen.getByText('Skip')).toBeInTheDocument();
+    });
+
+    it('calls onCreateLink with selected link type', () => {
+      const onCreateLink = jest.fn();
+      render(
+        <ArgumentMapView
+          content={multiFallacyContent}
+          onCreateLink={onCreateLink}
+          onDeleteLink={jest.fn()}
+        />
+      );
+      // Click connect on first block
+      const connectButtons = screen.getAllByTitle('Connect to another block');
+      fireEvent.click(connectButtons[0]);
+      // Click the second block
+      const secondBlock = screen.getByText('This is ad hominem.').closest('[data-block-id]');
+      fireEvent.click(secondBlock!);
+      // Select "Rebuts" from popover
+      fireEvent.click(screen.getByText('Rebuts'));
+      expect(onCreateLink).toHaveBeenCalledWith('fm-1', 'fm-2', 'rebuts');
     });
   });
 });

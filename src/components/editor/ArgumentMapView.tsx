@@ -4,7 +4,13 @@ import { CustomText, FallacyMark, RhetoricMark, StructuralMark } from './types';
 import { FALLACIES } from '../../data/fallacies';
 import { RHETORIC_TECHNIQUES } from '../../data/rhetoric';
 import { getStructuralMarkupById } from '../../data/structuralMarkup';
-import { Speaker, ArgumentLink } from '../../models/document';
+import { Speaker, ArgumentLink, LinkType } from '../../models/document';
+import {
+  wouldCreateCycle,
+  migrateLinks,
+  LINK_TYPE_COLORS,
+  LINK_TYPE_LABELS,
+} from '../../utils/argumentGraph';
 
 // A single block of marked-up text extracted from the document
 interface MarkupBlock {
@@ -25,11 +31,13 @@ export interface ArgumentMapViewProps {
   speakers?: Speaker[];
   customColors?: Record<string, string>;
   argumentLinks?: ArgumentLink[];
+  thesisMarkIds?: string[];
   onFallacyClick?: (fallacyId: string) => void;
   onRhetoricClick?: (rhetoricId: string) => void;
   onStructuralClick?: (markupId: string) => void;
-  onCreateLink?: (sourceMarkId: string, targetMarkId: string) => void;
+  onCreateLink?: (sourceMarkId: string, targetMarkId: string, linkType: LinkType) => void;
   onDeleteLink?: (linkId: string) => void;
+  onToggleThesis?: (markId: string) => void;
 }
 
 // Resolve a fallacy mark to its display info
@@ -272,9 +280,12 @@ const BlockCard = React.forwardRef<
     linkedTo?: {
       label: string;
       direction: 'incoming' | 'outgoing';
+      linkType: LinkType;
       linkId: string;
       onDelete: () => void;
     }[];
+    isThesis?: boolean;
+    onToggleThesis?: () => void;
   }
 >(
   (
@@ -290,6 +301,8 @@ const BlockCard = React.forwardRef<
       isLinking,
       onBlockClick,
       linkedTo,
+      isThesis,
+      onToggleThesis,
     },
     ref
   ) => {
@@ -326,6 +339,11 @@ const BlockCard = React.forwardRef<
       >
         {/* Tags row */}
         <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3 pb-1">
+          {isThesis && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">
+              ★ Thesis
+            </span>
+          )}
           {tags.map((tag, i) => (
             <MarkTag
               key={i}
@@ -349,6 +367,23 @@ const BlockCard = React.forwardRef<
               {speaker.name}
             </span>
           )}
+          {onToggleThesis && !isLinking && (
+            <button
+              type="button"
+              onClick={e => {
+                e.stopPropagation();
+                onToggleThesis();
+              }}
+              className={`ml-auto text-[10px] px-1.5 py-0.5 rounded transition-colors ${
+                isThesis
+                  ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
+                  : 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
+              }`}
+              title={isThesis ? 'Remove thesis designation' : 'Mark as thesis'}
+            >
+              {isThesis ? '★' : '☆'}
+            </button>
+          )}
         </div>
 
         {/* Quoted text */}
@@ -364,7 +399,12 @@ const BlockCard = React.forwardRef<
                 key={i}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600 group"
               >
-                {link.direction === 'outgoing' ? '→' : '←'} {link.label}
+                <span
+                  className="inline-block w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: LINK_TYPE_COLORS[link.linkType] }}
+                />
+                {link.direction === 'outgoing' ? '→' : '←'} {LINK_TYPE_LABELS[link.linkType]}:{' '}
+                {link.label}
                 <button
                   type="button"
                   onClick={e => {
@@ -385,6 +425,85 @@ const BlockCard = React.forwardRef<
 );
 BlockCard.displayName = 'BlockCard';
 
+// --- Link type selection popover ---
+const LINK_TYPE_OPTIONS: { type: LinkType; emoji: string; label: string; description: string }[] = [
+  {
+    type: 'supports',
+    emoji: '🟢',
+    label: 'Supports',
+    description: 'This block supports/agrees with the target',
+  },
+  {
+    type: 'rebuts',
+    emoji: '🔴',
+    label: 'Rebuts',
+    description: 'This block argues against the target',
+  },
+  {
+    type: 'ignores',
+    emoji: '🟡',
+    label: 'Ignores',
+    description: 'This block sidesteps the target',
+  },
+  { type: 'unspecified', emoji: '⚪', label: 'Skip', description: 'Categorize later' },
+];
+
+const LinkTypePopover: React.FC<{
+  anchorRef: React.RefObject<HTMLDivElement | null>;
+  onSelect: (linkType: LinkType) => void;
+  onCancel: () => void;
+}> = ({ anchorRef, onSelect, onCancel }) => {
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        left: Math.max(8, rect.left + rect.width / 2 - 120),
+      });
+    }
+  }, [anchorRef]);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        onCancel();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onCancel]);
+
+  if (!position) return null;
+
+  return (
+    <div
+      ref={popoverRef}
+      className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-3 w-60 animate-in fade-in slide-in-from-top-1"
+      style={{ top: position.top, left: position.left }}
+    >
+      <p className="text-xs font-medium text-gray-600 mb-2">How does this relate?</p>
+      <div className="space-y-1">
+        {LINK_TYPE_OPTIONS.map(opt => (
+          <button
+            key={opt.type}
+            type="button"
+            onClick={() => onSelect(opt.type)}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-left text-sm hover:bg-gray-50 transition-colors"
+          >
+            <span>{opt.emoji}</span>
+            <span className="font-medium text-gray-800">{opt.label}</span>
+            <span className="text-[10px] text-gray-400 ml-auto">{opt.description}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Compute an SVG arrow path curving to the left in the timeline gutter
 function computeArrowPath(sourceY: number, targetY: number, linkIndex: number): string {
   const x = 14; // timeline rail x position
@@ -403,14 +522,21 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
   speakers = EMPTY_SPEAKERS,
   customColors,
   argumentLinks = EMPTY_LINKS,
+  thesisMarkIds = [],
   onFallacyClick,
   onRhetoricClick,
   onStructuralClick,
   onCreateLink,
   onDeleteLink,
+  onToggleThesis,
 }) => {
   const blocks = useMemo(() => extractMarkupBlocks(content), [content]);
   const [linkingFrom, setLinkingFrom] = useState<string | null>(null); // primaryMarkId of source
+  // Pending link awaiting type selection via popover
+  const [pendingLink, setPendingLink] = useState<{
+    sourceMarkId: string;
+    targetMarkId: string;
+  } | null>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const blocksContainerRef = useRef<HTMLDivElement | null>(null);
@@ -418,6 +544,12 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
     { path: string; id: string; srcY: number; tgtY: number; color: string }[]
   >([]);
   const [svgHeight, setSvgHeight] = useState(0);
+
+  // Migrate links that may be missing linkType (backward compat)
+  const migratedLinks = useMemo(() => migrateLinks(argumentLinks), [argumentLinks]);
+
+  // Thesis lookup set
+  const thesisSet = useMemo(() => new Set(thesisMarkIds), [thesisMarkIds]);
 
   // Build a speaker lookup
   const speakerMap = useMemo(() => {
@@ -442,24 +574,31 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
 
   // Resolve links to block pairs
   const resolvedLinks = useMemo(() => {
-    return argumentLinks
+    return migratedLinks
       .map(link => ({
         ...link,
         sourceBlock: blockByMarkId[link.sourceMarkId],
         targetBlock: blockByMarkId[link.targetMarkId],
       }))
       .filter(l => l.sourceBlock && l.targetBlock);
-  }, [argumentLinks, blockByMarkId]);
+  }, [migratedLinks, blockByMarkId]);
 
   // Build linked-to info for each block
   const linkedToMap = useMemo(() => {
     const map: Record<
       string,
-      { label: string; direction: 'incoming' | 'outgoing'; linkId: string; onDelete: () => void }[]
+      {
+        label: string;
+        direction: 'incoming' | 'outgoing';
+        linkType: LinkType;
+        linkId: string;
+        onDelete: () => void;
+      }[]
     > = {};
     for (const link of resolvedLinks) {
       const srcId = link.sourceBlock!.primaryMarkId;
       const tgtId = link.targetBlock!.primaryMarkId;
+      const lt = link.linkType || ('unspecified' as LinkType);
       // Outgoing: this block responds to target
       if (!map[srcId]) map[srcId] = [];
       const targetText =
@@ -467,6 +606,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
       map[srcId].push({
         label: targetText,
         direction: 'outgoing',
+        linkType: lt,
         linkId: link.id,
         onDelete: () => onDeleteLink?.(link.id),
       });
@@ -477,6 +617,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
       map[tgtId].push({
         label: sourceText,
         direction: 'incoming',
+        linkType: lt,
         linkId: link.id,
         onDelete: () => onDeleteLink?.(link.id),
       });
@@ -504,8 +645,8 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
       const srcY = srcRect.top - containerRect.top + srcRect.height / 2;
       const tgtY = tgtRect.top - containerRect.top + tgtRect.height / 2;
 
-      const speakerId = link.sourceBlock!.speakerId || '';
-      const color = speakerMap[speakerId]?.color || '#9CA3AF';
+      const lt = link.linkType || 'unspecified';
+      const color = LINK_TYPE_COLORS[lt];
 
       paths.push({
         path: computeArrowPath(srcY, tgtY, idx),
@@ -519,7 +660,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
 
     setSvgHeight(maxBottom + 50);
     setArrowPaths(paths);
-  }, [resolvedLinks, speakerMap]);
+  }, [resolvedLinks]);
 
   useEffect(() => {
     // Delay to ensure DOM has laid out
@@ -547,12 +688,31 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
         setLinkingFrom(null);
         return;
       }
-      // Create link: source responds to target
-      onCreateLink?.(linkingFrom, block.primaryMarkId);
+      // Cycle detection
+      if (wouldCreateCycle(linkingFrom, block.primaryMarkId, migratedLinks)) {
+        // TODO: show toast in the future
+        setLinkingFrom(null);
+        return;
+      }
+      // Show link type popover instead of immediately creating
+      setPendingLink({ sourceMarkId: linkingFrom, targetMarkId: block.primaryMarkId });
       setLinkingFrom(null);
     },
-    [linkingFrom, onCreateLink]
+    [linkingFrom, migratedLinks]
   );
+
+  const handleLinkTypeSelected = useCallback(
+    (linkType: LinkType) => {
+      if (!pendingLink) return;
+      onCreateLink?.(pendingLink.sourceMarkId, pendingLink.targetMarkId, linkType);
+      setPendingLink(null);
+    },
+    [pendingLink, onCreateLink]
+  );
+
+  const handleLinkTypeCancel = useCallback(() => {
+    setPendingLink(null);
+  }, []);
 
   const startLinking = useCallback((block: MarkupBlock) => {
     setLinkingFrom(block.primaryMarkId);
@@ -754,6 +914,10 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
                     isLinking={linkingFrom !== null}
                     onBlockClick={() => handleBlockClickForLinking(block)}
                     linkedTo={linkedToMap[block.primaryMarkId]}
+                    isThesis={thesisSet.has(block.primaryMarkId)}
+                    onToggleThesis={
+                      onToggleThesis ? () => onToggleThesis(block.primaryMarkId) : undefined
+                    }
                   />
                 </div>
               ))}
@@ -761,6 +925,19 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Link type selection popover */}
+      {pendingLink && (
+        <LinkTypePopover
+          anchorRef={
+            {
+              current: blockRefs.current[pendingLink.targetMarkId] || null,
+            } as React.RefObject<HTMLDivElement | null>
+          }
+          onSelect={handleLinkTypeSelected}
+          onCancel={handleLinkTypeCancel}
+        />
+      )}
     </div>
   );
 };
