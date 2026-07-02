@@ -81,7 +81,7 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
   }, [searchQuery, filteredFallacies.length]);
 
   return (
-    <div className="flex flex-col">
+    <div id="fallacy-panel" data-role="fallacy-panel" className="flex flex-col">
       {/* Screen reader announcement for search results */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {searchResultsMessage}
@@ -108,8 +108,15 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
           if (categoryFallacies.length === 0 && searchQuery) return null;
 
           return (
-            <div key={category} className="border-b border-gray-200">
+            <div
+              key={category}
+              id={`fallacy-category-section-${category}`}
+              data-role="category-section"
+              className="border-b border-gray-200"
+            >
               <button
+                id={`fallacy-category-toggle-${category}`}
+                data-role="category-toggle"
                 onClick={() => toggleCategory(category)}
                 className="w-full px-3 py-2 flex items-center justify-between text-left bg-gray-50 hover:bg-gray-100"
                 aria-expanded={expandedCategories.has(category)}
@@ -205,6 +212,8 @@ export const FallacyPanel: React.FC<FallacyPanelProps> = ({
                     return (
                       <div
                         key={fallacy.id}
+                        id={`fallacy-item-${fallacy.id}`}
+                        data-role="fallacy-item"
                         className={`flex items-center ${selectedFallacyId === fallacy.id ? 'bg-blue-50' : ''}`}
                       >
                         <button

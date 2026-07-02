@@ -18,7 +18,11 @@ export const OfflineIndicator: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+    <div
+      id="offline-indicator"
+      data-role="offline-indicator"
+      className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50"
+    >
       {!isOnline ? (
         <div className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg shadow-lg">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

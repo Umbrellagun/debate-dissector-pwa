@@ -1,9 +1,19 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import {
+  TransformWrapper,
+  TransformComponent,
+  useControls,
+  ReactZoomPanPinchContentRef,
+} from 'react-zoom-pan-pinch';
 import { Descendant } from 'slate';
 import { CustomText, FallacyMark, RhetoricMark, StructuralMark } from './types';
-import { FALLACIES } from '../../data/fallacies';
-import { RHETORIC_TECHNIQUES } from '../../data/rhetoric';
-import { getStructuralMarkupById } from '../../data/structuralMarkup';
+import {
+  TagInfo,
+  getFallacyInfo,
+  getRhetoricInfo,
+  getStructuralInfo,
+  isColorDark,
+} from './markTagUtils';
 import { Speaker, ArgumentLink, LinkType } from '../../models/document';
 import {
   wouldCreateCycle,
@@ -12,8 +22,77 @@ import {
   LINK_TYPE_LABELS,
 } from '../../utils/argumentGraph';
 
+// Zoom controls overlay for map view
+const MapZoomControls: React.FC = () => {
+  const { zoomIn, zoomOut, resetTransform } = useControls();
+  return (
+    <div
+      id="map-zoom-controls"
+      data-role="zoom-controls"
+      className="absolute bottom-3 right-3 z-30 flex items-center gap-1 bg-white rounded-lg shadow-md border border-gray-200 p-1"
+    >
+      <button
+        type="button"
+        id="map-zoom-in"
+        onClick={() => zoomIn()}
+        className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600 transition-colors"
+        title="Zoom in"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        id="map-zoom-out"
+        onClick={() => zoomOut()}
+        className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600 transition-colors"
+        title="Zoom out"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+        </svg>
+      </button>
+      <div className="w-px h-5 bg-gray-200" />
+      <button
+        type="button"
+        id="map-zoom-reset"
+        onClick={() => resetTransform()}
+        className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600 transition-colors text-xs font-medium"
+        title="Reset view"
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+};
+
 // A single block of marked-up text extracted from the document
-interface MarkupBlock {
+export interface MarkupBlock {
   id: string;
   primaryMarkId: string; // First mark's id — used for linking
   text: string;
@@ -40,45 +119,6 @@ export interface ArgumentMapViewProps {
   onToggleThesis?: (markId: string) => void;
 }
 
-// Resolve a fallacy mark to its display info
-function getFallacyInfo(mark: FallacyMark, customColors?: Record<string, string>) {
-  const fallacy = FALLACIES.find(f => f.id === mark.fallacyId);
-  const color = customColors?.[mark.fallacyId] || fallacy?.color || mark.color;
-  return {
-    id: mark.fallacyId,
-    label: fallacy?.name || mark.fallacyId,
-    color,
-    category: 'Fallacy' as const,
-    type: 'fallacy' as const,
-  };
-}
-
-// Resolve a rhetoric mark to its display info
-function getRhetoricInfo(mark: RhetoricMark, customColors?: Record<string, string>) {
-  const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === mark.rhetoricId);
-  const color = customColors?.[mark.rhetoricId] || rhetoric?.color || mark.color;
-  return {
-    id: mark.rhetoricId,
-    label: rhetoric?.name || mark.rhetoricId,
-    color,
-    category: 'Rhetoric' as const,
-    type: 'rhetoric' as const,
-  };
-}
-
-// Resolve a structural mark to its display info
-function getStructuralInfo(mark: StructuralMark, customColors?: Record<string, string>) {
-  const markup = getStructuralMarkupById(mark.markupId);
-  const color = customColors?.[mark.markupId] || markup?.color || mark.color;
-  return {
-    id: mark.markupId,
-    label: markup?.name || mark.markupId,
-    color,
-    category: 'Structure' as const,
-    type: 'structural' as const,
-  };
-}
-
 // Get the primary mark ID for a block (first mark's id)
 function getPrimaryMarkId(
   fallacyMarks: FallacyMark[],
@@ -98,7 +138,7 @@ function getAllMarkIds(block: MarkupBlock): string[] {
 }
 
 // Extract all markup blocks from document content in document order
-function extractMarkupBlocks(content: Descendant[]): MarkupBlock[] {
+export function extractMarkupBlocks(content: Descendant[]): MarkupBlock[] {
   const blocks: MarkupBlock[] = [];
   let blockCounter = 0;
 
@@ -231,27 +271,12 @@ function getBlockSignature(block: MarkupBlock): string {
   return parts.join('|');
 }
 
-// Determine if a hex color is dark (for text contrast)
-function isColorDark(hex: string): boolean {
-  const c = hex.replace('#', '');
-  const r = parseInt(c.substring(0, 2), 16);
-  const g = parseInt(c.substring(2, 4), 16);
-  const b = parseInt(c.substring(4, 6), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 < 128;
-}
-
-type TagInfo = {
-  id: string;
-  label: string;
-  color: string;
-  category: string;
-  type: 'fallacy' | 'rhetoric' | 'structural';
-};
-
 // --- Tag badge for a single mark ---
 const MarkTag: React.FC<{ tag: TagInfo; onClick?: () => void }> = ({ tag, onClick }) => (
   <button
     type="button"
+    id={`map-mark-tag-${tag.type}-${tag.id}`}
+    data-role="mark-tag"
     onClick={onClick}
     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium cursor-pointer hover:opacity-80 transition-opacity"
     style={{
@@ -332,6 +357,8 @@ const BlockCard = React.forwardRef<
     return (
       <div
         ref={ref}
+        id={`map-block-${block.primaryMarkId.slice(0, 8)}`}
+        data-role="map-block"
         data-block-id={block.primaryMarkId}
         className={`relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md ${ringClass} ${cursorClass}`}
         style={{ borderLeftWidth: '4px', borderLeftColor: borderColor }}
@@ -397,6 +424,8 @@ const BlockCard = React.forwardRef<
             linkedTo.map((link, i) => (
               <span
                 key={i}
+                id={`map-link-badge-${block.primaryMarkId.slice(0, 8)}-${i}`}
+                data-role="link-badge"
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600 group"
               >
                 <span
@@ -426,26 +455,30 @@ const BlockCard = React.forwardRef<
 BlockCard.displayName = 'BlockCard';
 
 // --- Link type selection popover ---
-const LINK_TYPE_OPTIONS: { type: LinkType; emoji: string; label: string; description: string }[] = [
+const LINK_TYPE_OPTIONS: {
+  type: LinkType;
+  label: string;
+  description: string;
+  bg: string;
+  text: string;
+  hoverBg: string;
+}[] = [
   {
     type: 'supports',
-    emoji: '🟢',
     label: 'Supports',
     description: 'This block supports/agrees with the target',
+    bg: 'bg-green-50',
+    text: 'text-green-700',
+    hoverBg: 'hover:bg-green-100',
   },
   {
     type: 'rebuts',
-    emoji: '🔴',
     label: 'Rebuts',
     description: 'This block argues against the target',
+    bg: 'bg-red-50',
+    text: 'text-red-700',
+    hoverBg: 'hover:bg-red-100',
   },
-  {
-    type: 'ignores',
-    emoji: '🟡',
-    label: 'Ignores',
-    description: 'This block sidesteps the target',
-  },
-  { type: 'unspecified', emoji: '⚪', label: 'Skip', description: 'Categorize later' },
 ];
 
 const LinkTypePopover: React.FC<{
@@ -482,21 +515,24 @@ const LinkTypePopover: React.FC<{
   return (
     <div
       ref={popoverRef}
+      id="map-link-popover"
+      data-role="link-type-popover"
       className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-3 w-60 animate-in fade-in slide-in-from-top-1"
       style={{ top: position.top, left: position.left }}
     >
       <p className="text-xs font-medium text-gray-600 mb-2">How does this relate?</p>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {LINK_TYPE_OPTIONS.map(opt => (
           <button
             key={opt.type}
+            id={`map-link-option-${opt.type}`}
+            data-role="link-type-option"
             type="button"
             onClick={() => onSelect(opt.type)}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-left text-sm hover:bg-gray-50 transition-colors"
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm font-medium transition-colors ${opt.bg} ${opt.text} ${opt.hoverBg}`}
           >
-            <span>{opt.emoji}</span>
-            <span className="font-medium text-gray-800">{opt.label}</span>
-            <span className="text-[10px] text-gray-400 ml-auto">{opt.description}</span>
+            <span>{opt.label}</span>
+            <span className="text-[10px] font-normal opacity-70 ml-auto">{opt.description}</span>
           </button>
         ))}
       </div>
@@ -538,12 +574,26 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
     targetMarkId: string;
   } | null>(null);
   const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const scrollRef = useRef<HTMLDivElement | null>(null);
   const blocksContainerRef = useRef<HTMLDivElement | null>(null);
+  const transformRef = useRef<ReactZoomPanPinchContentRef | null>(null);
   const [arrowPaths, setArrowPaths] = useState<
     { path: string; id: string; srcY: number; tgtY: number; color: string }[]
   >([]);
   const [svgHeight, setSvgHeight] = useState(0);
+
+  // Center the pan/zoom canvas on the topmost cards after layout
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const ref = transformRef.current;
+      if (!ref) return;
+      const wrapper = ref.instance.wrapperComponent;
+      const content = ref.instance.contentComponent;
+      if (!wrapper || !content) return;
+      const x = (wrapper.offsetWidth - content.offsetWidth) / 2;
+      ref.setTransform(x, 16, 1);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [blocks]);
 
   // Migrate links that may be missing linkType (backward compat)
   const migratedLinks = useMemo(() => migrateLinks(argumentLinks), [argumentLinks]);
@@ -598,7 +648,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
     for (const link of resolvedLinks) {
       const srcId = link.sourceBlock!.primaryMarkId;
       const tgtId = link.targetBlock!.primaryMarkId;
-      const lt = link.linkType || ('unspecified' as LinkType);
+      const lt = link.linkType || ('supports' as LinkType);
       // Outgoing: this block responds to target
       if (!map[srcId]) map[srcId] = [];
       const targetText =
@@ -645,7 +695,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
       const srcY = srcRect.top - containerRect.top + srcRect.height / 2;
       const tgtY = tgtRect.top - containerRect.top + tgtRect.height / 2;
 
-      const lt = link.linkType || 'unspecified';
+      const lt = link.linkType || 'supports';
       const color = LINK_TYPE_COLORS[lt];
 
       paths.push({
@@ -667,11 +717,6 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
     const frame = requestAnimationFrame(() => updateArrows());
     return () => cancelAnimationFrame(frame);
   }, [resolvedLinks.length, blocks.length, updateArrows]);
-
-  // Re-compute on scroll
-  const handleScroll = useCallback(() => {
-    updateArrows();
-  }, [updateArrows]);
 
   const handleBlockRef = useCallback(
     (markId: string) => (el: HTMLDivElement | null) => {
@@ -758,7 +803,11 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
 
   if (blocks.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50">
+      <div
+        id="map-view-empty"
+        data-role="empty-state"
+        className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50"
+      >
         <svg
           className="w-16 h-16 text-gray-300 mb-4"
           fill="none"
@@ -782,9 +831,17 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+    <div
+      id="map-view-root"
+      data-role="map-view"
+      className="flex-1 flex flex-col min-h-0 bg-gray-50 overflow-hidden"
+    >
       {/* Summary bar */}
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-200 shrink-0">
+      <div
+        id="map-summary-bar"
+        data-role="summary-bar"
+        className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-200 shrink-0"
+      >
         <span className="text-xs font-medium text-gray-500">
           {summary.total} marked passage{summary.total !== 1 ? 's' : ''}
         </span>
@@ -823,107 +880,132 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
         )}
       </div>
 
-      {/* Blocks canvas with timeline */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto relative" onScroll={handleScroll}>
-        <div className="max-w-2xl mx-auto p-4">
-          {/* Timeline rail + blocks */}
-          <div ref={blocksContainerRef} className="relative pl-8">
-            {/* Vertical timeline line */}
-            <div className="absolute left-3 top-0 bottom-0 w-px bg-gray-300" />
+      {/* Blocks canvas with timeline — pannable/zoomable */}
+      <div id="map-content-area" data-role="content-area" className="flex-1 min-h-0 relative">
+        <TransformWrapper
+          initialScale={1}
+          minScale={0.15}
+          maxScale={2}
+          ref={transformRef}
+          limitToBounds={false}
+          smooth={false}
+          panning={{ velocityDisabled: true }}
+          wheel={{ step: 0.2 }}
+          onTransform={() => updateArrows()}
+        >
+          <MapZoomControls />
+          <TransformComponent
+            wrapperStyle={{ width: '100%', height: '100%' }}
+            contentStyle={{ padding: '2rem' }}
+          >
+            <div className="max-w-2xl mx-auto">
+              {/* Timeline rail + blocks */}
+              <div ref={blocksContainerRef} className="relative pl-8">
+                {/* Vertical timeline line */}
+                <div className="absolute left-3 top-0 bottom-0 w-px bg-gray-300" />
 
-            {/* SVG arrow overlay — in the left gutter */}
-            {arrowPaths.length > 0 && (
-              <svg
-                className="absolute top-0 left-0 pointer-events-none z-20"
-                style={{ height: svgHeight, width: 32, overflow: 'visible' }}
-              >
-                <defs>
-                  {arrowPaths.map(({ id, color }) => (
-                    <marker
-                      key={`marker-${id}`}
-                      id={`arrowhead-${id}`}
-                      markerWidth="10"
-                      markerHeight="7"
-                      refX="0"
-                      refY="3.5"
-                      orient="auto"
+                {/* SVG arrow overlay — in the left gutter */}
+                {arrowPaths.length > 0 && (
+                  <svg
+                    className="absolute top-0 left-0 pointer-events-none z-20"
+                    style={{ height: svgHeight, width: 32, overflow: 'visible' }}
+                  >
+                    <defs>
+                      {arrowPaths.map(({ id, color }) => (
+                        <marker
+                          key={`marker-${id}`}
+                          id={`arrowhead-${id}`}
+                          markerWidth="10"
+                          markerHeight="7"
+                          refX="0"
+                          refY="3.5"
+                          orient="auto"
+                        >
+                          <path d="M0,0 L10,3.5 L0,7 Z" fill={color} />
+                        </marker>
+                      ))}
+                    </defs>
+                    {arrowPaths.map(({ path, id, srcY, tgtY, color }) => (
+                      <g key={id}>
+                        {/* Connection line */}
+                        <path
+                          d={path}
+                          fill="none"
+                          stroke={color}
+                          strokeWidth="2.5"
+                          strokeOpacity="0.7"
+                          markerEnd={`url(#arrowhead-${id})`}
+                        />
+                        {/* Source dot */}
+                        <circle cx={14} cy={srcY} r={4} fill={color} />
+                        {/* Target dot (behind arrowhead) */}
+                        <circle cx={14} cy={tgtY} r={4} fill={color} fillOpacity={0.3} />
+                      </g>
+                    ))}
+                  </svg>
+                )}
+
+                <div className="space-y-3">
+                  {blocks.map((block, _idx) => (
+                    <div
+                      key={block.id}
+                      id={`map-block-wrapper-${block.primaryMarkId.slice(0, 8)}`}
+                      data-role="block-wrapper"
+                      className="relative"
                     >
-                      <path d="M0,0 L10,3.5 L0,7 Z" fill={color} />
-                    </marker>
+                      {/* Connect button — centered vertically, icon center on left border */}
+                      {!linkingFrom && onCreateLink && (
+                        <button
+                          type="button"
+                          id={`map-connect-btn-${block.primaryMarkId.slice(0, 8)}`}
+                          data-role="connect-btn"
+                          onClick={e => {
+                            e.stopPropagation();
+                            startLinking(block);
+                          }}
+                          className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-violet-100 text-violet-500 hover:bg-violet-200 hover:text-violet-700 flex items-center justify-center transition-colors z-10 shadow-sm"
+                          style={{ left: '-10px' }}
+                          title="Connect to another block"
+                        >
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2.5}
+                          >
+                            <circle cx="5" cy="6" r="2" />
+                            <circle cx="19" cy="18" r="2" />
+                            <path strokeLinecap="round" d="M7 7l10 10" />
+                          </svg>
+                        </button>
+                      )}
+
+                      <BlockCard
+                        ref={handleBlockRef(block.primaryMarkId)}
+                        block={block}
+                        speaker={block.speakerId ? speakerMap[block.speakerId] : undefined}
+                        customColors={customColors}
+                        onFallacyClick={onFallacyClick}
+                        onRhetoricClick={onRhetoricClick}
+                        onStructuralClick={onStructuralClick}
+                        isLinkSource={linkingFrom === block.primaryMarkId}
+                        isLinkTarget={linkingFrom !== null && linkingFrom !== block.primaryMarkId}
+                        isLinking={linkingFrom !== null}
+                        onBlockClick={() => handleBlockClickForLinking(block)}
+                        linkedTo={linkedToMap[block.primaryMarkId]}
+                        isThesis={thesisSet.has(block.primaryMarkId)}
+                        onToggleThesis={
+                          onToggleThesis ? () => onToggleThesis(block.primaryMarkId) : undefined
+                        }
+                      />
+                    </div>
                   ))}
-                </defs>
-                {arrowPaths.map(({ path, id, srcY, tgtY, color }) => (
-                  <g key={id}>
-                    {/* Connection line */}
-                    <path
-                      d={path}
-                      fill="none"
-                      stroke={color}
-                      strokeWidth="2.5"
-                      strokeOpacity="0.7"
-                      markerEnd={`url(#arrowhead-${id})`}
-                    />
-                    {/* Source dot */}
-                    <circle cx={14} cy={srcY} r={4} fill={color} />
-                    {/* Target dot (behind arrowhead) */}
-                    <circle cx={14} cy={tgtY} r={4} fill={color} fillOpacity={0.3} />
-                  </g>
-                ))}
-              </svg>
-            )}
-
-            <div className="space-y-3">
-              {blocks.map((block, _idx) => (
-                <div key={block.id} className="relative">
-                  {/* Connect button — centered vertically, icon center on left border */}
-                  {!linkingFrom && onCreateLink && (
-                    <button
-                      type="button"
-                      onClick={e => {
-                        e.stopPropagation();
-                        startLinking(block);
-                      }}
-                      className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-violet-100 text-violet-500 hover:bg-violet-200 hover:text-violet-700 flex items-center justify-center transition-colors z-10 shadow-sm"
-                      style={{ left: '-10px' }}
-                      title="Connect to another block"
-                    >
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2.5}
-                      >
-                        <circle cx="5" cy="6" r="2" />
-                        <circle cx="19" cy="18" r="2" />
-                        <path strokeLinecap="round" d="M7 7l10 10" />
-                      </svg>
-                    </button>
-                  )}
-
-                  <BlockCard
-                    ref={handleBlockRef(block.primaryMarkId)}
-                    block={block}
-                    speaker={block.speakerId ? speakerMap[block.speakerId] : undefined}
-                    customColors={customColors}
-                    onFallacyClick={onFallacyClick}
-                    onRhetoricClick={onRhetoricClick}
-                    onStructuralClick={onStructuralClick}
-                    isLinkSource={linkingFrom === block.primaryMarkId}
-                    isLinkTarget={linkingFrom !== null && linkingFrom !== block.primaryMarkId}
-                    isLinking={linkingFrom !== null}
-                    onBlockClick={() => handleBlockClickForLinking(block)}
-                    linkedTo={linkedToMap[block.primaryMarkId]}
-                    isThesis={thesisSet.has(block.primaryMarkId)}
-                    onToggleThesis={
-                      onToggleThesis ? () => onToggleThesis(block.primaryMarkId) : undefined
-                    }
-                  />
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </div>
+          </TransformComponent>
+        </TransformWrapper>
       </div>
 
       {/* Link type selection popover */}

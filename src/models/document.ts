@@ -23,14 +23,14 @@ export const DEFAULT_SPEAKER_COLORS = [
 ];
 
 // Relationship type for argument links
-export type LinkType = 'supports' | 'rebuts' | 'ignores' | 'unspecified';
+export type LinkType = 'supports' | 'rebuts';
 
 // Link between two markup blocks in the argument map
 export interface ArgumentLink {
   id: string;
   sourceMarkId: string; // The mark ID of the responding block
   targetMarkId: string; // The mark ID of the block being responded to
-  linkType: LinkType; // Relationship type (supports, rebuts, ignores, unspecified)
+  linkType: LinkType; // Relationship type (supports or rebuts)
   createdAt: number;
 }
 

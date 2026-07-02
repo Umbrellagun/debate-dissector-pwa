@@ -81,7 +81,7 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
   }, [searchQuery, filteredRhetoric.length]);
 
   return (
-    <div className="flex flex-col">
+    <div id="rhetoric-panel" data-role="rhetoric-panel" className="flex flex-col">
       {/* Screen reader announcement for search results */}
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {searchResultsMessage}
@@ -108,8 +108,15 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
           if (categoryRhetoric.length === 0 && searchQuery) return null;
 
           return (
-            <div key={category} className="border-b border-gray-200">
+            <div
+              key={category}
+              id={`rhetoric-category-section-${category}`}
+              data-role="category-section"
+              className="border-b border-gray-200"
+            >
               <button
+                id={`rhetoric-category-toggle-${category}`}
+                data-role="category-toggle"
                 onClick={() => toggleCategory(category)}
                 className="w-full px-3 py-2 flex items-center justify-between text-left bg-gray-50 hover:bg-gray-100"
                 aria-expanded={expandedCategories.has(category)}
@@ -205,6 +212,8 @@ export const RhetoricPanel: React.FC<RhetoricPanelProps> = ({
                     return (
                       <div
                         key={item.id}
+                        id={`rhetoric-item-${item.id}`}
+                        data-role="rhetoric-item"
                         className={`flex items-center ${selectedRhetoricId === item.id ? 'bg-blue-50' : ''}`}
                       >
                         <button

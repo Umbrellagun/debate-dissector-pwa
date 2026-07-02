@@ -192,7 +192,7 @@ export const SettingsPage: React.FC = () => {
     <MainLayout>
       <Header title="Settings & Info" onBackClick={() => navigate('/')} />
 
-      <div className="flex-1 overflow-y-auto">
+      <div id="settings-content" data-role="page-content" className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto p-4 space-y-6">
           <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200">

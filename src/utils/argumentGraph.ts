@@ -40,11 +40,11 @@ export function wouldCreateCycle(
 
 /**
  * Migrate a link that may be missing the `linkType` field (from pre-Phase A data).
- * Returns the link with `linkType` defaulting to `'unspecified'` if missing.
+ * Returns the link with `linkType` defaulting to `'supports'` if missing or invalid.
  */
 export function migrateLink(link: ArgumentLink): ArgumentLink {
-  if (!link.linkType) {
-    return { ...link, linkType: 'unspecified' as LinkType };
+  if (!link.linkType || (link.linkType !== 'supports' && link.linkType !== 'rebuts')) {
+    return { ...link, linkType: 'supports' as LinkType };
   }
   return link;
 }
@@ -63,8 +63,6 @@ export function migrateLinks(links: ArgumentLink[] | undefined): ArgumentLink[] 
 export const LINK_TYPE_COLORS: Record<LinkType, string> = {
   supports: '#10B981', // green
   rebuts: '#EF4444', // red
-  ignores: '#F59E0B', // amber
-  unspecified: '#9CA3AF', // gray
 };
 
 /**
@@ -73,6 +71,4 @@ export const LINK_TYPE_COLORS: Record<LinkType, string> = {
 export const LINK_TYPE_LABELS: Record<LinkType, string> = {
   supports: 'Supports',
   rebuts: 'Rebuts',
-  ignores: 'Ignores',
-  unspecified: 'Linked',
 };

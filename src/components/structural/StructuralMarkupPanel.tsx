@@ -165,9 +165,17 @@ export const StructuralMarkupPanel: React.FC<StructuralMarkupPanelProps> = ({
     : null;
 
   return (
-    <div className="flex flex-col h-full">
+    <div
+      id="structural-markup-panel"
+      data-role="structural-markup-panel"
+      className="flex flex-col h-full"
+    >
       {/* Header */}
-      <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+      <div
+        id="structural-panel-header"
+        data-role="panel-header"
+        className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0"
+      >
         <h3 className="font-medium text-gray-900">Claims & Evidence</h3>
         {totalMarkups > 0 && (
           <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">

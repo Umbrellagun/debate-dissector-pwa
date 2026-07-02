@@ -101,9 +101,13 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div id="speaker-panel" data-role="speaker-panel" className="flex flex-col h-full">
       {/* Header */}
-      <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+      <div
+        id="speaker-panel-header"
+        data-role="panel-header"
+        className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0"
+      >
         <h3 className="font-medium text-gray-900">Speakers</h3>
         {!isAdding && (
           <button
@@ -185,6 +189,8 @@ export const SpeakerPanel: React.FC<SpeakerPanelProps> = ({
             {speakers.map(speaker => (
               <div
                 key={speaker.id}
+                id={`speaker-item-${speaker.id}`}
+                data-role="speaker-item"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   selectedSpeakerId === speaker.id ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}

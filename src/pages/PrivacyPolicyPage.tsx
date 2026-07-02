@@ -9,7 +9,7 @@ export const PrivacyPolicyPage: React.FC = () => {
     <MainLayout>
       <Header title="Privacy Policy" onBackClick={() => navigate('/settings')} />
 
-      <div className="flex-1 overflow-y-auto">
+      <div id="privacy-policy-content" data-role="page-content" className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto p-4 space-y-6">
           <section className="bg-white rounded-lg border border-gray-200 p-6">
             <p className="text-sm text-gray-500 mb-6">Last updated: March 5, 2026</p>

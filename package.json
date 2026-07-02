@@ -1,6 +1,6 @@
 {
   "name": "debate-dissector-pwa",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
@@ -17,6 +17,7 @@
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.1",
     "react-scripts": "5.0.1",
+    "react-zoom-pan-pinch": "^4.0.3",
     "slate": "^0.123.0",
     "slate-dom": "^0.123.0",
     "slate-history": "^0.113.1",
@@ -58,7 +59,13 @@
     ],
     "rules": {
       "react/no-unescaped-entities": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_"
+        }
+      ]
     }
   },
   "browserslist": {

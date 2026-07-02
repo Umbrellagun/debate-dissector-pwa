@@ -7,6 +7,19 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.11.0',
+    date: 'July 2, 2026',
+    title: 'Link Types, Thesis Marking & Map Zoom',
+    changes: [
+      'Argument links now have types: Supports (green) or Rebuts (red), selected via popover after linking',
+      'Mark blocks as thesis/root nodes with the star button on block cards',
+      'Cycle detection prevents creating circular link chains',
+      'Existing links auto-migrate to the new link type format',
+      'Zoom, pan, and reset controls for navigating large argument maps',
+      'Shared mark tag utilities extracted for reuse across components',
+    ],
+  },
+  {
     version: '1.10.0',
     date: 'April 23, 2026',
     title: 'Argument Map View with Manual Linking',

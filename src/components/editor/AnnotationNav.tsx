@@ -47,7 +47,11 @@ export const AnnotationNav: React.FC<AnnotationNavProps> = ({
   }
 
   return (
-    <div className="border-t border-gray-200 bg-gray-50">
+    <div
+      id="annotation-nav"
+      data-role="annotation-nav"
+      className="border-t border-gray-200 bg-gray-50"
+    >
       <div className="px-3 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-gray-700">

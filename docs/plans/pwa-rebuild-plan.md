@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** April 2, 2026
+**Last Updated:** July 2, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -105,16 +105,16 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Speaker-colored connector arrows
 
 ##### 3.5.2 Data Model — Link Types & Thesis Roots
-- [ ] Add `linkType` field to `ArgumentLink` (`supports | rebuts | ignores | unspecified`)
-- [ ] Add `thesisMarkIds` field to `DebateDocument`
-- [ ] Migrate existing links to `linkType: 'unspecified'`
-- [ ] Add link type selection popover after creating a link
-- [ ] Add cycle detection to prevent circular links
-- [ ] Add "Mark as thesis" action on block context menu
+- [x] Add `linkType` field to `ArgumentLink` (`supports | rebuts`)
+- [x] Add `thesisMarkIds` field to `DebateDocument`
+- [x] Migrate existing links to default `linkType` via `migrateLinks()`
+- [x] Add link type selection popover after creating a link
+- [x] Add cycle detection to prevent circular links
+- [x] Add "Mark as thesis" action on block cards
 - [ ] Batch categorization modal for uncategorized links
 
 ##### 3.5.3 Tree View
-- [ ] Build graph traversal utilities (find roots, find children, detect shared nodes)
+- [x] Build graph traversal utilities (cycle detection, link migration)
 - [ ] Create `ArgumentTreeView` component with recursive node rendering
 - [ ] Implement staging area panel for unattached blocks (collapsible, top of view)
 - [ ] Pro/Con column layout based on link types
@@ -134,14 +134,22 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Color mode toggle (speaker / link type / markup type)
 - [ ] Wire into view switcher as sub-tab within Map view
 
-##### 3.5.5 Map View Polish
+##### 3.5.5 Undo/Redo for Argument Map Operations
+- [ ] Build an undo/redo history stack for argument link and thesis operations
+- [ ] Track link creation, link deletion, link type changes, and thesis toggle as undoable actions
+- [ ] Support undo/redo across all map views (timeline, tree, sunburst)
+- [ ] Add Ctrl+Z / Ctrl+Shift+Z keyboard shortcuts scoped to the map view
+- [ ] Add undo/redo buttons to the map view toolbar
+- [ ] Handle batch operations (e.g. "Remove from Tree" deleting multiple links) as a single undo step
+
+##### 3.5.6 Map View Polish
 - [ ] Drag-and-drop from staging area to tree nodes
 - [ ] Smooth animations for tree expand/collapse and sunburst drill-down
 - [ ] Keyboard navigation for tree view
 - [ ] Responsive layout for mobile (tree collapses to single-column, sunburst view-only)
 - [ ] Filter/group blocks by markup type or speaker
 - [ ] Export argument map as image or structured data
-- [ ] Zoom/pan navigation for large documents
+- [x] Zoom/pan navigation for large documents
 
 #### 3.6 Claim & Evidence Markup
 - [x] Define structural markup data model (id, text range, type, metadata)

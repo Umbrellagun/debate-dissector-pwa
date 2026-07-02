@@ -177,6 +177,8 @@ export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> =
   return (
     <div
       ref={ref}
+      id="floating-selection-toolbar"
+      data-role="floating-toolbar"
       className="fixed z-[9999] flex items-center gap-0.5 px-1.5 py-1 bg-white rounded-lg shadow-lg border border-gray-200 transition-opacity duration-150"
       style={{ top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}
       onMouseDown={e => e.preventDefault()}
@@ -214,6 +216,8 @@ export const FloatingSelectionToolbar: React.FC<FloatingSelectionToolbarProps> =
           {pinnedAnnotations.map(annotation => (
             <button
               key={`${annotation.type}-${annotation.id}`}
+              id={`floating-pinned-${annotation.type}-${annotation.id}`}
+              data-role="floating-pinned-annotation"
               type="button"
               onMouseDown={e => {
                 e.preventDefault();

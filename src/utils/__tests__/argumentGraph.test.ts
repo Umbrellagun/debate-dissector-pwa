@@ -6,7 +6,7 @@ describe('wouldCreateCycle', () => {
     id: string,
     source: string,
     target: string,
-    linkType: 'supports' | 'rebuts' | 'ignores' | 'unspecified' = 'unspecified'
+    linkType: 'supports' | 'rebuts' = 'supports'
   ): ArgumentLink => ({
     id,
     sourceMarkId: source,
@@ -61,7 +61,7 @@ describe('wouldCreateCycle', () => {
 });
 
 describe('migrateLink', () => {
-  it('adds unspecified linkType to link without one', () => {
+  it('defaults to supports for link without linkType', () => {
     const link = {
       id: 'test',
       sourceMarkId: 'a',
@@ -69,7 +69,7 @@ describe('migrateLink', () => {
       createdAt: 123,
     } as ArgumentLink;
     const migrated = migrateLink(link);
-    expect(migrated.linkType).toBe('unspecified');
+    expect(migrated.linkType).toBe('supports');
   });
 
   it('preserves existing linkType', () => {
@@ -96,7 +96,7 @@ describe('migrateLinks', () => {
       { id: '2', sourceMarkId: 'c', targetMarkId: 'd', linkType: 'rebuts' as const, createdAt: 2 },
     ];
     const result = migrateLinks(links);
-    expect(result[0].linkType).toBe('unspecified');
+    expect(result[0].linkType).toBe('supports');
     expect(result[1].linkType).toBe('rebuts');
   });
 });

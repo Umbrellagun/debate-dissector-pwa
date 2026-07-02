@@ -310,7 +310,6 @@ describe('ArgumentMapView', () => {
       expect(screen.getByText('How does this relate?')).toBeInTheDocument();
       expect(screen.getByText('Supports')).toBeInTheDocument();
       expect(screen.getByText('Rebuts')).toBeInTheDocument();
-      expect(screen.getByText('Skip')).toBeInTheDocument();
     });
 
     it('calls onCreateLink with selected link type', () => {

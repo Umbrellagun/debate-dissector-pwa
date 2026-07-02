@@ -84,7 +84,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   }, [showLeftSidebar, rightSidebarExpanded, onLeftSidebarClose, onRightSidebarToggle]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div id="app-layout" data-role="app-layout" className="flex h-screen bg-gray-50">
       {/* Left Sidebar */}
       {leftSidebar && (
         <>
@@ -97,6 +97,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           />
           {/* Sidebar - slides in from left on both mobile and desktop */}
           <aside
+            id="left-sidebar"
+            data-role="left-sidebar"
             ref={leftSidebarRef}
             className={`fixed inset-y-0 left-0 z-50 w-72 lg:w-64 border-r border-gray-200 bg-white overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out ${
               showLeftSidebar ? 'translate-x-0' : '-translate-x-full'
@@ -158,6 +160,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           />
           {/* Sidebar - slides in from right on both mobile and desktop */}
           <aside
+            id="right-sidebar"
+            data-role="right-sidebar"
             ref={rightSidebarRef}
             className={`fixed inset-y-0 right-0 z-50 w-80 border-l border-gray-200 bg-white overflow-y-auto flex-shrink-0 shadow-lg transition-transform duration-300 ease-in-out lg:relative lg:z-auto ${
               rightSidebarExpanded ? 'translate-x-0' : 'translate-x-full lg:hidden'
