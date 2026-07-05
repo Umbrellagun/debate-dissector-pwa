@@ -551,6 +551,7 @@ function computeArrowPath(sourceY: number, targetY: number, linkIndex: number): 
 
 const EMPTY_LINKS: import('../../models/document').ArgumentLink[] = [];
 const EMPTY_SPEAKERS: Speaker[] = [];
+const EMPTY_THESIS_IDS: string[] = [];
 
 // --- Main component ---
 export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
@@ -558,7 +559,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
   speakers = EMPTY_SPEAKERS,
   customColors,
   argumentLinks = EMPTY_LINKS,
-  thesisMarkIds = [],
+  thesisMarkIds = EMPTY_THESIS_IDS,
   onFallacyClick,
   onRhetoricClick,
   onStructuralClick,
@@ -679,6 +680,10 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
   const updateArrows = useCallback(() => {
     if (!blocksContainerRef.current) return;
     const containerRect = blocksContainerRef.current.getBoundingClientRect();
+    // getBoundingClientRect returns viewport-pixel values (scaled by zoom),
+    // but the SVG lives inside the TransformComponent (unscaled content space).
+    // Divide by the current scale to convert viewport → content coordinates.
+    const scale = transformRef.current?.state?.scale ?? 1;
     const paths: { path: string; id: string; srcY: number; tgtY: number; color: string }[] = [];
     let maxBottom = 0;
 
@@ -691,9 +696,9 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
       const srcRect = srcEl.getBoundingClientRect();
       const tgtRect = tgtEl.getBoundingClientRect();
 
-      // Positions relative to the blocks container
-      const srcY = srcRect.top - containerRect.top + srcRect.height / 2;
-      const tgtY = tgtRect.top - containerRect.top + tgtRect.height / 2;
+      // Positions relative to the blocks container, converted to content space
+      const srcY = (srcRect.top - containerRect.top + srcRect.height / 2) / scale;
+      const tgtY = (tgtRect.top - containerRect.top + tgtRect.height / 2) / scale;
 
       const lt = link.linkType || 'supports';
       const color = LINK_TYPE_COLORS[lt];

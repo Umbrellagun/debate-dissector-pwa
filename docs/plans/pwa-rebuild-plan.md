@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** July 2, 2026
+**Last Updated:** July 5, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -582,7 +582,47 @@ Collaborative annotation for teams, classrooms, or organizations.
 - [ ] **LEGAL:** Update Privacy Policy (team data sharing, member visibility)
 - [ ] **LEGAL:** Update ToS (team account terms, admin responsibilities)
 
-#### 11.5 AI-Assisted Analysis (Enterprise / Ad-Hoc Only)
+#### 11.5 Live Transcription & Speaker Diarization (Pro)
+Real-time voice-to-text with automatic speaker detection, enabling users to transcribe live debates directly into a document with speakers auto-assigned.
+
+##### Audio Capture & Transcription
+- [ ] Integrate Web Speech API (or third-party: Deepgram, AssemblyAI, Whisper) for real-time speech-to-text
+- [ ] Create "Live Transcribe" mode accessible from EditorPage toolbar
+- [ ] Display live transcription buffer with interim/final results
+- [ ] Auto-insert finalized transcript text into the Slate editor as new paragraphs
+- [ ] Support microphone input selection (system mic, external, virtual audio)
+- [ ] Handle browser permissions gracefully (mic access prompt, denial fallback)
+
+##### Speaker Diarization
+- [ ] Integrate speaker diarization model (e.g., Deepgram, AssemblyAI, pyannote via backend)
+- [ ] Detect and label distinct speakers in real-time audio stream
+- [ ] Auto-assign detected speakers to existing document speakers (by voice profile or manual mapping)
+- [ ] Prompt user to name/map new speakers when a new voice is detected
+- [ ] Show speaker confidence indicator during live transcription
+- [ ] Support pre-session speaker enrollment (record short voice samples for better accuracy)
+
+##### Live Session UI
+- [ ] Create live transcription panel/overlay showing waveform and active speaker
+- [ ] Add start/stop/pause controls for recording session
+- [ ] Display real-time speaker turn indicators (colored dot or border matching speaker color)
+- [ ] Show elapsed time and word count during session
+- [ ] Allow inline corrections during transcription (tap to edit before finalizing)
+
+##### Post-Session Processing
+- [ ] Offer post-session cleanup pass (punctuation, capitalization, paragraph splitting)
+- [ ] Allow manual speaker re-assignment for misidentified segments
+- [ ] Generate session summary (total duration, speaker talk-time breakdown)
+- [ ] Save raw audio recording alongside document (optional, stored locally or cloud)
+
+##### Infrastructure & Limits
+- [ ] Evaluate transcription API costs and set per-session time limits for Pro tier
+- [ ] Consider on-device Whisper model for offline/privacy-first transcription (WebAssembly)
+- [ ] Design backend relay for diarization if client-side is insufficient
+- [ ] Rate limit transcription sessions (e.g., 10 hours/month for Pro)
+- [ ] **LEGAL:** Update Privacy Policy (audio data processing, third-party transcription service, voice data retention)
+- [ ] **LEGAL:** Update ToS (acceptable use of transcription, consent requirements for recording others)
+
+#### 11.6 AI-Assisted Analysis (Enterprise / Ad-Hoc Only)
 ⚠️ **Not a standard product feature.** Offered on an ad-hoc basis for major business engagements only. Manual analysis is the intended user experience — AI should not undermine the educational value of learning to identify fallacies, rhetoric, and structural issues independently.
 - [ ] LLM-powered fallacy detection (suggest annotations on selected text)
 - [ ] Auto-generated debate summaries
@@ -590,7 +630,7 @@ Collaborative annotation for teams, classrooms, or organizations.
 - [ ] Available only via enterprise agreements, not self-serve
 - [ ] Clear UI messaging that AI suggestions are starting points, not authoritative
 
-#### 11.6 Billing & Account Infrastructure
+#### 11.7 Billing & Account Infrastructure
 - [ ] Choose payment provider (Stripe, Lemon Squeezy, etc.)
 - [ ] Implement subscription management (monthly/annual plans)
 - [ ] Create Pro upgrade UI and pricing page

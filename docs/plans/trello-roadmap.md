@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** July 2, 2026
+**Last Updated:** July 5, 2026
 
 ### Foundation
 Core app setup and infrastructure.
@@ -152,6 +152,14 @@ App-wide capabilities.
 #### Roadmap & Changelog
 - [x] Public Trello roadmap
 - [x] In-app changelog
+
+#### Live Transcription & Speaker Diarization (Pro)
+- [ ] Real-time voice-to-text transcription (Web Speech API / Deepgram / AssemblyAI)
+- [ ] Automatic speaker diarization (detect distinct voices)
+- [ ] Auto-assign speakers to transcribed text in the editor
+- [ ] Live session UI with waveform, start/stop controls, and speaker indicators
+- [ ] Post-session cleanup and speaker re-assignment
+- [ ] On-device Whisper model option for offline/privacy transcription
 
 #### Internationalization
 - [ ] Multi-language support

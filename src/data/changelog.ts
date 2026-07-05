@@ -7,6 +7,14 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.11.1',
+    date: 'July 5, 2026',
+    title: 'Argument Map Zoom Fix',
+    changes: [
+      'Fixed argument link arrows and connector lines pointing to wrong blocks when zoomed in or out on the timeline view',
+    ],
+  },
+  {
     version: '1.11.0',
     date: 'July 2, 2026',
     title: 'Link Types, Thesis Marking & Map Zoom',

@@ -17,6 +17,11 @@ import {
 import { extractMarkupBlocks } from './ArgumentMapView';
 import { Descendant } from 'slate';
 
+// Stable empty array references to prevent infinite re-render loops
+const EMPTY_LINKS: ArgumentLink[] = [];
+const EMPTY_SPEAKERS: Speaker[] = [];
+const EMPTY_THESIS_IDS: string[] = [];
+
 // Zoom controls overlay
 const ZoomControls: React.FC = () => {
   const { zoomIn, zoomOut, resetTransform } = useControls();
@@ -211,10 +216,10 @@ const ContextMenu: React.FC<{
 
 export const TreeView: React.FC<TreeViewProps> = ({
   content,
-  speakers = [],
+  speakers = EMPTY_SPEAKERS,
   customColors,
-  argumentLinks = [],
-  thesisMarkIds = [],
+  argumentLinks = EMPTY_LINKS,
+  thesisMarkIds = EMPTY_THESIS_IDS,
   onFallacyClick,
   onRhetoricClick,
   onStructuralClick,
