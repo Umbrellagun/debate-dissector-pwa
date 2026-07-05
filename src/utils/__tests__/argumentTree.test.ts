@@ -1,9 +1,4 @@
-import {
-  buildArgumentTree,
-  getAllDescendants,
-  getNodePath,
-  isGhostNode,
-} from '../argumentTree';
+import { buildArgumentTree, getAllDescendants, getNodePath, isGhostNode } from '../argumentTree';
 import { ArgumentLink } from '../../models/document';
 
 const makeBlock = (
