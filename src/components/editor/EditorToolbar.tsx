@@ -203,6 +203,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 }) => {
   return (
     <div
+      id="editor-toolbar"
+      data-role="editor-toolbar"
       className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 bg-gray-50 flex-wrap"
       role="toolbar"
       aria-label="Text formatting options"
@@ -228,6 +230,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           {pinnedAnnotations.map(annotation => (
             <button
               key={`${annotation.type}-${annotation.id}`}
+              id={`pinned-annotation-${annotation.type}-${annotation.id}`}
+              data-role="pinned-annotation"
               type="button"
               disabled={!hasTextSelection}
               onMouseDown={e => {
@@ -261,6 +265,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           {pinnedSpeakers.map(speaker => (
             <button
               key={`speaker-${speaker.id}`}
+              id={`pinned-speaker-${speaker.id}`}
+              data-role="pinned-speaker"
               type="button"
               onMouseDown={e => {
                 e.preventDefault();

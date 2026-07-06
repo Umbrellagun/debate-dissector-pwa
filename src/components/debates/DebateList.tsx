@@ -43,10 +43,12 @@ export const DebateList: React.FC<DebateListProps> = ({ documents, onDelete }) =
   }
 
   return (
-    <div className="divide-y divide-gray-200">
+    <div id="debate-list" data-role="debate-list" className="divide-y divide-gray-200">
       {documents.map(doc => (
         <div
           key={doc.id}
+          id={`debate-item-${doc.id.slice(0, 8)}`}
+          data-role="debate-item"
           className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer transition-colors"
           onClick={() => navigate(`/editor/${doc.id}`)}
         >

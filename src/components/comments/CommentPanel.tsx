@@ -332,6 +332,8 @@ const CommentRow: React.FC<{
 
   return (
     <div
+      id={`comment-item-${comment.id}`}
+      data-role="comment-item"
       className={`group border-l-2 ${
         comment.resolved
           ? 'border-green-300 bg-green-50/50'
@@ -597,9 +599,13 @@ export const CommentPanel: React.FC<CommentPanelProps> = ({
     : topLevelComments.filter(c => !c.resolved);
 
   return (
-    <div className="h-full flex flex-col">
+    <div id="comment-panel" data-role="comment-panel" className="h-full flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 shrink-0">
+      <div
+        id="comment-panel-header"
+        data-role="panel-header"
+        className="px-4 py-3 border-b border-gray-200 shrink-0"
+      >
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-gray-900">Comments</h3>
           <div className="flex items-center gap-2">

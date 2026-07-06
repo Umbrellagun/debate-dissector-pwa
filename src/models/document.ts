@@ -22,11 +22,15 @@ export const DEFAULT_SPEAKER_COLORS = [
   '#F97316', // orange
 ];
 
+// Relationship type for argument links
+export type LinkType = 'supports' | 'rebuts';
+
 // Link between two markup blocks in the argument map
 export interface ArgumentLink {
   id: string;
   sourceMarkId: string; // The mark ID of the responding block
   targetMarkId: string; // The mark ID of the block being responded to
+  linkType: LinkType; // Relationship type (supports or rebuts)
   createdAt: number;
 }
 
@@ -38,6 +42,7 @@ export interface DebateDocument {
   comments?: Record<string, Comment>; // Comments linked to text ranges
   speakers?: Speaker[]; // List of speakers in this document
   argumentLinks?: ArgumentLink[]; // Links between markup blocks in argument map
+  thesisMarkIds?: string[]; // Mark IDs of blocks designated as thesis/root nodes
   hiddenAnnotationIds?: { fallacyIds: string[]; rhetoricIds: string[]; structuralIds: string[] };
   createdAt: number;
   updatedAt: number;

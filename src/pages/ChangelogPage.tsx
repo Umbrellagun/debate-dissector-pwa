@@ -4,7 +4,7 @@ import { CHANGELOG } from '../data/changelog';
 
 export const ChangelogPage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div id="changelog-page" data-role="page-content" className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="mb-6">
           <Link

@@ -63,7 +63,8 @@ export type AnalyticsEvent =
   | 'speaker_colors_reset_all'
   | 'map_view_opened'
   | 'map_link_created'
-  | 'map_link_deleted';
+  | 'map_link_deleted'
+  | 'map_thesis_toggled';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -123,8 +124,9 @@ export interface AnalyticsEventData {
   speaker_color_reset: { speakerIndex: number };
   speaker_colors_reset_all: { count: number };
   map_view_opened: Record<string, never>;
-  map_link_created: { sourceMarkId: string; targetMarkId: string };
+  map_link_created: { sourceMarkId: string; targetMarkId: string; linkType: string };
   map_link_deleted: { linkId: string };
+  map_thesis_toggled: { markId: string; action: 'added' | 'removed' };
 }
 
 /**

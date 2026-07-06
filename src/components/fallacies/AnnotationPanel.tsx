@@ -242,9 +242,13 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
   }, [controlledTab, selectedFallacyId, selectedRhetoricId, selectedStructuralId]);
 
   return (
-    <div className="h-full flex flex-col">
+    <div id="annotation-panel" data-role="annotation-panel" className="h-full flex flex-col">
       {/* Unified Search Bar */}
-      <div className="h-14 px-4 border-b border-gray-200 flex items-center shrink-0">
+      <div
+        id="annotation-search-bar"
+        data-role="search-bar"
+        className="h-14 px-4 border-b border-gray-200 flex items-center shrink-0"
+      >
         <input
           type="text"
           placeholder="Search annotations..."
@@ -285,8 +289,10 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
         )}
 
         {/* Fallacies Dropdown */}
-        <div>
+        <div id="annotation-fallacies-section" data-role="annotation-section">
           <button
+            id="annotation-fallacies-toggle"
+            data-role="section-toggle"
             onClick={handleFallaciesToggle}
             className="w-full flex items-center justify-between px-4 py-3 bg-red-50 hover:bg-red-100 transition-colors border-b border-red-200 sticky top-0 z-10"
             aria-expanded={fallaciesExpanded}
@@ -379,8 +385,10 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
         </div>
 
         {/* Rhetoric Dropdown */}
-        <div>
+        <div id="annotation-rhetoric-section" data-role="annotation-section">
           <button
+            id="annotation-rhetoric-toggle"
+            data-role="section-toggle"
             onClick={handleRhetoricToggle}
             className="w-full flex items-center justify-between px-4 py-3 bg-blue-50 hover:bg-blue-100 transition-colors border-b border-blue-200 sticky top-[52px] z-10"
             aria-expanded={rhetoricExpanded}
@@ -473,8 +481,10 @@ export const AnnotationPanel: React.FC<AnnotationPanelProps> = ({
         </div>
 
         {/* Claims & Evidence Dropdown */}
-        <div>
+        <div id="annotation-structural-section" data-role="annotation-section">
           <button
+            id="annotation-structural-toggle"
+            data-role="section-toggle"
             onClick={handleStructuralToggle}
             className="w-full flex items-center justify-between px-4 py-3 bg-purple-50 hover:bg-purple-100 transition-colors border-b border-purple-200 sticky top-[104px] z-10"
             aria-expanded={structuralExpanded}

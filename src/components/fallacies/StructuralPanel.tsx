@@ -156,7 +156,7 @@ export const StructuralPanel: React.FC<StructuralPanelProps> = ({
   };
 
   return (
-    <div className="flex flex-col">
+    <div id="structural-panel" data-role="structural-panel" className="flex flex-col">
       {(
         Object.keys(STRUCTURAL_MARKUP_CATEGORIES) as Array<
           keyof typeof STRUCTURAL_MARKUP_CATEGORIES
@@ -166,8 +166,14 @@ export const StructuralPanel: React.FC<StructuralPanelProps> = ({
         if (markups.length === 0) return null;
 
         return (
-          <div key={category}>
+          <div
+            key={category}
+            id={`structural-category-section-${category}`}
+            data-role="category-section"
+          >
             <button
+              id={`structural-category-toggle-${category}`}
+              data-role="category-toggle"
               onClick={() => toggleCategory(category)}
               className="w-full px-4 py-2 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
               aria-expanded={expandedCategories.has(category)}
@@ -256,6 +262,8 @@ export const StructuralPanel: React.FC<StructuralPanelProps> = ({
                   return (
                     <div
                       key={markup.id}
+                      id={`structural-item-${markup.id}`}
+                      data-role="structural-item"
                       className={`flex items-center ${selectedStructuralId === markup.id ? 'bg-purple-50' : ''}`}
                     >
                       <button

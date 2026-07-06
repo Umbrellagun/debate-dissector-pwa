@@ -22,6 +22,8 @@ export const AnnotationPopup: React.FC<AnnotationPopupProps> = ({
 
   return (
     <div
+      id="annotation-popup"
+      data-role="annotation-popup"
       className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-3 min-w-[200px]"
       style={{
         top: position.top + 8,

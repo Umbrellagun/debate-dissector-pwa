@@ -45,7 +45,11 @@ export const EditorLeftSidebar: React.FC<EditorLeftSidebarProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div
+      id="editor-left-sidebar"
+      data-role="editor-left-sidebar"
+      className="h-full flex flex-col bg-gray-50"
+    >
       <div className="h-14 px-4 border-b border-gray-200 flex items-center shrink-0">
         <div className="relative flex-1">
           <svg
@@ -97,6 +101,8 @@ export const EditorLeftSidebar: React.FC<EditorLeftSidebarProps> = ({
               {filteredDocuments.map(doc => (
                 <div
                   key={doc.id}
+                  id={`sidebar-doc-${doc.id.slice(0, 8)}`}
+                  data-role="document-item"
                   className={`group relative flex items-center rounded-lg transition-colors ${
                     doc.id === currentDocumentId
                       ? 'bg-blue-100 text-blue-900'

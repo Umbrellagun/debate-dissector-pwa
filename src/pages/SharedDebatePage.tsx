@@ -57,7 +57,11 @@ export const SharedDebatePage: React.FC = () => {
   // Loading state
   if (pageState === 'loading' || pageState === 'ready') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div
+        id="shared-debate-loading"
+        data-role="loading-state"
+        className="min-h-screen bg-gray-50 flex items-center justify-center"
+      >
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading shared document...</p>
@@ -69,7 +73,11 @@ export const SharedDebatePage: React.FC = () => {
   // Not found state
   if (pageState === 'not_found') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div
+        id="shared-debate-not-found"
+        data-role="not-found-state"
+        className="min-h-screen bg-gray-50 flex items-center justify-center"
+      >
         <div className="text-center max-w-md mx-4">
           <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
@@ -101,7 +109,11 @@ export const SharedDebatePage: React.FC = () => {
 
   // Error state
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div
+      id="shared-debate-error"
+      data-role="error-state"
+      className="min-h-screen bg-gray-50 flex items-center justify-center"
+    >
       <div className="text-center max-w-md mx-4">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg

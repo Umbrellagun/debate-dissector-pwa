@@ -17,7 +17,11 @@ export const FallacyDetailView: React.FC<FallacyDetailViewProps> = ({
   }
 
   return (
-    <div className="border-t border-gray-200 bg-gray-50">
+    <div
+      id="fallacy-detail-view"
+      data-role="fallacy-detail-view"
+      className="border-t border-gray-200 bg-gray-50"
+    >
       <div className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">

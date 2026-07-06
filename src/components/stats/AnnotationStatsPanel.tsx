@@ -194,9 +194,13 @@ export const AnnotationStatsPanel: React.FC<AnnotationStatsPanelProps> = ({
   const structuralBreakdown = resolvedBreakdown.filter(b => b.type === 'structural');
 
   return (
-    <div className="h-full flex flex-col">
+    <div id="annotation-stats-panel" data-role="stats-panel" className="h-full flex flex-col">
       {/* Header */}
-      <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+      <div
+        id="stats-panel-header"
+        data-role="panel-header"
+        className="h-14 px-4 border-b border-gray-200 flex items-center justify-between shrink-0"
+      >
         <div className="flex items-center gap-2">
           <svg
             className="w-5 h-5 text-indigo-600"

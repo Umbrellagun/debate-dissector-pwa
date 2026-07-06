@@ -17,7 +17,7 @@ import {
   PinnedAnnotation,
   assignSpeakerToSelection,
   HiddenAnnotationIds,
-  ArgumentMapView,
+  ArgumentMapContainer,
 } from '../components/editor';
 import { AnnotationPanel, AnnotationTabType } from '../components/fallacies';
 import { SpeakerPanel } from '../components/speakers';
@@ -1285,7 +1285,11 @@ export const EditorPage: React.FC = () => {
 
   if (isLoading || !isInitialized || !currentDoc) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div
+        id="editor-loading"
+        data-role="loading-state"
+        className="flex items-center justify-center min-h-screen bg-gray-50"
+      >
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-3 border-violet-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-gray-500 text-sm">Loading editor...</p>
@@ -1562,7 +1566,11 @@ export const EditorPage: React.FC = () => {
         }
       />
       {/* Document title bar */}
-      <div className="px-4 py-2 border-b border-gray-100 bg-white shrink-0 flex items-center gap-2">
+      <div
+        id="editor-title-bar"
+        data-role="title-bar"
+        className="px-4 py-2 border-b border-gray-100 bg-white shrink-0 flex items-center gap-2"
+      >
         <div className="flex-1 min-w-0">
           {isViewingShared ? (
             <h1 className="text-lg font-semibold text-gray-900 truncate">{currentDoc.title}</h1>
@@ -1577,7 +1585,11 @@ export const EditorPage: React.FC = () => {
           )}
         </div>
         {/* View mode toggle */}
-        <div className="flex items-center bg-gray-100 rounded-lg p-0.5 shrink-0">
+        <div
+          id="editor-view-toggle"
+          data-role="view-toggle"
+          className="flex items-center bg-gray-100 rounded-lg p-0.5 shrink-0"
+        >
           <button
             onClick={() => setEditorViewMode('editor')}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
@@ -1631,14 +1643,18 @@ export const EditorPage: React.FC = () => {
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-hidden bg-white flex flex-col relative">
+      <div
+        id="editor-content-area"
+        data-role="editor-content"
+        className="flex-1 overflow-hidden bg-white flex flex-col min-h-0 relative"
+      >
         {editorViewMode === 'map' ? (
-          <ArgumentMapView
+          <ArgumentMapContainer
             content={currentDoc.content}
             speakers={currentDoc.speakers}
             customColors={preferences.customColors}
             argumentLinks={currentDoc.argumentLinks}
-            onFallacyClick={fallacyId => {
+            onFallacyClick={(fallacyId: string) => {
               const fallacy = FALLACIES.find(f => f.id === fallacyId);
               if (fallacy) {
                 setAnnotationTab('fallacies');
@@ -1648,7 +1664,7 @@ export const EditorPage: React.FC = () => {
                 if (!rightSidebarExpanded) setRightSidebarExpanded(true);
               }
             }}
-            onRhetoricClick={rhetoricId => {
+            onRhetoricClick={(rhetoricId: string) => {
               const rhetoric = RHETORIC_TECHNIQUES.find(r => r.id === rhetoricId);
               if (rhetoric) {
                 setAnnotationTab('rhetoric');
@@ -1658,7 +1674,7 @@ export const EditorPage: React.FC = () => {
                 if (!rightSidebarExpanded) setRightSidebarExpanded(true);
               }
             }}
-            onStructuralClick={markupId => {
+            onStructuralClick={(markupId: string) => {
               const markup = STRUCTURAL_MARKUPS.find(m => m.id === markupId);
               if (markup) {
                 setAnnotationTab('structural');
@@ -1668,11 +1684,17 @@ export const EditorPage: React.FC = () => {
                 if (!rightSidebarExpanded) setRightSidebarExpanded(true);
               }
             }}
-            onCreateLink={(sourceMarkId, targetMarkId) => {
+            thesisMarkIds={currentDoc.thesisMarkIds}
+            onCreateLink={(
+              sourceMarkId: string,
+              targetMarkId: string,
+              linkType: 'supports' | 'rebuts'
+            ) => {
               const newLink = {
                 id: `link_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                 sourceMarkId,
                 targetMarkId,
+                linkType,
                 createdAt: Date.now(),
               };
               setCurrentDoc(prev => {
@@ -1683,9 +1705,9 @@ export const EditorPage: React.FC = () => {
                   updatedAt: Date.now(),
                 };
               });
-              trackAnalyticsEvent('map_link_created', { sourceMarkId, targetMarkId });
+              trackAnalyticsEvent('map_link_created', { sourceMarkId, targetMarkId, linkType });
             }}
-            onDeleteLink={linkId => {
+            onDeleteLink={(linkId: string) => {
               setCurrentDoc(prev => {
                 if (!prev) return prev;
                 return {
@@ -1695,6 +1717,21 @@ export const EditorPage: React.FC = () => {
                 };
               });
               trackAnalyticsEvent('map_link_deleted', { linkId });
+            }}
+            onToggleThesis={(markId: string) => {
+              setCurrentDoc(prev => {
+                if (!prev) return prev;
+                const current = prev.thesisMarkIds || [];
+                const isRemoving = current.includes(markId);
+                const updated = isRemoving
+                  ? current.filter(id => id !== markId)
+                  : [...current, markId];
+                trackAnalyticsEvent('map_thesis_toggled', {
+                  markId,
+                  action: isRemoving ? 'removed' : 'added',
+                });
+                return { ...prev, thesisMarkIds: updated, updatedAt: Date.now() };
+              });
             }}
           />
         ) : (

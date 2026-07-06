@@ -16,7 +16,11 @@ export const Header: React.FC<HeaderProps> = ({
   actions,
 }) => {
   return (
-    <header className="h-14 border-b border-gray-200 bg-white px-3 sm:px-4 flex items-center justify-between shrink-0">
+    <header
+      id="app-header"
+      data-role="header"
+      className="h-14 border-b border-gray-200 bg-white px-3 sm:px-4 flex items-center justify-between shrink-0"
+    >
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {onBackClick && (
           <button

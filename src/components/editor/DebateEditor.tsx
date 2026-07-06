@@ -949,7 +949,11 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
           <HiddenSpeakersContext.Provider value={hiddenSpeakerIds}>
             <CommentsContext.Provider value={comments}>
               <HiddenAnnotationsContext.Provider value={hiddenAnnotationIds}>
-                <div className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+                <div
+                  id="debate-editor"
+                  data-role="debate-editor"
+                  className="h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden"
+                >
                   <Slate editor={editor} initialValue={initialValue} onChange={handleChange}>
                     {!readOnly && (
                       <EditorToolbar
@@ -963,6 +967,7 @@ export const DebateEditor = forwardRef<DebateEditorHandle, DebateEditorProps>(
                       />
                     )}
                     <Editable
+                      id="debate-editable"
                       className="flex-1 p-3 sm:p-4 md:p-6 focus:outline-none overflow-y-auto text-base leading-relaxed"
                       renderLeaf={renderLeaf}
                       renderElement={renderElement}
