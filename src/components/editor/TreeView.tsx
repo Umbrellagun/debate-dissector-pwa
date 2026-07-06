@@ -108,6 +108,10 @@ export interface TreeViewProps {
   ) => void;
   onDeleteLink?: (linkId: string) => void;
   onToggleThesis?: (markId: string) => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 // Confirmation modal for destructive actions
@@ -226,6 +230,10 @@ export const TreeView: React.FC<TreeViewProps> = ({
   onCreateLink,
   onDeleteLink,
   onToggleThesis,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
 }) => {
   // Build tree structure
   const tree = useMemo(() => {
@@ -241,6 +249,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
     x: number;
     y: number;
   } | null>(null);
+  // Hover state for highlighting duplicate (multi-parent) nodes
+  const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
   // Linking mode state
   const [linkingState, setLinkingState] = useState<{
     sourceId: string;
@@ -250,10 +260,35 @@ export const TreeView: React.FC<TreeViewProps> = ({
     sourceId: string;
     targetId: string;
   } | null>(null);
+  // Tracks whether the last expandedNodes change was a user toggle (skip re-center)
+  const userToggledRef = useRef(false);
+  // Controlled expanded state for the staging area
+  const [stagingExpanded, setStagingExpanded] = useState(true);
   // Refs for tree nodes (for popover positioning)
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // Ref for pan/zoom transform control
   const transformRef = useRef<ReactZoomPanPinchContentRef | null>(null);
+
+  // Keyboard shortcuts for undo/redo (Ctrl+Z / Ctrl+Shift+Z)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          onRedo?.();
+        } else {
+          onUndo?.();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && key === 'y') {
+        e.preventDefault();
+        onRedo?.();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onUndo, onRedo]);
 
   // Build speaker lookup
   const speakerMap = useMemo(() => {
@@ -264,20 +299,22 @@ export const TreeView: React.FC<TreeViewProps> = ({
     return map;
   }, [speakers]);
 
-  // Initialize expanded state
+  // Initialize expanded state — expand all nodes by default
   React.useEffect(() => {
     const initialExpanded = new Set<string>();
     tree.nodeMap.forEach(node => {
-      if (node.depth < 2) {
-        // Expand first 2 levels by default
-        initialExpanded.add(node.block.primaryMarkId);
-      }
+      initialExpanded.add(node.block.primaryMarkId);
     });
     setExpandedNodes(initialExpanded);
   }, [tree]);
 
-  // Center the pan/zoom canvas on the topmost cards after layout
+  // Center the pan/zoom canvas on the topmost cards after layout.
+  // Runs on tree change and initial expanded state, but skips user-triggered toggles.
   useEffect(() => {
+    if (userToggledRef.current) {
+      userToggledRef.current = false;
+      return;
+    }
     // Wait for DOM to lay out the tree content
     const frame = requestAnimationFrame(() => {
       const ref = transformRef.current;
@@ -293,6 +330,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
   // Handle node expansion
   const handleToggleExpand = useCallback((nodeId: string) => {
+    userToggledRef.current = true;
     setExpandedNodes(prev => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
@@ -356,6 +394,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
   // Linking handlers
   const startLinking = useCallback((sourceId: string) => {
     setLinkingState({ sourceId });
+    // Auto-collapse staging area so tree nodes are visible on mobile
+    setStagingExpanded(false);
   }, []);
 
   const completeLink = useCallback(
@@ -409,16 +449,26 @@ export const TreeView: React.FC<TreeViewProps> = ({
     setPendingLink(null);
   }, []);
 
+  // Set of block IDs that appear under more than one parent
+  const multiParentIds = useMemo(() => {
+    const ids = new Set<string>();
+    tree.nodeMap.forEach(node => {
+      if (node.parentIds.size > 1) ids.add(node.block.primaryMarkId);
+    });
+    return ids;
+  }, [tree]);
+
   // Shared TreeNode card renderer (used by both renderTreeNode and renderChildGroup)
   const renderCard = (node: TreeNodeType, parentId?: string) => {
     const isGhost = Boolean(parentId && isGhostNode(node, parentId));
     const speaker = node.block.speakerId ? speakerMap[node.block.speakerId] : undefined;
     const isExpanded = expandedNodes.has(node.block.primaryMarkId);
+    const blockId = node.block.primaryMarkId;
 
     return (
       <TreeNode
         ref={(el: HTMLDivElement | null) => {
-          nodeRefs.current[node.block.primaryMarkId] = el;
+          nodeRefs.current[blockId] = el;
         }}
         node={node}
         speaker={speaker}
@@ -427,23 +477,23 @@ export const TreeView: React.FC<TreeViewProps> = ({
         isExpanded={isExpanded}
         isThesis={node.isThesis}
         onToggleExpand={handleToggleExpand}
-        onAddChild={onCreateLink ? () => startLinking(node.block.primaryMarkId) : undefined}
+        onAddChild={onCreateLink ? () => startLinking(blockId) : undefined}
         onContextMenu={(nodeId, event) => handleContextMenu(nodeId, event, parentId)}
         onFallacyClick={onFallacyClick}
         onRhetoricClick={onRhetoricClick}
         onStructuralClick={onStructuralClick}
         onBlockClick={() => {
-          if (linkingState && linkingState.sourceId !== node.block.primaryMarkId) {
-            completeLink(node.block.primaryMarkId);
+          if (linkingState && linkingState.sourceId !== blockId) {
+            completeLink(blockId);
           }
         }}
         isLinkTarget={(() => {
-          if (!linkingState || linkingState.sourceId === node.block.primaryMarkId) return false;
+          if (!linkingState || linkingState.sourceId === blockId) return false;
           const sourceNode = tree.nodeMap.get(linkingState.sourceId);
           if (sourceNode) {
             const sourceDescendants = getAllDescendants(sourceNode);
             const isNodeDescendant = sourceDescendants.some(
-              d => d.block.primaryMarkId === node.block.primaryMarkId
+              d => d.block.primaryMarkId === blockId
             );
             const isSourceChildOfNode = node.children.some(
               child => child.block.primaryMarkId === linkingState.sourceId
@@ -451,6 +501,16 @@ export const TreeView: React.FC<TreeViewProps> = ({
             return !isNodeDescendant && !isSourceChildOfNode;
           }
           return true;
+        })()}
+        isHighlighted={hoveredBlockId === blockId && multiParentIds.has(blockId)}
+        onHover={multiParentIds.has(blockId) ? setHoveredBlockId : undefined}
+        onHoverEnd={multiParentIds.has(blockId) ? () => setHoveredBlockId(null) : undefined}
+        primaryParentLabel={(() => {
+          if (!isGhost || !node.primaryParentId) return undefined;
+          const parent = tree.nodeMap.get(node.primaryParentId);
+          if (!parent) return undefined;
+          const txt = parent.block.text;
+          return txt.length > 40 ? txt.slice(0, 40) + '…' : txt;
         })()}
       />
     );
@@ -728,7 +788,56 @@ export const TreeView: React.FC<TreeViewProps> = ({
                 {summary.unattached} unattached
               </span>
             )}
-            <div className="ml-auto text-xs text-gray-400">Tree View</div>
+            {/* Undo/Redo controls */}
+            {(onUndo || onRedo) && (
+              <div
+                id="tree-undo-redo"
+                data-role="undo-redo"
+                className="ml-auto flex items-center gap-1"
+              >
+                <button
+                  type="button"
+                  id="tree-undo-btn"
+                  onClick={onUndo}
+                  disabled={!canUndo}
+                  className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+                  title="Undo (Ctrl+Z)"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a5 5 0 015 5v2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 6l-4 4 4 4" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  id="tree-redo-btn"
+                  onClick={onRedo}
+                  disabled={!canRedo}
+                  className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+                  title="Redo (Ctrl+Shift+Z)"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 10H11a5 5 0 00-5 5v2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 6l4 4-4 4" />
+                  </svg>
+                </button>
+              </div>
+            )}
+            {!(onUndo || onRedo) && (
+              <div className="ml-auto text-xs text-gray-400">Tree View</div>
+            )}
           </>
         )}
       </div>
@@ -742,6 +851,14 @@ export const TreeView: React.FC<TreeViewProps> = ({
               blocks={tree.staging.blocks}
               speakers={speakers}
               onConnectBlock={onCreateLink ? blockId => startLinking(blockId) : undefined}
+              onCompleteLink={
+                linkingState && onCreateLink
+                  ? targetId => completeLink(targetId)
+                  : undefined
+              }
+              isLinking={!!linkingState}
+              expanded={stagingExpanded}
+              onToggleExpanded={setStagingExpanded}
             />
           </div>
         )}
@@ -877,6 +994,12 @@ const TreeLinkTypePopover: React.FC<{
       setPosition({
         top: rect.bottom + 8,
         left: Math.max(8, rect.left + rect.width / 2 - 120),
+      });
+    } else {
+      // No anchor (e.g., staging block target) — center on screen
+      setPosition({
+        top: Math.max(8, window.innerHeight / 2 - 60),
+        left: Math.max(8, window.innerWidth / 2 - 120),
       });
     }
   }, [anchorEl]);

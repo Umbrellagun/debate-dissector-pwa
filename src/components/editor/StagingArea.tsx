@@ -10,6 +10,10 @@ export interface StagingAreaProps {
   blocks: MarkupBlock[];
   speakers: Speaker[];
   onConnectBlock?: (blockId: string) => void;
+  onCompleteLink?: (targetId: string) => void;
+  isLinking?: boolean;
+  expanded?: boolean;
+  onToggleExpanded?: (expanded: boolean) => void;
   onDragStart?: (blockId: string) => void;
 }
 
@@ -17,9 +21,20 @@ export const StagingArea: React.FC<StagingAreaProps> = ({
   blocks,
   speakers,
   onConnectBlock,
+  onCompleteLink,
+  isLinking = false,
+  expanded,
+  onToggleExpanded,
   onDragStart,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [internalExpanded, setInternalExpanded] = useState(true);
+  // Support controlled or uncontrolled expanded state
+  const isExpanded = expanded !== undefined ? expanded : internalExpanded;
+  const toggleExpanded = () => {
+    const next = !isExpanded;
+    if (onToggleExpanded) onToggleExpanded(next);
+    else setInternalExpanded(next);
+  };
   const [filter, setFilter] = useState<StagingFilter>('all');
   const [sort, setSort] = useState<StagingSort>('document');
 
@@ -85,7 +100,7 @@ export const StagingArea: React.FC<StagingAreaProps> = ({
         type="button"
         id="staging-area-toggle"
         data-role="staging-toggle"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggleExpanded}
         className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <div className="flex items-center gap-2">
@@ -106,7 +121,7 @@ export const StagingArea: React.FC<StagingAreaProps> = ({
 
       {/* Content */}
       {isExpanded && (
-        <div className="p-4">
+        <div className="p-4 max-h-[40vh] overflow-y-auto">
           {/* Filters */}
           <div className="flex items-center gap-3 mb-4 flex-wrap">
             <select
@@ -169,10 +184,18 @@ export const StagingArea: React.FC<StagingAreaProps> = ({
                     data-block-id={block.primaryMarkId}
                     className={`group relative p-3 rounded border-l-2 ${
                       typeColors[primaryType]
-                    } bg-white hover:shadow-md transition-all cursor-pointer`}
-                    draggable
+                    } bg-white hover:shadow-md transition-all cursor-pointer ${
+                      isLinking ? 'ring-2 ring-emerald-400 ring-offset-1' : ''
+                    }`}
+                    draggable={!isLinking}
                     onDragStart={() => onDragStart?.(block.primaryMarkId)}
-                    onClick={() => onConnectBlock?.(block.primaryMarkId)}
+                    onClick={() => {
+                      if (isLinking && onCompleteLink) {
+                        onCompleteLink(block.primaryMarkId);
+                      } else {
+                        onConnectBlock?.(block.primaryMarkId);
+                      }
+                    }}
                   >
                     {/* Text preview */}
                     <p className="text-xs text-gray-700 line-clamp-2 mb-2">

@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** July 5, 2026
+**Last Updated:** July 6, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -135,11 +135,11 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Wire into view switcher as sub-tab within Map view
 
 ##### 3.5.5 Undo/Redo for Argument Map Operations
-- [ ] Build an undo/redo history stack for argument link and thesis operations
-- [ ] Track link creation, link deletion, link type changes, and thesis toggle as undoable actions
-- [ ] Support undo/redo across all map views (timeline, tree, sunburst)
-- [ ] Add Ctrl+Z / Ctrl+Shift+Z keyboard shortcuts scoped to the map view
-- [ ] Add undo/redo buttons to the map view toolbar
+- [x] Build an undo/redo history stack for argument link and thesis operations
+- [x] Track link creation, link deletion, link type changes, and thesis toggle as undoable actions
+- [x] Support undo/redo across all map views (timeline, tree, sunburst)
+- [x] Add Ctrl+Z / Ctrl+Shift+Z keyboard shortcuts scoped to the map view
+- [x] Add undo/redo buttons to the map view toolbar
 - [ ] Handle batch operations (e.g. "Remove from Tree" deleting multiple links) as a single undo step
 
 ##### 3.5.6 Map View Polish

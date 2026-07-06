@@ -6,3 +6,4 @@ export { useAnalytics, trackAnalyticsEvent } from './useAnalytics';
 export type { AnalyticsEvent, AnalyticsEventData } from './useAnalytics';
 export { useFocusTrap } from './useFocusTrap';
 export { useAnnotationColors, resolveAnnotationColor } from './useAnnotationColors';
+export { useMapHistory } from './useMapHistory';

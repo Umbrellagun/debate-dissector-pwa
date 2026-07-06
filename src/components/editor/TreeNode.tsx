@@ -42,6 +42,10 @@ export interface TreeNodeProps {
   onStructuralClick?: (markupId: string) => void;
   onBlockClick?: () => void;
   isLinkTarget?: boolean;
+  isHighlighted?: boolean;
+  onHover?: (blockId: string) => void;
+  onHoverEnd?: () => void;
+  primaryParentLabel?: string;
 }
 
 export const TreeNode = forwardRef<HTMLDivElement, TreeNodeProps>(
@@ -61,6 +65,10 @@ export const TreeNode = forwardRef<HTMLDivElement, TreeNodeProps>(
       onStructuralClick,
       onBlockClick,
       isLinkTarget = false,
+      isHighlighted = false,
+      onHover,
+      onHoverEnd,
+      primaryParentLabel,
     },
     ref
   ) => {
@@ -103,10 +111,12 @@ export const TreeNode = forwardRef<HTMLDivElement, TreeNodeProps>(
         id={`tree-card-${block.primaryMarkId.slice(0, 8)}`}
         data-node-id={block.primaryMarkId}
         data-role="tree-card"
-        className={`relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md ${isLinkTarget ? 'ring-2 ring-violet-400 cursor-pointer' : ''}`}
+        className={`relative bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md ${isLinkTarget ? 'ring-2 ring-violet-400 cursor-pointer' : ''} ${isHighlighted ? 'ring-2 ring-amber-400 shadow-amber-100 shadow-md' : ''}`}
         style={{ borderLeftWidth: '4px', borderLeftColor: borderColor }}
         onClick={onBlockClick}
         onContextMenu={handleContextMenu}
+        onMouseEnter={() => onHover?.(block.primaryMarkId)}
+        onMouseLeave={() => onHoverEnd?.()}
       >
         {/* Header row with tags, speaker, thesis badge and actions */}
         <div
@@ -277,9 +287,14 @@ export const TreeNode = forwardRef<HTMLDivElement, TreeNodeProps>(
 
         {/* Ghost indicator */}
         {isGhost && (
-          <div className="absolute bottom-2 right-2 text-[10px] text-gray-400 italic">
-            (also under{' '}
-            {node.primaryParentId ? `node ${node.primaryParentId.slice(0, 8)}…` : 'another parent'})
+          <div className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 border-t border-amber-100 text-[10px] text-amber-600 italic">
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.172 13.828a4 4 0 015.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+            </svg>
+            <span>
+              Also under: {primaryParentLabel || 'another parent'}
+            </span>
           </div>
         )}
       </div>

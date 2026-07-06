@@ -64,7 +64,9 @@ export type AnalyticsEvent =
   | 'map_view_opened'
   | 'map_link_created'
   | 'map_link_deleted'
-  | 'map_thesis_toggled';
+  | 'map_thesis_toggled'
+  | 'map_undo'
+  | 'map_redo';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -127,6 +129,8 @@ export interface AnalyticsEventData {
   map_link_created: { sourceMarkId: string; targetMarkId: string; linkType: string };
   map_link_deleted: { linkId: string };
   map_thesis_toggled: { markId: string; action: 'added' | 'removed' };
+  map_undo: Record<string, never>;
+  map_redo: Record<string, never>;
 }
 
 /**

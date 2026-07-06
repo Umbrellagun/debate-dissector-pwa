@@ -7,6 +7,17 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.12.0',
+    date: 'July 6, 2026',
+    title: 'Argument Map Undo/Redo',
+    changes: [
+      'Undo and redo for argument map operations: link creation, link deletion, and thesis toggling',
+      'Undo/redo buttons in the summary bar for both Timeline and Tree views',
+      'Keyboard shortcuts: Ctrl+Z to undo, Ctrl+Shift+Z or Ctrl+Y to redo',
+      'History stack supports up to 50 actions and clears on document switch',
+    ],
+  },
+  {
     version: '1.11.1',
     date: 'July 5, 2026',
     title: 'Argument Map Zoom Fix',
