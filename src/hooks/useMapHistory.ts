@@ -95,9 +95,7 @@ export function useMapHistory(
       setCurrentDoc(prev => {
         if (!prev) return prev;
         const cur = prev.thesisMarkIds || [];
-        const updated = cur.includes(markId)
-          ? cur.filter(id => id !== markId)
-          : [...cur, markId];
+        const updated = cur.includes(markId) ? cur.filter(id => id !== markId) : [...cur, markId];
         return { ...prev, thesisMarkIds: updated, updatedAt: Date.now() };
       });
       pushUndo({ type: 'toggle_thesis', markId, wasAdded: !isRemoving });

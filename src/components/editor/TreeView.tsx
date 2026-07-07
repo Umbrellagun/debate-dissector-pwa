@@ -492,9 +492,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
           const sourceNode = tree.nodeMap.get(linkingState.sourceId);
           if (sourceNode) {
             const sourceDescendants = getAllDescendants(sourceNode);
-            const isNodeDescendant = sourceDescendants.some(
-              d => d.block.primaryMarkId === blockId
-            );
+            const isNodeDescendant = sourceDescendants.some(d => d.block.primaryMarkId === blockId);
             const isSourceChildOfNode = node.children.some(
               child => child.block.primaryMarkId === linkingState.sourceId
             );
@@ -829,15 +827,17 @@ export const TreeView: React.FC<TreeViewProps> = ({
                     viewBox="0 0 24 24"
                     strokeWidth={2}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 10H11a5 5 0 00-5 5v2" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 10H11a5 5 0 00-5 5v2"
+                    />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 6l4 4-4 4" />
                   </svg>
                 </button>
               </div>
             )}
-            {!(onUndo || onRedo) && (
-              <div className="ml-auto text-xs text-gray-400">Tree View</div>
-            )}
+            {!(onUndo || onRedo) && <div className="ml-auto text-xs text-gray-400">Tree View</div>}
           </>
         )}
       </div>
@@ -852,9 +852,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
               speakers={speakers}
               onConnectBlock={onCreateLink ? blockId => startLinking(blockId) : undefined}
               onCompleteLink={
-                linkingState && onCreateLink
-                  ? targetId => completeLink(targetId)
-                  : undefined
+                linkingState && onCreateLink ? targetId => completeLink(targetId) : undefined
               }
               isLinking={!!linkingState}
               expanded={stagingExpanded}

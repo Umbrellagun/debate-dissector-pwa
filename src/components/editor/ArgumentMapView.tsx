@@ -926,11 +926,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
 
         {/* Undo/Redo controls */}
         {(onUndo || onRedo) && !linkingFrom && (
-          <div
-            id="map-undo-redo"
-            data-role="undo-redo"
-            className="ml-auto flex items-center gap-1"
-          >
+          <div id="map-undo-redo" data-role="undo-redo" className="ml-auto flex items-center gap-1">
             <button
               type="button"
               id="map-undo-btn"
