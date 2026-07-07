@@ -117,6 +117,10 @@ export interface ArgumentMapViewProps {
   onCreateLink?: (sourceMarkId: string, targetMarkId: string, linkType: LinkType) => void;
   onDeleteLink?: (linkId: string) => void;
   onToggleThesis?: (markId: string) => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 // Get the primary mark ID for a block (first mark's id)
@@ -173,8 +177,19 @@ export function extractMarkupBlocks(content: Descendant[]): MarkupBlock[] {
       const currentKey = currentBlock ? getBlockSignature(currentBlock) : null;
 
       if (currentBlock && markKey === currentKey) {
-        // Same marks — extend the current block
+        // Same marks — extend the current block text and merge in any
+        // additional mark instance IDs so link resolution can still find them
         currentBlock.text += textNode.text;
+        const existingIds = new Set(getAllMarkIds(currentBlock));
+        for (const m of textNode.fallacyMarks || []) {
+          if (!existingIds.has(m.id)) currentBlock.fallacyMarks.push(m);
+        }
+        for (const m of textNode.rhetoricMarks || []) {
+          if (!existingIds.has(m.id)) currentBlock.rhetoricMarks.push(m);
+        }
+        for (const m of textNode.structuralMarks || []) {
+          if (!existingIds.has(m.id)) currentBlock.structuralMarks.push(m);
+        }
       } else {
         // Different marks — flush and start new
         if (currentBlock) {
@@ -566,6 +581,10 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
   onCreateLink,
   onDeleteLink,
   onToggleThesis,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
 }) => {
   const blocks = useMemo(() => extractMarkupBlocks(content), [content]);
   const [linkingFrom, setLinkingFrom] = useState<string | null>(null); // primaryMarkId of source
@@ -772,6 +791,27 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
     setLinkingFrom(null);
   }, []);
 
+  // Keyboard shortcuts for undo/redo (Ctrl+Z / Ctrl+Shift+Z)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          onRedo?.();
+        } else {
+          onUndo?.();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && key === 'y') {
+        e.preventDefault();
+        onRedo?.();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onUndo, onRedo]);
+
   // Summary counts
   const summary = useMemo(() => {
     let fallacyCount = 0;
@@ -880,6 +920,50 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
               className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
             >
               Cancel
+            </button>
+          </div>
+        )}
+
+        {/* Undo/Redo controls */}
+        {(onUndo || onRedo) && !linkingFrom && (
+          <div id="map-undo-redo" data-role="undo-redo" className="ml-auto flex items-center gap-1">
+            <button
+              type="button"
+              id="map-undo-btn"
+              onClick={onUndo}
+              disabled={!canUndo}
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+              title="Undo (Ctrl+Z)"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a5 5 0 015 5v2" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 6l-4 4 4 4" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              id="map-redo-btn"
+              onClick={onRedo}
+              disabled={!canRedo}
+              className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 10H11a5 5 0 00-5 5v2" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 6l4 4-4 4" />
+              </svg>
             </button>
           </div>
         )}

@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** July 5, 2026
+**Last Updated:** July 6, 2026
 
 ### Foundation
 Core app setup and infrastructure.
@@ -49,7 +49,8 @@ Enhanced editing capabilities.
 - [x] Zoom/pan navigation for large argument maps
 - [ ] Tree view (hierarchical branching layout with staging area)
 - [ ] Sunburst view (radial argument structure visualization)
-- [ ] Undo/redo for map operations (link create/delete, thesis toggle, batch removals)
+- [x] Undo/redo for map operations (link create/delete, thesis toggle, keyboard shortcuts, toolbar buttons)
+- [ ] Batch undo for multi-link removals (e.g. "Remove from Tree")
 - [ ] Filter/group by markup type or speaker
 
 #### Claim & Evidence Markup

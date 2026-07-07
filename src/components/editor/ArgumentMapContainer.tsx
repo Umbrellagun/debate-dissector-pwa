@@ -22,6 +22,10 @@ export interface ArgumentMapContainerProps {
   ) => void;
   onDeleteLink?: (linkId: string) => void;
   onToggleThesis?: (markId: string) => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 export const ArgumentMapContainer: React.FC<ArgumentMapContainerProps> = props => {
@@ -120,6 +124,10 @@ export const ArgumentMapContainer: React.FC<ArgumentMapContainerProps> = props =
             onCreateLink={props.onCreateLink}
             onDeleteLink={props.onDeleteLink}
             onToggleThesis={props.onToggleThesis}
+            onUndo={props.onUndo}
+            onRedo={props.onRedo}
+            canUndo={props.canUndo}
+            canRedo={props.canRedo}
           />
         )}
         {viewMode === 'tree' && (
@@ -135,6 +143,10 @@ export const ArgumentMapContainer: React.FC<ArgumentMapContainerProps> = props =
             onCreateLink={props.onCreateLink}
             onDeleteLink={props.onDeleteLink}
             onToggleThesis={props.onToggleThesis}
+            onUndo={props.onUndo}
+            onRedo={props.onRedo}
+            canUndo={props.canUndo}
+            canRedo={props.canRedo}
           />
         )}
         {viewMode === 'sunburst' && (

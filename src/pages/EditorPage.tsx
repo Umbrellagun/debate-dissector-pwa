@@ -49,6 +49,7 @@ import { SharedDebate } from '../services/sharing';
 import { AnnotationStatsPanel } from '../components/stats';
 import { calculateAnnotationStats } from '../utils/annotationStats';
 import { trackAnalyticsEvent } from '../hooks/useAnalytics';
+import { useMapHistory } from '../hooks/useMapHistory';
 
 export interface SharedDocumentState {
   sharedDebate: SharedDebate;
@@ -219,6 +220,7 @@ export const EditorPage: React.FC = () => {
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   const [editorViewMode, setEditorViewMode] = useState<'editor' | 'map'>('editor');
+  const mapHistory = useMapHistory(currentDoc, setCurrentDoc);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
   const [requestCommentNonce, setRequestCommentNonce] = useState(0);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
@@ -1685,54 +1687,13 @@ export const EditorPage: React.FC = () => {
               }
             }}
             thesisMarkIds={currentDoc.thesisMarkIds}
-            onCreateLink={(
-              sourceMarkId: string,
-              targetMarkId: string,
-              linkType: 'supports' | 'rebuts'
-            ) => {
-              const newLink = {
-                id: `link_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                sourceMarkId,
-                targetMarkId,
-                linkType,
-                createdAt: Date.now(),
-              };
-              setCurrentDoc(prev => {
-                if (!prev) return prev;
-                return {
-                  ...prev,
-                  argumentLinks: [...(prev.argumentLinks || []), newLink],
-                  updatedAt: Date.now(),
-                };
-              });
-              trackAnalyticsEvent('map_link_created', { sourceMarkId, targetMarkId, linkType });
-            }}
-            onDeleteLink={(linkId: string) => {
-              setCurrentDoc(prev => {
-                if (!prev) return prev;
-                return {
-                  ...prev,
-                  argumentLinks: (prev.argumentLinks || []).filter(l => l.id !== linkId),
-                  updatedAt: Date.now(),
-                };
-              });
-              trackAnalyticsEvent('map_link_deleted', { linkId });
-            }}
-            onToggleThesis={(markId: string) => {
-              setCurrentDoc(prev => {
-                if (!prev) return prev;
-                const current = prev.thesisMarkIds || [];
-                const isRemoving = current.includes(markId);
-                const updated = isRemoving
-                  ? current.filter(id => id !== markId)
-                  : [...current, markId];
-                trackAnalyticsEvent('map_thesis_toggled', {
-                  markId,
-                  action: isRemoving ? 'removed' : 'added',
-                });
-                return { ...prev, thesisMarkIds: updated, updatedAt: Date.now() };
-              });
-            }}
+            onCreateLink={mapHistory.handleCreateLink}
+            onDeleteLink={mapHistory.handleDeleteLink}
+            onToggleThesis={mapHistory.handleToggleThesis}
+            onUndo={mapHistory.undo}
+            onRedo={mapHistory.redo}
+            canUndo={mapHistory.canUndo}
+            canRedo={mapHistory.canRedo}
           />
         ) : (
           <div className="flex-1 overflow-hidden">

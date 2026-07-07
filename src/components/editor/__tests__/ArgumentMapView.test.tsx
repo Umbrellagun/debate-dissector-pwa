@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Descendant } from 'slate';
-import { ArgumentMapView } from '../ArgumentMapView';
+import { ArgumentMapView, extractMarkupBlocks } from '../ArgumentMapView';
 import { Speaker, ArgumentLink } from '../../../models/document';
 
 // --- Test data ---
@@ -287,6 +287,86 @@ describe('ArgumentMapView', () => {
       render(<ArgumentMapView content={singleFallacyContent} onToggleThesis={onToggleThesis} />);
       fireEvent.click(screen.getByTitle('Mark as thesis'));
       expect(onToggleThesis).toHaveBeenCalledWith('fm-1');
+    });
+  });
+
+  describe('extractMarkupBlocks — merged mark ID preservation', () => {
+    it('preserves mark IDs from adjacent text nodes merged by same signature', () => {
+      // Two adjacent text nodes with same fallacy type but different mark instance IDs
+      // (happens when the same annotation is applied separately to adjacent ranges)
+      const content: Descendant[] = [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              text: 'First part ',
+              fallacyMarks: [makeFallacyMark('mark-aaa', 'ad-hominem')],
+            },
+            {
+              text: 'second part',
+              fallacyMarks: [makeFallacyMark('mark-bbb', 'ad-hominem')],
+            },
+          ],
+        },
+      ];
+
+      const blocks = extractMarkupBlocks(content);
+      expect(blocks).toHaveLength(1);
+      // Both mark IDs should be present so link resolution can find either
+      const allIds = blocks[0].fallacyMarks.map(m => m.id);
+      expect(allIds).toContain('mark-aaa');
+      expect(allIds).toContain('mark-bbb');
+    });
+
+    it('resolves links referencing mark IDs from later merged text nodes', () => {
+      // A link pointing to mark-bbb (from the second merged node) should resolve
+      const content: Descendant[] = [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              text: 'Block A part 1 ',
+              fallacyMarks: [makeFallacyMark('mark-a1', 'straw-man')],
+            },
+            {
+              text: 'Block A part 2',
+              fallacyMarks: [makeFallacyMark('mark-a2', 'straw-man')],
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          children: [
+            {
+              text: 'Block B',
+              fallacyMarks: [makeFallacyMark('mark-b1', 'red-herring')],
+            },
+          ],
+        },
+      ];
+
+      const links: ArgumentLink[] = [
+        {
+          id: 'link-1',
+          sourceMarkId: 'mark-a2', // references second merged node's ID
+          targetMarkId: 'mark-b1',
+          linkType: 'supports',
+          createdAt: Date.now(),
+        },
+      ];
+
+      render(
+        <ArgumentMapView
+          content={content}
+          argumentLinks={links}
+          onCreateLink={jest.fn()}
+          onDeleteLink={jest.fn()}
+        />
+      );
+
+      // Link badges should be visible (link resolved successfully)
+      const supportLabels = screen.getAllByText(/Supports:/);
+      expect(supportLabels.length).toBeGreaterThan(0);
     });
   });
 
