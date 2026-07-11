@@ -13,8 +13,6 @@ export const CHANGELOG: VersionEntry[] = [
     changes: [
       'Expanded Privacy Policy with a line-by-line list of the data we collect and do not collect',
       'Added analytics opt-out toggle in Settings under Privacy & Analytics',
-      'Wired opt-out through all analytics tracking, including Web Vitals',
-      'Updated app and roadmap plans to reflect the new privacy features',
     ],
   },
   {
