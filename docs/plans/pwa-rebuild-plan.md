@@ -6,7 +6,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 
 ## Progress Checklist
 
-**Last Updated:** July 6, 2026
+**Last Updated:** July 11, 2026
 
 ### Phase 1: Project Setup and Architecture
 
@@ -307,7 +307,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Add error tracking and reporting (ErrorBoundary component)
 - [ ] Create analytics dashboard or reporting
 - [x] Review cookie/analytics consent requirements for Umami (not required - Umami is GDPR-compliant)
-- [ ] Add optional "Disable Analytics" toggle in Settings (user preference, not legally required)
+- [x] Add optional "Disable Analytics" toggle in Settings (user preference, not legally required)
 - [ ] See [Umami Setup Guide](../guides/umami-setup.md) for deployment instructions
 
 ### Phase 6: Preparing for Future Features

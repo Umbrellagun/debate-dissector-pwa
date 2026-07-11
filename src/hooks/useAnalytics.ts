@@ -133,12 +133,26 @@ export interface AnalyticsEventData {
   map_redo: Record<string, never>;
 }
 
+// Module-level analytics opt-out flag. AppContext keeps this in sync with UserPreferences.
+let analyticsDisabled = false;
+
+export function getAnalyticsDisabled(): boolean {
+  return analyticsDisabled;
+}
+
+export function setAnalyticsDisabled(disabled: boolean): void {
+  analyticsDisabled = disabled;
+}
+
 /**
  * Hook for tracking analytics events
  */
 export function useAnalytics() {
   const trackEvent = useCallback(
     <T extends AnalyticsEvent>(eventName: T, eventData?: AnalyticsEventData[T]) => {
+      // Respect user opt-out
+      if (analyticsDisabled) return;
+
       // Only track if umami is loaded and we're in production
       if (typeof window !== 'undefined' && window.umami) {
         try {
@@ -162,6 +176,8 @@ export function trackAnalyticsEvent<T extends AnalyticsEvent>(
   eventName: T,
   eventData?: AnalyticsEventData[T]
 ) {
+  if (analyticsDisabled) return;
+
   if (typeof window !== 'undefined' && window.umami) {
     try {
       window.umami.track(eventName, eventData as Record<string, string | number | boolean>);

@@ -83,6 +83,8 @@ export interface UserPreferences {
   customColors: Record<string, string>;
   // Custom default speaker colors (index -> hex color, overrides DEFAULT_SPEAKER_COLORS)
   customSpeakerColors: Record<number, string>;
+  // Analytics opt-out preference
+  disableAnalytics?: boolean;
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -106,6 +108,7 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   pinnedRhetoric: [],
   customColors: {},
   customSpeakerColors: {},
+  disableAnalytics: false,
 };
 
 export interface DocumentVersion {

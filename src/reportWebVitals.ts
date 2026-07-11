@@ -1,4 +1,5 @@
 import { ReportHandler } from 'web-vitals';
+import { getAnalyticsDisabled } from './hooks/useAnalytics';
 
 /**
  * Reports Core Web Vitals metrics
@@ -29,6 +30,9 @@ export const sendToAnalytics: ReportHandler = metric => {
   if (process.env.NODE_ENV === 'development') {
     console.log(`[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)}`);
   }
+
+  // Respect user opt-out
+  if (getAnalyticsDisabled()) return;
 
   // Send to Umami if available
   if (

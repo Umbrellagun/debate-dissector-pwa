@@ -614,6 +614,48 @@ export const SettingsPage: React.FC = () => {
 
           <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200">
+              <h2 className="text-sm font-semibold text-gray-900">Privacy & Analytics</h2>
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Disable Analytics
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    Stop sending anonymous usage events to Umami. Page views and feature
+                    interactions will no longer be tracked.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={preferences.disableAnalytics ?? false}
+                  onClick={async () => {
+                    const newValue = !(preferences.disableAnalytics ?? false);
+                    await updatePreferences({ disableAnalytics: newValue });
+                    trackAnalyticsEvent('settings_changed', {
+                      setting: 'disableAnalytics',
+                      value: String(newValue),
+                    });
+                  }}
+                  id="disable-analytics-toggle"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    preferences.disableAnalytics ? 'bg-gray-400' : 'bg-blue-600'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      preferences.disableAnalytics ? 'translate-x-1' : 'translate-x-6'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-200">
               <h2 className="text-sm font-semibold text-gray-900">Legal</h2>
             </div>
             <div className="p-4 space-y-2">

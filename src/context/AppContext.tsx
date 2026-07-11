@@ -7,7 +7,7 @@ import {
   DEFAULT_USER_PREFERENCES,
   Speaker,
 } from '../models';
-import { trackAnalyticsEvent } from '../hooks/useAnalytics';
+import { trackAnalyticsEvent, setAnalyticsDisabled } from '../hooks/useAnalytics';
 import {
   listDocuments,
   getDocument,
@@ -119,6 +119,11 @@ const AppContext = createContext<AppContextValue | null>(null);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Keep the analytics opt-out flag in sync with user preferences
+  useEffect(() => {
+    setAnalyticsDisabled(!!state.preferences.disableAnalytics);
+  }, [state.preferences.disableAnalytics]);
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -208,6 +213,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updatePreferences = async (prefs: Partial<UserPreferences>) => {
     const updated = await updatePrefs(prefs);
     dispatch({ type: 'SET_PREFERENCES', payload: updated });
+    setAnalyticsDisabled(!!updated.disableAnalytics);
   };
 
   return (

@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** July 6, 2026
+**Last Updated:** July 11, 2026
 
 ### Foundation
 Core app setup and infrastructure.
@@ -169,7 +169,7 @@ App-wide capabilities.
 
 #### Analytics
 - [x] Privacy-friendly analytics (Umami)
-- [ ] Optional analytics opt-out
+- [x] Optional analytics opt-out
 - [ ] Analytics dashboard
 
 ### Future Preparation
