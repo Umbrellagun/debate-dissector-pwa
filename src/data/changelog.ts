@@ -7,6 +7,17 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.13.0',
+    date: 'July 11, 2026',
+    title: 'Privacy Policy Transparency & Analytics Opt-Out',
+    changes: [
+      'Expanded Privacy Policy with a line-by-line list of the data we collect and do not collect',
+      'Added analytics opt-out toggle in Settings under Privacy & Analytics',
+      'Wired opt-out through all analytics tracking, including Web Vitals',
+      'Updated app and roadmap plans to reflect the new privacy features',
+    ],
+  },
+  {
     version: '1.12.0',
     date: 'July 6, 2026',
     title: 'Argument Map Undo/Redo',
