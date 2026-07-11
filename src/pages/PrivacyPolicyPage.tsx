@@ -65,11 +65,13 @@ export const PrivacyPolicyPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="font-medium text-gray-800">2. Shared documents (on our servers)</h3>
+                    <h3 className="font-medium text-gray-800">
+                      2. Shared documents (on our servers)
+                    </h3>
                     <br></br>
                     <p>
-                      When you click Share, the following document data is uploaded to our PocketBase
-                      backend:
+                      When you click Share, the following document data is uploaded to our
+                      PocketBase backend:
                     </p>
                     <br></br>
                     <ul className="list-disc list-inside space-y-1">
@@ -77,10 +79,9 @@ export const PrivacyPolicyPage: React.FC = () => {
                       <li>content (transcript text)</li>
                       <li>annotations</li>
                       <li>
-                        server-generated record fields: id, created, updated. The backend
-                        collection also has optional fields for authorName, expiresAt, passwordHash,
-                        viewCount, reportCount, and isBlocked, but the current app UI does not send
-                        them.
+                        server-generated record fields: id, created, updated. The backend collection
+                        also has optional fields for authorName, expiresAt, passwordHash, viewCount,
+                        reportCount, and isBlocked, but the current app UI does not send them.
                       </li>
                     </ul>
                   </div>
@@ -101,8 +102,8 @@ export const PrivacyPolicyPage: React.FC = () => {
                       </li>
                       <li>
                         <strong>Annotations:</strong> annotation applied/removed, fallacy/rhetoric/
-                        structural selected, visibility toggled, pinned/unpinned, color changed/reset
-                        (annotation type, id, name, category, action).
+                        structural selected, visibility toggled, pinned/unpinned, color
+                        changed/reset (annotation type, id, name, category, action).
                       </li>
                       <li>
                         <strong>Speakers:</strong> speaker assigned/created/edited/deleted and
@@ -113,17 +114,17 @@ export const PrivacyPolicyPage: React.FC = () => {
                         (commentId, parentId).
                       </li>
                       <li>
-                        <strong>Sharing:</strong> share link created, shared document viewed/imported
-                        (documentId, shareId).
+                        <strong>Sharing:</strong> share link created, shared document
+                        viewed/imported (documentId, shareId).
                       </li>
                       <li>
                         <strong>Argument map:</strong> map view opened, link created/deleted, thesis
                         toggled, undo/redo (mark ids, link type, linkId, action).
                       </li>
                       <li>
-                        <strong>Search and stats:</strong> search query and result count, stats panel
-                        opened, stats tab switched, stats breakdown clicked (query, tab, type, id,
-                        name).
+                        <strong>Search and stats:</strong> search query and result count, stats
+                        panel opened, stats tab switched, stats breakdown clicked (query, tab, type,
+                        id, name).
                       </li>
                       <li>
                         <strong>PWA install:</strong> install prompt shown/dismissed, app installed.
@@ -144,9 +145,9 @@ export const PrivacyPolicyPage: React.FC = () => {
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">Analytics Opt-Out</h2>
                 <p className="text-gray-600">
-                  You can disable analytics at any time by turning on the "Disable Analytics"
-                  toggle in Settings. When disabled, the app stops sending page-view and event data
-                  to Umami. Your local data and shared documents are unaffected.
+                  You can disable analytics at any time by turning on the "Disable Analytics" toggle
+                  in Settings. When disabled, the app stops sending page-view and event data to
+                  Umami. Your local data and shared documents are unaffected.
                 </p>
               </div>
 

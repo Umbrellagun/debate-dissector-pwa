@@ -619,10 +619,12 @@ export const SettingsPage: React.FC = () => {
             <div className="p-4 space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Disable Analytics</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Disable Analytics
+                  </label>
                   <p className="text-xs text-gray-500">
-                    Stop sending anonymous usage events to Umami. Page views and feature interactions
-                    will no longer be tracked.
+                    Stop sending anonymous usage events to Umami. Page views and feature
+                    interactions will no longer be tracked.
                   </p>
                 </div>
                 <button
