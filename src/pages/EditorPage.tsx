@@ -1689,6 +1689,8 @@ export const EditorPage: React.FC = () => {
             thesisMarkIds={currentDoc.thesisMarkIds}
             onCreateLink={mapHistory.handleCreateLink}
             onDeleteLink={mapHistory.handleDeleteLink}
+            onDeleteLinks={mapHistory.handleDeleteLinks}
+            onReplaceLinks={mapHistory.handleReplaceLinks}
             onToggleThesis={mapHistory.handleToggleThesis}
             onUndo={mapHistory.undo}
             onRedo={mapHistory.redo}

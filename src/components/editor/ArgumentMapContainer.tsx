@@ -21,6 +21,8 @@ export interface ArgumentMapContainerProps {
     linkType: 'supports' | 'rebuts'
   ) => void;
   onDeleteLink?: (linkId: string) => void;
+  onDeleteLinks?: (linkIds: string[]) => void;
+  onReplaceLinks?: (deleteIds: string[], newLinks: ArgumentLink[]) => void;
   onToggleThesis?: (markId: string) => void;
   onUndo?: () => void;
   onRedo?: () => void;
@@ -142,6 +144,8 @@ export const ArgumentMapContainer: React.FC<ArgumentMapContainerProps> = props =
             onStructuralClick={props.onStructuralClick}
             onCreateLink={props.onCreateLink}
             onDeleteLink={props.onDeleteLink}
+            onDeleteLinks={props.onDeleteLinks}
+            onReplaceLinks={props.onReplaceLinks}
             onToggleThesis={props.onToggleThesis}
             onUndo={props.onUndo}
             onRedo={props.onRedo}

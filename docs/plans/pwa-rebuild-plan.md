@@ -140,7 +140,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Support undo/redo across all map views (timeline, tree, sunburst)
 - [x] Add Ctrl+Z / Ctrl+Shift+Z keyboard shortcuts scoped to the map view
 - [x] Add undo/redo buttons to the map view toolbar
-- [ ] Handle batch operations (e.g. "Remove from Tree" deleting multiple links) as a single undo step
+- [x] Handle batch operations (e.g. "Remove from Tree" deleting multiple links) as a single undo step
 
 ##### 3.5.6 Map View Polish
 - [ ] Drag-and-drop from staging area to tree nodes

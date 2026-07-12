@@ -6,6 +6,8 @@ import { trackAnalyticsEvent } from './useAnalytics';
 type MapAction =
   | { type: 'create_link'; link: ArgumentLink }
   | { type: 'delete_link'; link: ArgumentLink }
+  | { type: 'delete_links'; links: ArgumentLink[] }
+  | { type: 'replace_links'; deletedLinks: ArgumentLink[]; addedLinks: ArgumentLink[] }
   | { type: 'toggle_thesis'; markId: string; wasAdded: boolean };
 
 const MAX_HISTORY = 50;
@@ -85,6 +87,74 @@ export function useMapHistory(
     [setCurrentDoc, pushUndo]
   );
 
+  const handleDeleteLinks = useCallback(
+    (linkIds: string[]) => {
+      const doc = docRef.current;
+      if (!doc || linkIds.length === 0) return;
+
+      const linksToDelete = (doc.argumentLinks || []).filter(l => linkIds.includes(l.id));
+      if (linksToDelete.length === 0) return;
+
+      if (linksToDelete.length === 1) {
+        handleDeleteLink(linksToDelete[0].id);
+        return;
+      }
+
+      setCurrentDoc(prev => {
+        if (!prev) return prev;
+        const idsToDelete = new Set(linkIds);
+        return {
+          ...prev,
+          argumentLinks: (prev.argumentLinks || []).filter(l => !idsToDelete.has(l.id)),
+          updatedAt: Date.now(),
+        };
+      });
+      pushUndo({ type: 'delete_links', links: linksToDelete });
+      linksToDelete.forEach(link => {
+        trackAnalyticsEvent('map_link_deleted', { linkId: link.id });
+      });
+    },
+    [setCurrentDoc, pushUndo, handleDeleteLink]
+  );
+
+  const handleReplaceLinks = useCallback(
+    (deleteIds: string[], newLinks: ArgumentLink[]) => {
+      const doc = docRef.current;
+      if (!doc || (deleteIds.length === 0 && newLinks.length === 0)) return;
+
+      const idsToDelete = new Set(deleteIds);
+      const deletedLinks = (doc.argumentLinks || []).filter(l => idsToDelete.has(l.id));
+
+      if (deletedLinks.length === 0 && newLinks.length === 0) return;
+
+      setCurrentDoc(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          argumentLinks: [
+            ...(prev.argumentLinks || []).filter(l => !idsToDelete.has(l.id)),
+            ...newLinks,
+          ],
+          updatedAt: Date.now(),
+        };
+      });
+
+      pushUndo({ type: 'replace_links', deletedLinks, addedLinks: newLinks });
+
+      deletedLinks.forEach(link => {
+        trackAnalyticsEvent('map_link_deleted', { linkId: link.id });
+      });
+      newLinks.forEach(link => {
+        trackAnalyticsEvent('map_link_created', {
+          sourceMarkId: link.sourceMarkId,
+          targetMarkId: link.targetMarkId,
+          linkType: link.linkType,
+        });
+      });
+    },
+    [setCurrentDoc, pushUndo]
+  );
+
   const handleToggleThesis = useCallback(
     (markId: string) => {
       const doc = docRef.current;
@@ -136,6 +206,33 @@ export function useMapHistory(
           };
         });
         break;
+      case 'delete_links':
+        setCurrentDoc(p => {
+          if (!p) return p;
+          const existingIds = new Set((p.argumentLinks || []).map(l => l.id));
+          const restoredLinks = action.links.filter(l => !existingIds.has(l.id));
+          return {
+            ...p,
+            argumentLinks: [...(p.argumentLinks || []), ...restoredLinks],
+            updatedAt: Date.now(),
+          };
+        });
+        break;
+      case 'replace_links':
+        setCurrentDoc(p => {
+          if (!p) return p;
+          const addedIds = new Set(action.addedLinks.map(l => l.id));
+          const restoredLinks = action.deletedLinks.filter(l => !addedIds.has(l.id));
+          return {
+            ...p,
+            argumentLinks: [
+              ...(p.argumentLinks || []).filter(l => !addedIds.has(l.id)),
+              ...restoredLinks,
+            ],
+            updatedAt: Date.now(),
+          };
+        });
+        break;
       case 'toggle_thesis':
         setCurrentDoc(p => {
           if (!p) return p;
@@ -180,6 +277,33 @@ export function useMapHistory(
           };
         });
         break;
+      case 'delete_links':
+        setCurrentDoc(p => {
+          if (!p) return p;
+          const idsToDelete = new Set(action.links.map(l => l.id));
+          return {
+            ...p,
+            argumentLinks: (p.argumentLinks || []).filter(l => !idsToDelete.has(l.id)),
+            updatedAt: Date.now(),
+          };
+        });
+        break;
+      case 'replace_links':
+        setCurrentDoc(p => {
+          if (!p) return p;
+          const deletedIds = new Set(action.deletedLinks.map(l => l.id));
+          const existingIds = new Set((p.argumentLinks || []).map(l => l.id));
+          const addedLinks = action.addedLinks.filter(l => !existingIds.has(l.id));
+          return {
+            ...p,
+            argumentLinks: [
+              ...(p.argumentLinks || []).filter(l => !deletedIds.has(l.id)),
+              ...addedLinks,
+            ],
+            updatedAt: Date.now(),
+          };
+        });
+        break;
       case 'toggle_thesis':
         setCurrentDoc(p => {
           if (!p) return p;
@@ -213,6 +337,8 @@ export function useMapHistory(
   return {
     handleCreateLink,
     handleDeleteLink,
+    handleDeleteLinks,
+    handleReplaceLinks,
     handleToggleThesis,
     undo,
     redo,
