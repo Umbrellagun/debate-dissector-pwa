@@ -108,6 +108,7 @@ export interface TreeViewProps {
   ) => void;
   onDeleteLink?: (linkId: string) => void;
   onDeleteLinks?: (linkIds: string[]) => void;
+  onReplaceLinks?: (deleteIds: string[], newLinks: ArgumentLink[]) => void;
   onToggleThesis?: (markId: string) => void;
   onUndo?: () => void;
   onRedo?: () => void;
@@ -157,7 +158,8 @@ const ContextMenu: React.FC<{
   onRemoveFromTree: () => void;
   isThesis: boolean;
   hasChildren: boolean;
-}> = ({ x, y, onClose, onMarkAsThesis, onRemoveFromTree, isThesis, hasChildren }) => {
+  isShared: boolean;
+}> = ({ x, y, onClose, onMarkAsThesis, onRemoveFromTree, isThesis, hasChildren, isShared }) => {
   const [showConfirm, setShowConfirm] = React.useState(false);
 
   // Close on outside click (only when confirm modal is not showing)
@@ -209,7 +211,11 @@ const ContextMenu: React.FC<{
       {showConfirm && (
         <ConfirmModal
           title="Remove block from tree?"
-          message="This block has child blocks linked to it. Removing it will also disconnect all child links."
+          message={
+            isShared
+              ? 'This block is linked under multiple parents. Removing it from this parent will leave its children under its other parent.'
+              : 'This block has child blocks linked to it. Removing it will also promote its child blocks to this parent.'
+          }
           confirmLabel="Remove"
           onConfirm={onRemoveFromTree}
           onCancel={onClose}
@@ -231,6 +237,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
   onCreateLink,
   onDeleteLink,
   onDeleteLinks,
+  onReplaceLinks,
   onToggleThesis,
   onUndo,
   onRedo,
@@ -371,20 +378,64 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
   const handleRemoveFromTree = useCallback(() => {
     if (contextMenu && argumentLinks) {
-      if (contextMenu.parentId) {
-        // Remove only the link from this specific parent (detach from one parent)
-        // Link convention: sourceMarkId = child, targetMarkId = parent
+      const nodeId = contextMenu.nodeId;
+      const parentId = contextMenu.parentId;
+
+      if (parentId) {
+        // Remove the link from this specific parent
         const linkToParent = argumentLinks.find(
-          link =>
-            link.sourceMarkId === contextMenu.nodeId && link.targetMarkId === contextMenu.parentId
+          link => link.sourceMarkId === nodeId && link.targetMarkId === parentId
         );
-        if (linkToParent && onDeleteLink) {
-          onDeleteLink(linkToParent.id);
+
+        if (!linkToParent) {
+          closeContextMenu();
+          return;
+        }
+
+        // Determine if the node appears under multiple parents (shared node).
+        // If shared, only detach from this parent; otherwise remove the node entirely.
+        const parentLinkCount = argumentLinks.filter(l => l.sourceMarkId === nodeId).length;
+        const isShared = parentLinkCount > 1;
+
+        const deleteIds: string[] = [linkToParent.id];
+        const newLinks: ArgumentLink[] = [];
+
+        if (!isShared) {
+          // Promote the node's children to its parent so the parent stays connected.
+          const childLinks = argumentLinks.filter(l => l.targetMarkId === nodeId);
+          for (const childLink of childLinks) {
+            deleteIds.push(childLink.id);
+
+            // Avoid creating a duplicate link to the parent
+            const alreadyExists = argumentLinks.some(
+              l => l.sourceMarkId === childLink.sourceMarkId && l.targetMarkId === parentId
+            );
+            if (!alreadyExists) {
+              newLinks.push({
+                id: `link_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                sourceMarkId: childLink.sourceMarkId,
+                targetMarkId: parentId,
+                linkType: childLink.linkType,
+                createdAt: Date.now(),
+              });
+            }
+          }
+        }
+
+        if (onReplaceLinks) {
+          onReplaceLinks(deleteIds, newLinks);
+        } else if (onDeleteLink) {
+          deleteIds.forEach(id => onDeleteLink(id));
+          if (!isShared) {
+            newLinks.forEach(link =>
+              onCreateLink?.(link.sourceMarkId, link.targetMarkId, link.linkType)
+            );
+          }
         }
       } else {
         // Root node: remove all links (both directions) as a single undo step
-        const sourceLinks = argumentLinks.filter(link => link.sourceMarkId === contextMenu.nodeId);
-        const targetLinks = argumentLinks.filter(link => link.targetMarkId === contextMenu.nodeId);
+        const sourceLinks = argumentLinks.filter(link => link.sourceMarkId === nodeId);
+        const targetLinks = argumentLinks.filter(link => link.targetMarkId === nodeId);
         const linksToRemove = [...sourceLinks, ...targetLinks];
         if (linksToRemove.length === 0) {
           closeContextMenu();
@@ -392,7 +443,9 @@ export const TreeView: React.FC<TreeViewProps> = ({
         }
 
         const linkIds = linksToRemove.map(link => link.id);
-        if (onDeleteLinks) {
+        if (onReplaceLinks) {
+          onReplaceLinks(linkIds, []);
+        } else if (onDeleteLinks) {
           onDeleteLinks(linkIds);
         } else if (onDeleteLink) {
           linkIds.forEach(id => onDeleteLink(id));
@@ -400,7 +453,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
       }
       closeContextMenu();
     }
-  }, [contextMenu, onDeleteLink, onDeleteLinks, argumentLinks, closeContextMenu]);
+  }, [contextMenu, onDeleteLink, onDeleteLinks, onReplaceLinks, onCreateLink, argumentLinks, closeContextMenu]);
 
   // Linking handlers
   const startLinking = useCallback((sourceId: string) => {
@@ -946,6 +999,10 @@ export const TreeView: React.FC<TreeViewProps> = ({
           hasChildren={(() => {
             const node = tree.nodeMap.get(contextMenu.nodeId);
             return node ? node.children.length > 0 : false;
+          })()}
+          isShared={(() => {
+            const node = tree.nodeMap.get(contextMenu.nodeId);
+            return node ? node.parentIds.size > 1 : false;
           })()}
         />
       )}

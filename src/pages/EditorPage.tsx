@@ -1690,6 +1690,7 @@ export const EditorPage: React.FC = () => {
             onCreateLink={mapHistory.handleCreateLink}
             onDeleteLink={mapHistory.handleDeleteLink}
             onDeleteLinks={mapHistory.handleDeleteLinks}
+            onReplaceLinks={mapHistory.handleReplaceLinks}
             onToggleThesis={mapHistory.handleToggleThesis}
             onUndo={mapHistory.undo}
             onRedo={mapHistory.redo}

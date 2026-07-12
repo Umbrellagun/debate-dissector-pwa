@@ -530,6 +530,141 @@ describe('useMapHistory', () => {
     });
   });
 
+  describe('handleReplaceLinks', () => {
+    it('deletes and creates links in a single update', () => {
+      const linkA: ArgumentLink = {
+        id: 'link-a',
+        sourceMarkId: 'mark-b',
+        targetMarkId: 'mark-a',
+        linkType: 'supports',
+        createdAt: 1000,
+      };
+      const linkB: ArgumentLink = {
+        id: 'link-b',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-b',
+        linkType: 'supports',
+        createdAt: 2000,
+      };
+      let doc = makeDoc({ argumentLinks: [linkA, linkB] });
+      const setDoc = jest.fn((updater: React.SetStateAction<DebateDocument | null>) => {
+        if (typeof updater === 'function') doc = updater(doc) as DebateDocument;
+        else doc = updater as DebateDocument;
+      });
+
+      const newLink: ArgumentLink = {
+        id: 'link-c',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-a',
+        linkType: 'supports',
+        createdAt: 3000,
+      };
+
+      const { result } = renderHook(() => useMapHistory(doc, setDoc));
+
+      act(() => {
+        result.current.handleReplaceLinks(['link-a', 'link-b'], [newLink]);
+      });
+
+      expect(doc.argumentLinks).toHaveLength(1);
+      expect(doc.argumentLinks![0].id).toBe('link-c');
+      expect(result.current.canUndo).toBe(true);
+    });
+
+    it('undoes a replace as a single step', () => {
+      const linkA: ArgumentLink = {
+        id: 'link-a',
+        sourceMarkId: 'mark-b',
+        targetMarkId: 'mark-a',
+        linkType: 'supports',
+        createdAt: 1000,
+      };
+      const linkB: ArgumentLink = {
+        id: 'link-b',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-b',
+        linkType: 'supports',
+        createdAt: 2000,
+      };
+      let doc = makeDoc({ argumentLinks: [linkA, linkB] });
+      const setDoc = jest.fn((updater: React.SetStateAction<DebateDocument | null>) => {
+        if (typeof updater === 'function') doc = updater(doc) as DebateDocument;
+        else doc = updater as DebateDocument;
+      });
+
+      const newLink: ArgumentLink = {
+        id: 'link-c',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-a',
+        linkType: 'supports',
+        createdAt: 3000,
+      };
+
+      const { result } = renderHook(() => useMapHistory(doc, setDoc));
+
+      act(() => {
+        result.current.handleReplaceLinks(['link-a', 'link-b'], [newLink]);
+      });
+      expect(doc.argumentLinks).toHaveLength(1);
+
+      act(() => {
+        result.current.undo();
+      });
+
+      expect(doc.argumentLinks).toHaveLength(2);
+      expect(doc.argumentLinks!.map(l => l.id).sort()).toEqual(['link-a', 'link-b']);
+      expect(result.current.canUndo).toBe(false);
+      expect(result.current.canRedo).toBe(true);
+    });
+
+    it('redoes a replace as a single step', () => {
+      const linkA: ArgumentLink = {
+        id: 'link-a',
+        sourceMarkId: 'mark-b',
+        targetMarkId: 'mark-a',
+        linkType: 'supports',
+        createdAt: 1000,
+      };
+      const linkB: ArgumentLink = {
+        id: 'link-b',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-b',
+        linkType: 'supports',
+        createdAt: 2000,
+      };
+      let doc = makeDoc({ argumentLinks: [linkA, linkB] });
+      const setDoc = jest.fn((updater: React.SetStateAction<DebateDocument | null>) => {
+        if (typeof updater === 'function') doc = updater(doc) as DebateDocument;
+        else doc = updater as DebateDocument;
+      });
+
+      const newLink: ArgumentLink = {
+        id: 'link-c',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-a',
+        linkType: 'supports',
+        createdAt: 3000,
+      };
+
+      const { result } = renderHook(() => useMapHistory(doc, setDoc));
+
+      act(() => {
+        result.current.handleReplaceLinks(['link-a', 'link-b'], [newLink]);
+      });
+      act(() => {
+        result.current.undo();
+      });
+      act(() => {
+        result.current.redo();
+      });
+
+      expect(doc.argumentLinks).toHaveLength(1);
+      expect(doc.argumentLinks![0].id).toBe('link-c');
+      expect(result.current.canUndo).toBe(true);
+      expect(result.current.canRedo).toBe(false);
+    });
+  });
+
   describe('document switch', () => {
     it('clears history when document id changes', () => {
       let doc = makeDoc({ id: 'doc-1' });
