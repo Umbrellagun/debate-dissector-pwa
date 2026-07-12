@@ -453,7 +453,15 @@ export const TreeView: React.FC<TreeViewProps> = ({
       }
       closeContextMenu();
     }
-  }, [contextMenu, onDeleteLink, onDeleteLinks, onReplaceLinks, onCreateLink, argumentLinks, closeContextMenu]);
+  }, [
+    contextMenu,
+    onDeleteLink,
+    onDeleteLinks,
+    onReplaceLinks,
+    onCreateLink,
+    argumentLinks,
+    closeContextMenu,
+  ]);
 
   // Linking handlers
   const startLinking = useCallback((sourceId: string) => {

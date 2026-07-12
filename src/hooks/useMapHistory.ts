@@ -131,7 +131,10 @@ export function useMapHistory(
         if (!prev) return prev;
         return {
           ...prev,
-          argumentLinks: [...(prev.argumentLinks || []).filter(l => !idsToDelete.has(l.id)), ...newLinks],
+          argumentLinks: [
+            ...(prev.argumentLinks || []).filter(l => !idsToDelete.has(l.id)),
+            ...newLinks,
+          ],
           updatedAt: Date.now(),
         };
       });
