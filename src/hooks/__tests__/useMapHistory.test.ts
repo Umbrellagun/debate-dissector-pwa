@@ -390,6 +390,146 @@ describe('useMapHistory', () => {
     });
   });
 
+  describe('handleDeleteLinks', () => {
+    it('removes multiple links in a single update', () => {
+      const link1: ArgumentLink = {
+        id: 'link-1',
+        sourceMarkId: 'mark-a',
+        targetMarkId: 'mark-b',
+        linkType: 'supports',
+        createdAt: 1000,
+      };
+      const link2: ArgumentLink = {
+        id: 'link-2',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-d',
+        linkType: 'rebuts',
+        createdAt: 2000,
+      };
+      const link3: ArgumentLink = {
+        id: 'link-3',
+        sourceMarkId: 'mark-e',
+        targetMarkId: 'mark-f',
+        linkType: 'supports',
+        createdAt: 3000,
+      };
+      let doc = makeDoc({ argumentLinks: [link1, link2, link3] });
+      const setDoc = jest.fn((updater: React.SetStateAction<DebateDocument | null>) => {
+        if (typeof updater === 'function') doc = updater(doc) as DebateDocument;
+        else doc = updater as DebateDocument;
+      });
+
+      const { result } = renderHook(() => useMapHistory(doc, setDoc));
+
+      act(() => {
+        result.current.handleDeleteLinks(['link-1', 'link-3']);
+      });
+
+      expect(doc.argumentLinks).toHaveLength(1);
+      expect(doc.argumentLinks![0].id).toBe('link-2');
+      expect(result.current.canUndo).toBe(true);
+    });
+
+    it('undoes a batch link deletion as a single step', () => {
+      const link1: ArgumentLink = {
+        id: 'link-1',
+        sourceMarkId: 'mark-a',
+        targetMarkId: 'mark-b',
+        linkType: 'supports',
+        createdAt: 1000,
+      };
+      const link2: ArgumentLink = {
+        id: 'link-2',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-d',
+        linkType: 'rebuts',
+        createdAt: 2000,
+      };
+      let doc = makeDoc({ argumentLinks: [link1, link2] });
+      const setDoc = jest.fn((updater: React.SetStateAction<DebateDocument | null>) => {
+        if (typeof updater === 'function') doc = updater(doc) as DebateDocument;
+        else doc = updater as DebateDocument;
+      });
+
+      const { result } = renderHook(() => useMapHistory(doc, setDoc));
+
+      act(() => {
+        result.current.handleDeleteLinks(['link-1', 'link-2']);
+      });
+      expect(doc.argumentLinks).toHaveLength(0);
+
+      act(() => {
+        result.current.undo();
+      });
+      expect(doc.argumentLinks).toHaveLength(2);
+      expect(doc.argumentLinks!.map(l => l.id).sort()).toEqual(['link-1', 'link-2']);
+      expect(result.current.canUndo).toBe(false);
+      expect(result.current.canRedo).toBe(true);
+    });
+
+    it('redoes a batch link deletion as a single step', () => {
+      const link1: ArgumentLink = {
+        id: 'link-1',
+        sourceMarkId: 'mark-a',
+        targetMarkId: 'mark-b',
+        linkType: 'supports',
+        createdAt: 1000,
+      };
+      const link2: ArgumentLink = {
+        id: 'link-2',
+        sourceMarkId: 'mark-c',
+        targetMarkId: 'mark-d',
+        linkType: 'rebuts',
+        createdAt: 2000,
+      };
+      let doc = makeDoc({ argumentLinks: [link1, link2] });
+      const setDoc = jest.fn((updater: React.SetStateAction<DebateDocument | null>) => {
+        if (typeof updater === 'function') doc = updater(doc) as DebateDocument;
+        else doc = updater as DebateDocument;
+      });
+
+      const { result } = renderHook(() => useMapHistory(doc, setDoc));
+
+      act(() => {
+        result.current.handleDeleteLinks(['link-1', 'link-2']);
+      });
+      act(() => {
+        result.current.undo();
+      });
+      act(() => {
+        result.current.redo();
+      });
+
+      expect(doc.argumentLinks).toHaveLength(0);
+      expect(result.current.canUndo).toBe(true);
+      expect(result.current.canRedo).toBe(false);
+    });
+
+    it('delegates to handleDeleteLink when only one link is provided', () => {
+      const link1: ArgumentLink = {
+        id: 'link-1',
+        sourceMarkId: 'mark-a',
+        targetMarkId: 'mark-b',
+        linkType: 'supports',
+        createdAt: 1000,
+      };
+      let doc = makeDoc({ argumentLinks: [link1] });
+      const setDoc = jest.fn((updater: React.SetStateAction<DebateDocument | null>) => {
+        if (typeof updater === 'function') doc = updater(doc) as DebateDocument;
+        else doc = updater as DebateDocument;
+      });
+
+      const { result } = renderHook(() => useMapHistory(doc, setDoc));
+
+      act(() => {
+        result.current.handleDeleteLinks(['link-1']);
+      });
+
+      expect(doc.argumentLinks).toHaveLength(0);
+      expect(result.current.canUndo).toBe(true);
+    });
+  });
+
   describe('document switch', () => {
     it('clears history when document id changes', () => {
       let doc = makeDoc({ id: 'doc-1' });

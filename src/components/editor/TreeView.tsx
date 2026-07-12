@@ -107,6 +107,7 @@ export interface TreeViewProps {
     linkType: 'supports' | 'rebuts'
   ) => void;
   onDeleteLink?: (linkId: string) => void;
+  onDeleteLinks?: (linkIds: string[]) => void;
   onToggleThesis?: (markId: string) => void;
   onUndo?: () => void;
   onRedo?: () => void;
@@ -229,6 +230,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
   onStructuralClick,
   onCreateLink,
   onDeleteLink,
+  onDeleteLinks,
   onToggleThesis,
   onUndo,
   onRedo,
@@ -368,7 +370,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
   }, [contextMenu, onToggleThesis, closeContextMenu]);
 
   const handleRemoveFromTree = useCallback(() => {
-    if (contextMenu && onDeleteLink && argumentLinks) {
+    if (contextMenu && argumentLinks) {
       if (contextMenu.parentId) {
         // Remove only the link from this specific parent (detach from one parent)
         // Link convention: sourceMarkId = child, targetMarkId = parent
@@ -376,20 +378,29 @@ export const TreeView: React.FC<TreeViewProps> = ({
           link =>
             link.sourceMarkId === contextMenu.nodeId && link.targetMarkId === contextMenu.parentId
         );
-        if (linkToParent) {
+        if (linkToParent && onDeleteLink) {
           onDeleteLink(linkToParent.id);
         }
       } else {
-        // Root node: remove all links (both directions)
+        // Root node: remove all links (both directions) as a single undo step
         const sourceLinks = argumentLinks.filter(link => link.sourceMarkId === contextMenu.nodeId);
         const targetLinks = argumentLinks.filter(link => link.targetMarkId === contextMenu.nodeId);
-        [...sourceLinks, ...targetLinks].forEach(link => {
-          onDeleteLink(link.id);
-        });
+        const linksToRemove = [...sourceLinks, ...targetLinks];
+        if (linksToRemove.length === 0) {
+          closeContextMenu();
+          return;
+        }
+
+        const linkIds = linksToRemove.map(link => link.id);
+        if (onDeleteLinks) {
+          onDeleteLinks(linkIds);
+        } else if (onDeleteLink) {
+          linkIds.forEach(id => onDeleteLink(id));
+        }
       }
       closeContextMenu();
     }
-  }, [contextMenu, onDeleteLink, argumentLinks, closeContextMenu]);
+  }, [contextMenu, onDeleteLink, onDeleteLinks, argumentLinks, closeContextMenu]);
 
   // Linking handlers
   const startLinking = useCallback((sourceId: string) => {

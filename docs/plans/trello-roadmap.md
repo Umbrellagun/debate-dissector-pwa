@@ -50,7 +50,7 @@ Enhanced editing capabilities.
 - [ ] Tree view (hierarchical branching layout with staging area)
 - [ ] Sunburst view (radial argument structure visualization)
 - [x] Undo/redo for map operations (link create/delete, thesis toggle, keyboard shortcuts, toolbar buttons)
-- [ ] Batch undo for multi-link removals (e.g. "Remove from Tree")
+- [x] Batch undo for multi-link removals (e.g. "Remove from Tree")
 - [ ] Filter/group by markup type or speaker
 
 #### Claim & Evidence Markup
