@@ -29,6 +29,7 @@ const ZoomControls: React.FC = () => {
     <div
       id="tree-zoom-controls"
       data-role="zoom-controls"
+      data-no-export="true"
       className="absolute bottom-3 right-3 z-30 flex items-center gap-1 bg-white rounded-lg shadow-md border border-gray-200 p-1"
     >
       <button
@@ -826,6 +827,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
       <div
         id="tree-summary-bar"
         data-role="summary-bar"
+        data-no-export="true"
         className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-200 shrink-0"
       >
         {linkingState ? (

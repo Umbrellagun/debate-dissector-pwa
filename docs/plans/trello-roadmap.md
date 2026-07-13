@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** July 11, 2026
+**Last Updated:** July 13, 2026
 
 ### Foundation
 Core app setup and infrastructure.
@@ -111,6 +111,18 @@ Polish and usability improvements.
 - [x] Custom colors for rhetoric annotations
 - [x] Custom colors for claim & evidence markup
 - [x] Custom colors for speaker defaults
+
+### Freemium (Pro)
+Paid features for power users and teams.
+
+#### Export Options (Pro)
+- [x] Plain text export (free tier)
+- [x] Annotated HTML export
+- [x] JSON structured export
+- [x] PDF export with speaker colors and annotation highlights
+- [x] Argument map PNG/SVG image export
+- [x] Annotation statistics report PDF export
+- [x] Pro badge/gating on export options
 
 ### Sharing & Collaboration
 Share debates with others.

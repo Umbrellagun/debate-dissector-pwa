@@ -66,7 +66,8 @@ export type AnalyticsEvent =
   | 'map_link_deleted'
   | 'map_thesis_toggled'
   | 'map_undo'
-  | 'map_redo';
+  | 'map_redo'
+  | 'document_exported';
 
 export interface AnalyticsEventData {
   document_created: { title?: string };
@@ -131,6 +132,7 @@ export interface AnalyticsEventData {
   map_thesis_toggled: { markId: string; action: 'added' | 'removed' };
   map_undo: Record<string, never>;
   map_redo: Record<string, never>;
+  document_exported: { format: string };
 }
 
 // Module-level analytics opt-out flag. AppContext keeps this in sync with UserPreferences.
