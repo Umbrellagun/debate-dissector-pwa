@@ -6,7 +6,7 @@ A high-level feature roadmap for the Debate Dissector PWA.
 
 ## Progress Checklist
 
-**Last Updated:** July 13, 2026
+**Last Updated:** September 2, 2026
 
 ### Foundation
 Core app setup and infrastructure.

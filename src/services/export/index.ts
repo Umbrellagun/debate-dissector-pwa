@@ -36,6 +36,7 @@ export async function exportArgumentMapAsSvg(
 }
 
 export { exportDocumentAsText, exportDocumentAsHtml, exportDocumentAsJson, exportStatsReportAsPdf };
+export { waitForMapCaptureReady } from './mapExport';
 
 export type ExportFormat = 'text' | 'html' | 'json' | 'pdf' | 'map-png' | 'map-svg' | 'stats-pdf';
 

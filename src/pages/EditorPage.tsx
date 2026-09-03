@@ -51,6 +51,7 @@ import { calculateAnnotationStats } from '../utils/annotationStats';
 import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 import { useMapHistory } from '../hooks/useMapHistory';
 import { ExportDialog } from '../components/export';
+import { waitForMapCaptureReady } from '../services/export';
 
 export interface SharedDocumentState {
   sharedDebate: SharedDebate;
@@ -222,7 +223,6 @@ export const EditorPage: React.FC = () => {
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   const [editorViewMode, setEditorViewMode] = useState<'editor' | 'map'>('editor');
   const [showExportDialog, setShowExportDialog] = useState(false);
-  const [mapElement, setMapElement] = useState<HTMLElement | null>(null);
   const mapHistory = useMapHistory(currentDoc, setCurrentDoc);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
   const [requestCommentNonce, setRequestCommentNonce] = useState(0);
@@ -322,14 +322,13 @@ export const EditorPage: React.FC = () => {
     return extractStructuralMarkupStats(currentDoc.content);
   }, [currentDoc?.content]);
 
-  // Track the rendered map container so it can be exported as image
-  useEffect(() => {
-    if (editorViewMode === 'map') {
-      setMapElement(document.getElementById('argument-map-container'));
-    } else {
-      setMapElement(null);
-    }
-  }, [editorViewMode]);
+  // Ensure the argument map is mounted and laid out, then return its container
+  // so it can be captured. Lets map exports work from any view without the user
+  // manually switching first.
+  const ensureMapView = useCallback(async (): Promise<HTMLElement | null> => {
+    setEditorViewMode('map');
+    return waitForMapCaptureReady(() => document.getElementById('argument-map-container'));
+  }, []);
 
   // Calculate annotation statistics for the stats panel
   const annotationStats = useMemo(() => {
@@ -2077,8 +2076,7 @@ export const EditorPage: React.FC = () => {
           onClose={() => setShowExportDialog(false)}
           doc={currentDoc}
           preferences={preferences}
-          viewMode={editorViewMode}
-          mapElement={mapElement}
+          onEnsureMapView={ensureMapView}
           stats={annotationStats}
         />
       )}

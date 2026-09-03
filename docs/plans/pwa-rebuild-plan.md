@@ -90,7 +90,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Create speaker management UI (add, edit, remove speakers)
 - [x] Persist speaker assignments with document
 - [x] Add speaker filtering (show/hide specific speakers)
-- [ ] Export with speaker formatting preserved (HTML/PDF)
+- [x] Export with speaker formatting preserved (HTML/PDF)
 
 #### 3.5 Argument Map View
 **Design doc:** [argument-map-tree-design.md](argument-map-tree-design.md)
@@ -148,7 +148,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Keyboard navigation for tree view
 - [ ] Responsive layout for mobile (tree collapses to single-column, sunburst view-only)
 - [ ] Filter/group blocks by markup type or speaker
-- [ ] Export argument map as image or structured data
+- [x] Export argument map as image or structured data
 - [x] Zoom/pan navigation for large documents
 
 #### 3.6 Claim & Evidence Markup

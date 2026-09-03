@@ -4,13 +4,14 @@ const PDF_PAGE_WIDTH = 794; // A4 width in CSS pixels at 96 DPI
 const PDF_PAGE_HEIGHT = 1123; // A4 height in CSS pixels at 96 DPI
 const PDF_PIXEL_RATIO = 2;
 
-function createOffscreenContainer(htmlBody: string): HTMLDivElement {
+function createExportContainer(htmlBody: string): HTMLDivElement {
   const div = document.createElement('div');
   div.innerHTML = htmlBody;
   div.style.position = 'fixed';
-  div.style.left = '-9999px';
+  div.style.left = '0';
   div.style.top = '0';
   div.style.width = `${PDF_PAGE_WIDTH}px`;
+  div.style.boxSizing = 'border-box';
   div.style.backgroundColor = '#ffffff';
   div.style.color = '#111111';
   div.style.padding = '40px';
@@ -18,6 +19,8 @@ function createOffscreenContainer(htmlBody: string): HTMLDivElement {
   div.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
   div.style.fontSize = '14px';
   div.style.lineHeight = '1.6';
+  div.style.opacity = '0';
+  div.style.pointerEvents = 'none';
   document.body.appendChild(div);
   return div;
 }
@@ -66,12 +69,22 @@ async function splitImageToPdf(
 
 export async function exportHtmlBodyToPdf(htmlBody: string, filename: string): Promise<void> {
   const htmlToImage = await import('html-to-image');
-  const container = createOffscreenContainer(htmlBody);
+  const container = createExportContainer(htmlBody);
 
   try {
     const canvas = await htmlToImage.toCanvas(container, {
       pixelRatio: PDF_PIXEL_RATIO,
       width: PDF_PAGE_WIDTH,
+      backgroundColor: '#ffffff',
+      style: {
+        opacity: '1',
+        position: 'static',
+        left: 'auto',
+        top: 'auto',
+        margin: '0',
+        transform: 'none',
+        transformOrigin: 'top left',
+      },
     });
     await splitImageToPdf(canvas.toDataURL('image/png'), canvas.width, canvas.height, filename);
   } finally {
@@ -90,11 +103,23 @@ export async function exportElementToPdf(element: HTMLElement, filename: string)
 }
 
 export function exportDataUrl(dataUrl: string, filename: string, type: string): void {
-  const base64 = dataUrl.split(',')[1];
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  const commaIndex = dataUrl.indexOf(',');
+  const header = commaIndex >= 0 ? dataUrl.slice(0, commaIndex) : '';
+  const data = commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : dataUrl;
+
+  if (/;base64/i.test(header)) {
+    // Binary payload (e.g. PNG) encoded as base64.
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    downloadFile(bytes, filename, type);
+    return;
   }
-  downloadFile(bytes, filename, type);
+
+  // Non-base64 data URLs are percent-encoded text (e.g. html-to-image's toSvg
+  // returns `data:image/svg+xml;charset=utf-8,<escaped markup>`). Decode to the
+  // original markup and let the Blob handle UTF-8 encoding.
+  downloadFile(decodeURIComponent(data), filename, type);
 }

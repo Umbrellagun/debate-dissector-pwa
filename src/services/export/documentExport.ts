@@ -1,4 +1,3 @@
-import { Node } from 'slate';
 import { DebateDocument } from '../../models';
 import { CustomElement, CustomText } from '../../components/editor/types';
 import {
@@ -6,6 +5,7 @@ import {
   getRhetoricInfo,
   getStructuralInfo,
   isColorDark,
+  TagInfo,
 } from '../../components/editor/markTagUtils';
 import { downloadFile } from './download';
 
@@ -28,6 +28,58 @@ function isHidden(doc: DebateDocument, type: 'fallacy' | 'rhetoric' | 'structura
   if (type === 'fallacy') return doc.hiddenAnnotationIds.fallacyIds.includes(id);
   if (type === 'rhetoric') return doc.hiddenAnnotationIds.rhetoricIds.includes(id);
   return doc.hiddenAnnotationIds.structuralIds.includes(id);
+}
+
+function collectMarkInfos(
+  textNode: CustomText,
+  customColors?: Record<string, string>,
+  doc?: DebateDocument
+): TagInfo[] {
+  const infos: TagInfo[] = [];
+  const fallacyMarks = (textNode.fallacyMarks || []).filter(
+    m => !doc || !isHidden(doc, 'fallacy', m.fallacyId)
+  );
+  const rhetoricMarks = (textNode.rhetoricMarks || []).filter(
+    m => !doc || !isHidden(doc, 'rhetoric', m.rhetoricId)
+  );
+  const structuralMarks = (textNode.structuralMarks || []).filter(
+    m => !doc || !isHidden(doc, 'structural', m.markupId)
+  );
+
+  for (const mark of fallacyMarks) infos.push(getFallacyInfo(mark, customColors));
+  for (const mark of rhetoricMarks) infos.push(getRhetoricInfo(mark, customColors));
+  for (const mark of structuralMarks) infos.push(getStructuralInfo(mark, customColors));
+
+  // Legacy single-fallacy fallback
+  if (
+    textNode.fallacyId &&
+    fallacyMarks.length === 0 &&
+    (!doc || !isHidden(doc, 'fallacy', textNode.fallacyId))
+  ) {
+    infos.push(
+      getFallacyInfo(
+        {
+          id: 'legacy',
+          fallacyId: textNode.fallacyId,
+          color: textNode.fallacyColor || '#000',
+          appliedAt: 0,
+        },
+        customColors
+      )
+    );
+  }
+
+  return infos;
+}
+
+function renderAnnotationChips(infos: TagInfo[]): string {
+  if (infos.length === 0) return '';
+  return infos
+    .map(info => {
+      const textColor = isColorDark(info.color) ? '#ffffff' : '#111111';
+      return `<span style="display:inline-block;font-size:10px;font-weight:600;line-height:1.5;padding:0 5px;border-radius:8px;margin-left:3px;vertical-align:middle;white-space:nowrap;background-color:${info.color};color:${textColor};" title="${escapeHtml(`${info.category}: ${info.label}`)}">${escapeHtml(info.label)}</span>`;
+    })
+    .join('');
 }
 
 interface LeafStyle {
@@ -157,15 +209,16 @@ function renderTextToHtml(
 ): string {
   if (!textNode.text) return '';
   const { style, title } = getLeafStyleAndTitle(textNode, customColors, doc);
+  const chips = renderAnnotationChips(collectMarkInfos(textNode, customColors, doc));
   const text = escapeHtml(textNode.text);
   const styleAttr = Object.entries(style)
     .filter(([_, v]) => v !== undefined)
     .map(([k, v]) => `${k.replace(/([A-Z])/g, '-$1').toLowerCase()}:${v}`)
     .join(';');
   if (styleAttr) {
-    return `<span style="${styleAttr}" title="${escapeHtml(title)}">${text}</span>`;
+    return `<span style="${styleAttr}" title="${escapeHtml(title)}">${text}</span>${chips}`;
   }
-  return text;
+  return `${text}${chips}`;
 }
 
 function renderElementToHtml(
@@ -207,6 +260,15 @@ export function renderDocumentHtmlBody(
   return `<h1 style="font-size:28px;font-weight:700;margin-bottom:16px;">${escapeHtml(doc.title || 'Untitled')}</h1>${elements}`;
 }
 
+function renderTextNodeToPlainText(textNode: CustomText, doc?: DebateDocument): string {
+  const text = textNode.text || '';
+  if (!text) return '';
+  const infos = collectMarkInfos(textNode, undefined, doc);
+  if (infos.length === 0) return text;
+  const tags = infos.map(i => `${i.category}: ${i.label}`).join('; ');
+  return `${text} [${tags}]`;
+}
+
 export function exportDocumentAsText(doc: DebateDocument): void {
   const lines: string[] = [];
   if (doc.title) lines.push(doc.title, '');
@@ -216,7 +278,9 @@ export function exportDocumentAsText(doc: DebateDocument): void {
     const speakerId = 'speakerId' in element ? element.speakerId : undefined;
     const speaker = getSpeaker(doc, speakerId);
     const prefix = speaker ? `${speaker.name}: ` : '';
-    const text = Node.string(element);
+    const text = (element.children || [])
+      .map(child => renderTextNodeToPlainText(child as CustomText, doc))
+      .join('');
     if (element.type === 'heading-one') {
       lines.push(`# ${prefix}${text}`);
     } else if (element.type === 'heading-two') {

@@ -22,8 +22,11 @@ export interface ExportDialogProps {
   onClose: () => void;
   doc: DebateDocument;
   preferences: UserPreferences;
-  viewMode: 'editor' | 'map';
-  mapElement?: HTMLElement | null;
+  /**
+   * Switches the editor into map view (if needed), waits for the map to finish
+   * laying out, and resolves with its container element for capture.
+   */
+  onEnsureMapView: () => Promise<HTMLElement | null>;
   stats?: AnnotationStats;
 }
 
@@ -32,8 +35,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
   onClose,
   doc,
   preferences,
-  viewMode,
-  mapElement,
+  onEnsureMapView,
   stats,
 }) => {
   const { updatePreferences } = useApp();
@@ -64,18 +66,22 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
           await exportDocumentAsPdf(doc, preferences.customColors);
           trackAnalyticsEvent('document_exported', { format: 'pdf' });
           break;
-        case 'map-png':
-          if (mapElement) {
-            await exportArgumentMapAsPng(mapElement, doc);
+        case 'map-png': {
+          const el = await onEnsureMapView();
+          if (el) {
+            await exportArgumentMapAsPng(el, doc);
             trackAnalyticsEvent('document_exported', { format: 'map-png' });
           }
           break;
-        case 'map-svg':
-          if (mapElement) {
-            await exportArgumentMapAsSvg(mapElement, doc);
+        }
+        case 'map-svg': {
+          const el = await onEnsureMapView();
+          if (el) {
+            await exportArgumentMapAsSvg(el, doc);
             trackAnalyticsEvent('document_exported', { format: 'map-svg' });
           }
           break;
+        }
         case 'stats-pdf':
           if (stats) {
             await exportStatsReportAsPdf(doc, stats, preferences.customColors);
@@ -132,8 +138,6 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             const disabled =
               exporting !== null ||
               (option.pro && !isPro) ||
-              (option.requiresMap && viewMode !== 'map') ||
-              (option.requiresMap && !mapElement) ||
               (option.format === 'stats-pdf' && !stats);
             const active = !disabled;
 
@@ -154,11 +158,6 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
                     {option.pro && <ProBadge size="sm" />}
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
-                  {option.requiresMap && viewMode !== 'map' && (
-                    <p className="text-[10px] text-amber-600 mt-0.5">
-                      Switch to Map view to export
-                    </p>
-                  )}
                   {option.format === 'stats-pdf' && !stats && (
                     <p className="text-[10px] text-amber-600 mt-0.5">No statistics available</p>
                   )}
@@ -208,12 +207,16 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             <p className="text-xs text-gray-500 mb-2">
               Pro exports are locked. The upgrade flow is in development.
             </p>
-            <button
-              onClick={unlockPro}
-              className="w-full py-2 px-4 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm font-medium transition-colors"
-            >
-              Enable Pro for testing
-            </button>
+            {/* Dev-only unlock: removed from production builds via the NODE_ENV
+                guard so Pro cannot be enabled without a real billing flow. */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={unlockPro}
+                className="w-full py-2 px-4 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm font-medium transition-colors"
+              >
+                Enable Pro for testing
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -952,6 +952,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
             <div
               id="tree-roots-container"
               data-role="roots-container"
+              data-map-export-root="true"
               className="flex flex-col items-center gap-10"
             >
               {/* Render explicit thesis roots */}

@@ -989,7 +989,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
             wrapperStyle={{ width: '100%', height: '100%' }}
             contentStyle={{ padding: '2rem' }}
           >
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto" data-map-export-root="true">
               {/* Timeline rail + blocks */}
               <div ref={blocksContainerRef} className="relative pl-8">
                 {/* Vertical timeline line */}
