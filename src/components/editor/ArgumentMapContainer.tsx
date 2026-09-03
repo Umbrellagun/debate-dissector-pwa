@@ -88,6 +88,7 @@ export const ArgumentMapContainer: React.FC<ArgumentMapContainerProps> = props =
       <div
         id="view-mode-switcher"
         data-role="view-mode-switcher"
+        data-no-export="true"
         className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200"
       >
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">

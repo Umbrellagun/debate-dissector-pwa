@@ -87,28 +87,52 @@ jobs:
             fi
           done
           
-          # Total JS size check
-          echo ""
+          # Budget: measure the INITIAL-LOAD payload (asset-manifest entrypoints),
+          # not the sum of every chunk. Heavy features (jspdf, html-to-image,
+          # editor, charts) are lazy-loaded via dynamic import()/React.lazy and
+          # download only when used, so they must not count against first paint.
+          ENTRY_JS=$(node -e "const m=require('./build/asset-manifest.json'); console.log(m.entrypoints.filter(f=>f.endsWith('.js')).map(f=>f.split('/').pop()).join(' '))")
+          if [ -z "$ENTRY_JS" ]; then
+            echo "❌ FAIL: could not read entrypoints from asset-manifest.json"
+            exit 1
+          fi
+          echo "Initial-load entrypoints: $ENTRY_JS"
+
           total_js=0
+          initial_js=0
           for file in build/static/js/*.js; do
             if [ -f "$file" ]; then
-              gzip -k "$file"
-              size=$(stat -f%z "${file}.gz" 2>/dev/null || stat -c%s "${file}.gz")
+              size=$(gzip -c "$file" | wc -c)
               total_js=$((total_js + size))
-              rm "${file}.gz"
+              filename=$(basename "$file")
+              case " $ENTRY_JS " in
+                *" $filename "*) initial_js=$((initial_js + size)) ;;
+              esac
             fi
           done
+          initial_js_kb=$((initial_js / 1024))
           total_js_kb=$((total_js / 1024))
-          
-          echo "Total JS (gzipped): ${total_js_kb}KB"
-          
-          # Budget check: 300KB
-          if [ $total_js_kb -gt 300 ]; then
-            echo "❌ FAIL: JS bundle exceeds 300KB budget!"
-            exit 1
+
+          echo ""
+          echo "Initial-load JS (gzipped): ${initial_js_kb}KB  [budget 300KB]"
+          echo "Total JS incl. on-demand (gzipped): ${total_js_kb}KB  [ceiling 550KB]"
+
+          # First-paint budget: only the entrypoint bundle blocks initial render.
+          status=0
+          if [ "$initial_js_kb" -gt 300 ]; then
+            echo "❌ FAIL: initial-load JS exceeds 300KB budget!"
+            status=1
           else
-            echo "✅ PASS: JS bundle within 300KB budget"
+            echo "✅ PASS: initial-load JS within 300KB budget"
           fi
+          # Safety ceiling so total precached JS can't grow unbounded.
+          if [ "$total_js_kb" -gt 550 ]; then
+            echo "❌ FAIL: total JS exceeds 550KB ceiling!"
+            status=1
+          else
+            echo "✅ PASS: total JS within 550KB ceiling"
+          fi
+          exit $status
 
   performance-tests:
     name: Performance Unit Tests

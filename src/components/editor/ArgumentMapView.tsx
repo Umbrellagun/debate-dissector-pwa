@@ -29,6 +29,7 @@ const MapZoomControls: React.FC = () => {
     <div
       id="map-zoom-controls"
       data-role="zoom-controls"
+      data-no-export="true"
       className="absolute bottom-3 right-3 z-30 flex items-center gap-1 bg-white rounded-lg shadow-md border border-gray-200 p-1"
     >
       <button
@@ -885,6 +886,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
       <div
         id="map-summary-bar"
         data-role="summary-bar"
+        data-no-export="true"
         className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-200 shrink-0"
       >
         <span className="text-xs font-medium text-gray-500">
@@ -987,7 +989,7 @@ export const ArgumentMapView: React.FC<ArgumentMapViewProps> = ({
             wrapperStyle={{ width: '100%', height: '100%' }}
             contentStyle={{ padding: '2rem' }}
           >
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto" data-map-export-root="true">
               {/* Timeline rail + blocks */}
               <div ref={blocksContainerRef} className="relative pl-8">
                 {/* Vertical timeline line */}

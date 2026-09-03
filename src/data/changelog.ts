@@ -7,6 +7,18 @@ export interface VersionEntry {
 
 export const CHANGELOG: VersionEntry[] = [
   {
+    version: '1.14.0',
+    date: 'July 13, 2026',
+    title: 'Export Options (Pro)',
+    changes: [
+      'New export dialog from the editor with plain text (free) and rich formats (Pro)',
+      'Export documents as annotated HTML, JSON, or multi-page PDF with speaker colors and all overlapping annotation highlights',
+      'Export the full argument map as a PNG or SVG image',
+      'Export annotation statistics as a PDF report',
+      'Pro badge and gating on rich export options',
+    ],
+  },
+  {
     version: '1.13.0',
     date: 'July 11, 2026',
     title: 'Privacy Policy Transparency & Analytics Opt-Out',

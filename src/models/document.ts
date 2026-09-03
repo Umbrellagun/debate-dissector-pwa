@@ -85,6 +85,8 @@ export interface UserPreferences {
   customSpeakerColors: Record<number, string>;
   // Analytics opt-out preference
   disableAnalytics?: boolean;
+  // Subscription tier (Pro feature gating)
+  plan?: 'free' | 'pro';
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -109,6 +111,7 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   customColors: {},
   customSpeakerColors: {},
   disableAnalytics: false,
+  plan: 'free',
 };
 
 export interface DocumentVersion {

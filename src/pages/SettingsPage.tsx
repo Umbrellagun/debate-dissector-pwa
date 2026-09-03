@@ -654,6 +654,46 @@ export const SettingsPage: React.FC = () => {
             </div>
           </section>
 
+          {/* Dev-only: lets us unlock Pro export formats locally while billing is
+              pending. Removed from production builds via the NODE_ENV guard. */}
+          {process.env.NODE_ENV === 'development' && (
+            <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h2 className="text-sm font-semibold text-gray-900">Pro Features</h2>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Enable Pro features (dev)
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      Unlocks rich export formats while billing integration is pending.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={preferences.plan === 'pro'}
+                    onClick={() =>
+                      updatePreferences({ plan: preferences.plan === 'pro' ? 'free' : 'pro' })
+                    }
+                    id="pro-plan-toggle"
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                      preferences.plan === 'pro' ? 'bg-amber-500' : 'bg-gray-400'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        preferences.plan === 'pro' ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200">
               <h2 className="text-sm font-semibold text-gray-900">Legal</h2>

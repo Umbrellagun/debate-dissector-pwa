@@ -90,7 +90,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [x] Create speaker management UI (add, edit, remove speakers)
 - [x] Persist speaker assignments with document
 - [x] Add speaker filtering (show/hide specific speakers)
-- [ ] Export with speaker formatting preserved (HTML/PDF)
+- [x] Export with speaker formatting preserved (HTML/PDF)
 
 #### 3.5 Argument Map View
 **Design doc:** [argument-map-tree-design.md](argument-map-tree-design.md)
@@ -148,7 +148,7 @@ This plan outlines the process for recreating the Debate Dissector application a
 - [ ] Keyboard navigation for tree view
 - [ ] Responsive layout for mobile (tree collapses to single-column, sunburst view-only)
 - [ ] Filter/group blocks by markup type or speaker
-- [ ] Export argument map as image or structured data
+- [x] Export argument map as image or structured data
 - [x] Zoom/pan navigation for large documents
 
 #### 3.6 Claim & Evidence Markup
@@ -546,12 +546,12 @@ A freemium model where the core analysis experience remains free. Paid features 
 
 #### 11.1 Export Options (Pro)
 Free tier: plain text export. Pro tier unlocks rich export formats.
-- [ ] Export document as PDF with speaker colors and annotation highlights preserved
-- [ ] Export document as annotated HTML
-- [ ] Export argument map as PNG/SVG image
-- [ ] Export argument map as structured data (JSON)
-- [ ] Export annotation statistics report as PDF
-- [ ] Add "Pro" badge/gate on export buttons for free users
+- [x] Export document as PDF with speaker colors and annotation highlights preserved
+- [x] Export document as annotated HTML
+- [x] Export argument map as PNG/SVG image
+- [x] Export argument map as structured data (JSON)
+- [x] Export annotation statistics report as PDF
+- [x] Add "Pro" badge/gate on export buttons for free users
 
 #### 11.2 Custom Markup Types (Pro)
 Allow paid users to define their own annotation categories beyond the built-in set.

@@ -50,6 +50,8 @@ import { AnnotationStatsPanel } from '../components/stats';
 import { calculateAnnotationStats } from '../utils/annotationStats';
 import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 import { useMapHistory } from '../hooks/useMapHistory';
+import { ExportDialog } from '../components/export';
+import { waitForMapCaptureReady } from '../services/export';
 
 export interface SharedDocumentState {
   sharedDebate: SharedDebate;
@@ -220,6 +222,7 @@ export const EditorPage: React.FC = () => {
   const [hiddenSpeakerIds, setHiddenSpeakerIds] = useState<string[]>([]);
   const [pinnedSpeakerIds, setPinnedSpeakerIds] = useState<string[]>([]);
   const [editorViewMode, setEditorViewMode] = useState<'editor' | 'map'>('editor');
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const mapHistory = useMapHistory(currentDoc, setCurrentDoc);
   const [showCommentPanel, setShowCommentPanel] = useState(false);
   const [requestCommentNonce, setRequestCommentNonce] = useState(0);
@@ -318,6 +321,14 @@ export const EditorPage: React.FC = () => {
     if (!currentDoc?.content) return {};
     return extractStructuralMarkupStats(currentDoc.content);
   }, [currentDoc?.content]);
+
+  // Ensure the argument map is mounted and laid out, then return its container
+  // so it can be captured. Lets map exports work from any view without the user
+  // manually switching first.
+  const ensureMapView = useCallback(async (): Promise<HTMLElement | null> => {
+    setEditorViewMode('map');
+    return waitForMapCaptureReady(() => document.getElementById('argument-map-container'));
+  }, []);
 
   // Calculate annotation statistics for the stats panel
   const annotationStats = useMemo(() => {
@@ -1444,6 +1455,23 @@ export const EditorPage: React.FC = () => {
                 )}
               </button>
             )}
+            {/* Export - only for local documents */}
+            {!isViewingShared && currentDoc && (
+              <button
+                onClick={() => setShowExportDialog(true)}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
+                title="Export"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                </svg>
+              </button>
+            )}
             {/* Version history - only for local documents */}
             {!isViewingShared && (
               <button
@@ -2040,6 +2068,17 @@ export const EditorPage: React.FC = () => {
             </p>
           </div>
         </div>
+      )}
+
+      {currentDoc && (
+        <ExportDialog
+          isOpen={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+          doc={currentDoc}
+          preferences={preferences}
+          onEnsureMapView={ensureMapView}
+          stats={annotationStats}
+        />
       )}
     </MainLayout>
   );
