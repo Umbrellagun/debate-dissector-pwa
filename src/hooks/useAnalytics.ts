@@ -1,12 +1,13 @@
 /**
  * Analytics hook for tracking events with Umami
  *
- * Setup:
- * 1. Deploy Umami (https://umami.is/docs/install)
- * 2. Add your website in Umami dashboard
- * 3. Set environment variables:
+ * Setup (Umami Cloud - free Hobby tier):
+ * 1. Sign up at https://cloud.umami.is and add your website
+ * 2. Set environment variables:
+ *    - REACT_APP_UMAMI_SCRIPT_URL=https://cloud.umami.is/script.js
  *    - REACT_APP_UMAMI_WEBSITE_ID=your-website-id
- *    - REACT_APP_UMAMI_SCRIPT_URL=https://your-umami-instance.com/script.js
+ *
+ * See docs/guides/umami-setup.md for full instructions (incl. self-hosting).
  */
 
 import { useCallback } from 'react';
