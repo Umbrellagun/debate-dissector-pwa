@@ -188,6 +188,7 @@ App-wide capabilities.
 Groundwork for future features.
 
 #### Authentication
+_Detailed plan: [Authentication, Entitlement & Billing](auth-entitlement-plan.md) — accounts are optional (app works logged out) and login never overwrites local work._
 - [ ] User accounts (placeholder)
 - [ ] Login/signup UI
 
