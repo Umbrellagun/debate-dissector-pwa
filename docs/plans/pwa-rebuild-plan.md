@@ -313,6 +313,8 @@ This plan outlines the process for recreating the Debate Dissector application a
 ### Phase 6: Preparing for Future Features
 
 #### 6.1 Authentication Hooks
+**Design doc:** [auth-entitlement-plan.md](auth-entitlement-plan.md)
+
 - [ ] Create placeholder auth context
 - [ ] Design user profile data structure
 - [ ] Add auth state handling (without implementation)
@@ -631,6 +633,8 @@ Real-time voice-to-text with automatic speaker detection, enabling users to tran
 - [ ] Clear UI messaging that AI suggestions are starting points, not authoritative
 
 #### 11.7 Billing & Account Infrastructure
+**Design doc:** [auth-entitlement-plan.md](auth-entitlement-plan.md)
+
 - [ ] Choose payment provider (Stripe, Lemon Squeezy, etc.)
 - [ ] Implement subscription management (monthly/annual plans)
 - [ ] Create Pro upgrade UI and pricing page
