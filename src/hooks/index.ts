@@ -7,3 +7,5 @@ export type { AnalyticsEvent, AnalyticsEventData } from './useAnalytics';
 export { useFocusTrap } from './useFocusTrap';
 export { useAnnotationColors, resolveAnnotationColor } from './useAnnotationColors';
 export { useMapHistory } from './useMapHistory';
+export { useEntitlement, deriveEntitlement } from './useEntitlement';
+export type { Entitlement } from './useEntitlement';

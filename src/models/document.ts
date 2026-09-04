@@ -47,6 +47,9 @@ export interface DebateDocument {
   createdAt: number;
   updatedAt: number;
   tags?: string[];
+  // Owner association for future account sync (auth-entitlement-plan.md, seam C).
+  // Unset for local-only (guest) documents; set only when adopted into an account.
+  ownerId?: string;
 }
 
 export interface DocumentListItem {

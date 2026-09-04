@@ -30,11 +30,30 @@ function countAnnotationsInContent(content: Descendant[]): number {
   return count;
 }
 
+const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const ID_LENGTH = 15;
+
 /**
- * Generate a unique ID for documents
+ * Generate a globally-unique, PocketBase-compatible document ID.
+ *
+ * Matches PocketBase's default record id format ([a-z0-9]{15}) so a locally
+ * created document can later be uploaded to the backend under the same id
+ * without remapping (see docs/plans/auth-entitlement-plan.md, seam A).
  */
 export function generateDocumentId(): string {
-  return `doc_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const cryptoObj = globalThis.crypto;
+  let id = '';
+  if (cryptoObj && typeof cryptoObj.getRandomValues === 'function') {
+    const bytes = cryptoObj.getRandomValues(new Uint8Array(ID_LENGTH));
+    for (let i = 0; i < ID_LENGTH; i++) {
+      id += ID_ALPHABET[bytes[i] % ID_ALPHABET.length];
+    }
+  } else {
+    for (let i = 0; i < ID_LENGTH; i++) {
+      id += ID_ALPHABET[Math.floor(Math.random() * ID_ALPHABET.length)];
+    }
+  }
+  return id;
 }
 
 /**

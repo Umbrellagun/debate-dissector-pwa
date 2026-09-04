@@ -35,7 +35,7 @@ describe('Document Storage CRUD', () => {
       const doc = await createDocument();
 
       expect(doc).toBeDefined();
-      expect(doc.id).toMatch(/^doc_/);
+      expect(doc.id).toMatch(/^[a-z0-9]{15}$/);
       expect(doc.title).toBe('Untitled Debate');
       expect(doc.content).toEqual([{ type: 'paragraph', children: [{ text: '' }] }]);
       expect(doc.annotations).toEqual({});

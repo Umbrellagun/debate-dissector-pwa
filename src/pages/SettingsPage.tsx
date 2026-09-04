@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MainLayout, Header } from '../components/layout';
 import { useApp } from '../context';
-import { useInstallPrompt } from '../hooks';
+import { useInstallPrompt, useEntitlement } from '../hooks';
 import { getLatestVersion } from '../data/changelog';
 import { trackAnalyticsEvent } from '../hooks/useAnalytics';
 import { FALLACIES } from '../data/fallacies';
@@ -72,6 +72,7 @@ export const SettingsPage: React.FC = () => {
   const { state, updatePreferences } = useApp();
   const { preferences } = state;
   const { isInstalled, isInstallable, promptInstall } = useInstallPrompt();
+  const { isPro } = useEntitlement();
   const [emailCopied, setEmailCopied] = useState(false);
   const [showColorCustomization, setShowColorCustomization] = useState(false);
   const [colorSection, setColorSection] = useState<
@@ -674,18 +675,18 @@ export const SettingsPage: React.FC = () => {
                   <button
                     type="button"
                     role="switch"
-                    aria-checked={preferences.plan === 'pro'}
+                    aria-checked={isPro}
                     onClick={() =>
-                      updatePreferences({ plan: preferences.plan === 'pro' ? 'free' : 'pro' })
+                      updatePreferences({ plan: isPro ? 'free' : 'pro' })
                     }
                     id="pro-plan-toggle"
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                      preferences.plan === 'pro' ? 'bg-amber-500' : 'bg-gray-400'
+                      isPro ? 'bg-amber-500' : 'bg-gray-400'
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        preferences.plan === 'pro' ? 'translate-x-6' : 'translate-x-1'
+                        isPro ? 'translate-x-6' : 'translate-x-1'
                       }`}
                     />
                   </button>

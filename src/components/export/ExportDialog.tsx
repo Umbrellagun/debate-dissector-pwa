@@ -16,6 +16,7 @@ import {
   ExportFormat,
 } from '../../services/export';
 import { trackAnalyticsEvent } from '../../hooks/useAnalytics';
+import { deriveEntitlement } from '../../hooks/useEntitlement';
 
 export interface ExportDialogProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
 }) => {
   const { updatePreferences } = useApp();
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
-  const isPro = preferences.plan === 'pro';
+  const { isPro } = deriveEntitlement(preferences);
 
   if (!isOpen) return null;
 
