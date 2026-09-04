@@ -1,7 +1,7 @@
 # Authentication, Entitlement & Billing Plan
 
 **Status:** Design  
-**Last Updated:** September 3, 2026  
+**Last Updated:** September 4, 2026  
 **Related:** pwa-rebuild-plan.md § 6.1 Authentication Hooks, § 11.7 Billing & Account Infrastructure
 
 ---
@@ -79,7 +79,8 @@ These are hard requirements, not preferences. Every phase below must uphold them
                      └─────────────────────────────┘
 ```
 
-- **Identity:** PocketBase `users` collection. Email/password first; Google OAuth2 later.
+- **Identity:** PocketBase `users` collection. Email (password or email OTP) first; passkeys as an
+  additive enhancement; social login (OAuth2) opt-in and privacy-warned — see § 6.
 - **Client session:** `AuthContext` wraps `pb.authStore` (persisted to localStorage by the SDK),
   refreshes the token on app load, and exposes `user`, `isAuthenticated`, `isPro`, and auth actions.
 - **Entitlement:** owned by the backend, set only by the Stripe webhook (§ 7–8).
@@ -143,7 +144,59 @@ algorithm on first login and on every sync. **Union, never replace:**
 
 ## 6. Phase A — Minimal Accounts *(prerequisite)*
 
-**Goal:** optional email/password accounts on PocketBase, with the app still fully usable logged out.
+**Goal:** optional email accounts (password or passwordless email OTP) on PocketBase, with the app
+still fully usable logged out.
+
+### Authentication methods & sequencing (decision)
+
+We self-manage auth on PocketBase (no third-party auth vendor). Methods are layered so the
+**foundation is universally supported** and the **privacy/security upgrades are additive** — never a
+rip-out.
+
+1. **Email first (Phase A).** Ship email-based login — password **or** passwordless email OTP /
+   magic-link (both supported by PocketBase). This establishes the account model, the entitlement
+   plumbing, and — critically — the **email channel every other method needs for recovery**.
+   Universally supported; least ops.
+2. **Passkeys — additive enhancement, not the foundation (Phase A+/B).** Add WebAuthn passkeys as an
+   *optional, additional* method once the email base exists. Passkeys are the best privacy+security
+   option (no shared secret, phishing-resistant, no third-party data-sharing), but they are **not a
+   foundation for us** because (a) PocketBase has **no native passkey support** — it needs a federated
+   add-on (Hanko / SuperTokens / Zitadel) or native support landing first — and (b) they **still
+   require an email recovery fallback** for lost/unsynced devices. Email is built either way; passkeys
+   ride on top.
+3. **Social login (OAuth2) — opt-in only, with an explicit privacy warning (after the email base).**
+   A convenience, never a default or a wall. See "Social login" below.
+
+**Account recovery anchor:** email (password reset; OTP re-send; fallback for passkeys/social) is the
+durable recovery path across every method.
+
+#### Passkey support caveats (why they can't be the only method)
+- **Capability is near-universal** on modern, updated devices/browsers (Chrome, Edge, Safari, Firefox;
+  Windows 10/11, macOS, iOS 16+, Android 9+) — but **quality is uneven**.
+- **Synced** passkeys (the seamless cross-device UX) need recent OSes (iCloud Keychain, Google Password
+  Manager) or a cross-platform manager (1Password / Bitwarden). Older devices get **device-bound**
+  credentials only.
+- **Cross-ecosystem** use (create on Apple, sign in on Windows) falls back to a **QR + Bluetooth** hybrid
+  flow — functional but clunky.
+- **Windows** portable passkeys and **Firefox** passkey *creation* historically lagged; enterprise /
+  locked-down or older devices, and autofill ("conditional UI"), remain uneven.
+- **PWA → native wrap:** passkeys bind to the web **origin (RP ID)**; a future native shell needs
+  associated-domains / asset-links so credentials carry over.
+- **Conclusion:** always keep the email fallback; treat passkeys as a per-user upgrade, not a gate.
+
+#### Social login (opt-in, privacy-warned)
+- **Opt-in only.** Never the default, never required; email stays the primary path.
+- **Warn before the redirect.** The button shows a plain-language notice first. Suggested microcopy:
+  > *"Heads up: using Google/Apple sign-in shares a login with that company, so they'll know you use
+  > Debate Dissector. Your debates are never shared with them. Prefer maximum privacy? Use email or a
+  > passkey instead."*
+- **Provider choice reflects privacy.** Prefer **Apple** (Hide-My-Email; needs the Apple Developer
+  Program) and **GitHub** (technical audiences). **Avoid Meta/Facebook.** Google is acceptable as a
+  common option, behind the same warning.
+- **No third-party tracking SDKs.** Use PocketBase's **server-side OAuth2 redirect**; do not embed the
+  providers' JS SDKs (keeps their trackers out of the app).
+- **Link by verified email (seam D).** An OAuth sign-in whose verified email matches an existing account
+  **links to it** — never a duplicate.
 
 ### Backend
 - Configure the built-in `users` auth collection; set API rules (owner read/update, no public
@@ -160,6 +213,27 @@ algorithm on first login and on every sync. **Union, never replace:**
 ### Legal
 - ToS-acceptance checkbox on signup.
 - Privacy Policy update: email/account data collection.
+
+### Self-managed auth: security requirements (Phase A)
+
+We operate an auth server (PocketBase) rather than hand-rolling crypto — password hashing, tokens, and
+reset flows are PocketBase's job. Residual risk is **configuration, authorization, XSS, secrets, and
+ops**, so Phase A must include:
+
+- **XSS defense** (the #1 SPA risk — the SDK keeps the JWT in `localStorage`): a strict
+  **Content-Security-Policy**, no `dangerouslySetInnerHTML` on user/imported content, and sanitize any
+  rendered HTML (import/paste and HTML-export paths).
+- **Authorization, not just login:** every collection API rule is **owner-scoped**
+  (`@request.auth.id = ownerId`, ties to seam C), with a test asserting cross-account access is denied.
+- **Rate limiting:** PocketBase's built-in limiter **plus** Cloudflare WAF/bot rules in front.
+- **Secrets & admin surface:** JWT secret, superuser, SMTP (and later Stripe) creds live in **Fly.io
+  secrets** (never the repo); lock the admin UI behind Cloudflare Access / IP allowlist; MFA on admin.
+- **Email flows:** short-lived, single-use reset/OTP tokens; **SPF/DKIM/DMARC** on the sending domain;
+  verify email before granting Pro.
+- **Account enumeration:** keep login/signup/reset responses generic ("if an account exists, we emailed
+  a link").
+- **Ops & backups:** patch PocketBase promptly; encrypted auto-backups with a tested restore (backups
+  contain the auth DB).
 
 ---
 
@@ -234,7 +308,7 @@ to get right early and expensive to retrofit. Lock these down before/at Phase A.
 | **A. Document ID format** | id remap + reference rewrite + local migration when sync lands | Emit PocketBase-compatible, globally-unique ids | Small |
 | **B. Entitlement read** | swapping local→server entitlement touches many files | One `useEntitlement()` / `isPro` selector | Tiny |
 | **C. Ownership** | backfilling `ownerId` or repairing a premature required field | `ownerId?` optional, stamped only at adopt-time | Free (decision) |
-| **D. Identity linking** | email + OAuth on same email = split accounts to merge | Decide policy up front (defer OAuth or link by verified email) | Free (decision) |
+| **D. Identity linking** | email + OAuth on same email = split accounts to merge | **Decided:** link by verified email; social login opt-in + privacy-warned (§ 6) | Free (decision) |
 | **E. Entitlement source** | comps/education grants don't fit a Stripe-only model | Entitlement record with a `source` field | Small |
 | **F. Cloud sync** | inherently large (conflicts, tombstones, queue, merge UI) | Keep optional & deferred; A–C make it additive | N/A (deferred) |
 
@@ -260,8 +334,10 @@ versioned `idb` upgrade handles the field addition without a messy migration.
 
 ### D. Identity linking
 If we ship email/password now and add Google OAuth later, a user who signs in with Google under the
-same email creates a **second account** → split entitlement/data. **Decide up front:** either defer
-OAuth until sync exists, or link OAuth to an existing account by verified email from day one.
+same email creates a **second account** → split entitlement/data.
+**Decision:** link OAuth sign-ins to an existing account **by verified email** from day one (never a
+duplicate), and offer social login **opt-in only, behind a privacy warning** (§ 6). Email stays the
+primary path and recovery anchor.
 
 ### E. Entitlement source
 The revenue plan calls for **free access to Erie students/educators**. If "Pro" means "has an active
@@ -276,7 +352,7 @@ feature-add, and `syncQueue` shows it was anticipated. The binding rules for it 
 ### Do-now pre-work (before Phase A)
 - [ ] Switch `generateDocumentId()` to a PB-compatible, globally-unique id (keep old ids readable)
 - [ ] Introduce a single `useEntitlement()` / `isPro` selector (local impl for now)
-- [ ] Decide: OAuth timing + account-linking policy (seam D)
+- [x] Decided: link by verified email; social login opt-in + privacy-warned; passkeys additive later (§ 6)
 - [ ] Decide: entitlement `source` field shape (seam E)
 - [ ] Add optional `ownerId?` to the document model (unused until sync)
 
@@ -338,7 +414,9 @@ Render the registry as two clear columns — **On this device** vs **In your acc
 ## 12. Open Questions / Decisions
 
 - **Sign-up gating:** open registration vs invite/education-pilot gating for launch?
-- **OAuth providers:** ship Google OAuth2 in Phase A, or defer?
+- **OAuth providers (decided):** social login is **opt-in + privacy-warned**, **linked by verified
+  email**, and ships **after** the email base (not the first Phase A cut); prefer Apple/GitHub, avoid
+  Meta. See § 6.
 - **Cloud sync:** confirm documents stay local-only for v1 (recommended) and sync is a later,
   opt-in phase governed by § 5.3.
 - **Trial:** offer a Pro free trial (e.g., 14 days) at launch?
@@ -368,6 +446,9 @@ Render the registry as two clear columns — **On this device** vs **In your acc
 - [ ] `AuthContext` + `useAuth()` wrapping `pb.authStore` (persist + `authRefresh`)
 - [ ] Login / signup / forgot-password UI
 - [ ] Header account menu + sign-in/out
+- [ ] Auth base = email (password or OTP); passkeys deferred as an additive method (email = recovery)
+- [ ] Social login (if enabled) is opt-in, privacy-warned, and linked by verified email
+- [ ] Security: strict CSP; owner-scoped API rules + cross-account test; PocketBase + Cloudflare rate limits; secrets in Fly.io; SPF/DKIM/DMARC on email
 - [ ] Verify: app fully usable logged out; sign-out preserves local documents
 - [ ] **LEGAL:** ToS checkbox on signup; Privacy Policy update (account data)
 
